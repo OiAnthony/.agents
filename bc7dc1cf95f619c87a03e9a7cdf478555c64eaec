@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.10",
+  "base_commit_sha": "bc7dc1cf95f619c87a03e9a7cdf478555c64eaec",
+  "prompts": {
+    "4761f0859e56a78b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5a004b9-99f3-4da3-a81f-a8327180f2d7",
+        "model": "MiniMax-M2.7"
+      },
+      "human_author": "Anthony",
+      "messages": [],
+      "total_additions": 181,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
