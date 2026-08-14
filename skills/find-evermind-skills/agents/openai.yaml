@@ -1,0 +1,4 @@
+interface:
+  display_name: "Find EverMind Skills"
+  short_description: "Discover and install skills from the EverMind skill hub"
+  default_prompt: "Use $find-evermind-skills to find and evaluate a suitable skill from the EverMind skill hub."

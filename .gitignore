@@ -1,0 +1,32 @@
+# OS and editor state
+.DS_Store
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Python
+__pycache__/
+*.py[codz]
+.pytest_cache/
+.ruff_cache/
+
+# Agent runtime state
+hooks/
+backup/
+.workbuddy/
+.commandcode/
+skills/.system/
+skills/.nowledge-mem/
+
+# Locally managed skills
+skills/ccloud*/
+skills/develop-pi-tui-extension
+skills/html-effectiveness
+skills/rewrite-doc
+skills/writing-technical-articles
