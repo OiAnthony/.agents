@@ -55,6 +55,12 @@ flowchart LR
 
 实现、审查和归档建议使用独立 session，减少实现上下文对审查判断的影响。
 
+## 致谢
+
+- [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) 与 [Karpathy-Inspired Claude Code Guidelines](https://github.com/multica-ai/andrej-karpathy-skills) — Agent 行为规范的早期来源
+- [Waza](https://github.com/tw93/Waza) — AI skill 系列
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — 规范驱动开发工作流
+
 ## 更新流程
 
 1. 在本仓库的独立 clone 中修改并验证。
