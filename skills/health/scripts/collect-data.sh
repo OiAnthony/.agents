@@ -9,12 +9,13 @@
 #   MEMORY.md path          -> built via sed on pwd; unusual chars produce wrong project key; verify manually if (none) seems wrong
 #   Conversation scope      -> summary scans 3 recent previous project files across Claude/Codex; deep streams all previous project files; every file modified in the live window is excluded
 #   MCP token estimate      -> assumes ~25 tools/server, ~200 tokens/tool; treat as directional, not precise
-#   Tier misclassification  -> .next/, __pycache__, .turbo/ can inflate file count; recheck manually if tier feels wrong
 set -euo pipefail
 
 P=$(pwd)
 SETTINGS="$P/.claude/settings.local.json"
-TIER="${1:-auto}"
+# The first argument is retained for launcher compatibility. It is an audit
+# hint only; file, contributor, and skill counts never select requirements.
+AUDIT_HINT="${1:-auto}"
 MODE="${2:-summary}"
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 case "$SCRIPT_PATH" in
@@ -820,27 +821,15 @@ PROJECT_FILES=$(count_project_files)
 CONTRIBUTORS=$(count_contributors)
 CI_WORKFLOWS=$(count_ci_workflows)
 
-echo "[1/12] Tier metrics..."
-echo "=== TIER METRICS ==="
+echo "[1/12] Project signals..."
+echo "=== PROJECT SIGNALS ==="
 echo "project_files: $PROJECT_FILES"
 echo "contributors: $CONTRIBUTORS"
 echo "ci_workflows:  $CI_WORKFLOWS"
 echo "skills:        $(count_local_skills)"
 echo "claude_md_lines: $(count_file_lines "$P/CLAUDE.md")"
 echo "collection_mode: $MODE"
-
-# Auto-detect tier if not passed as argument.
-# Matches SKILL.md definition: Simple = <500 files AND <=1 contributor AND no CI.
-if [ "$TIER" = "auto" ]; then
-  if [ "${PROJECT_FILES:-0}" -lt 500 ] && [ "${CONTRIBUTORS:-0}" -le 1 ] && [ "${CI_WORKFLOWS:-0}" -eq 0 ]; then
-    TIER="simple"
-  elif [ "${PROJECT_FILES:-0}" -lt 5000 ]; then
-    TIER="standard"
-  else
-    TIER="complex"
-  fi
-fi
-echo "detected_tier: $TIER"
+echo "audit_hint: $AUDIT_HINT"
 
 echo "[2/12] CLAUDE.md (global + local)..."
 echo "=== CLAUDE.md (global) ==="
@@ -1057,7 +1046,7 @@ else
   echo "(unavailable)"
 fi
 
-if [ "$TIER" != "simple" ] && [ "$MODE" = "deep" ]; then
+if [ "$MODE" = "deep" ]; then
 echo "=== MCP ACCESS DENIALS ==="
 print_mcp_access_denials
 else
@@ -1163,7 +1152,7 @@ done < <(skill_roots)
 [ "$_PROVENANCE_SHOWN" -le 100 ] || echo "skill_provenance_truncated: $((_PROVENANCE_SHOWN - 100))"
 
 echo "[12/12] Full skill security scan..."
-if [ "$TIER" != "simple" ] && [ "$MODE" = "deep" ]; then
+if [ "$MODE" = "deep" ]; then
 echo "=== SKILL SECURITY SCAN ==="
 _SKILL_SCAN_FILES=()
 while IFS= read -r f; do

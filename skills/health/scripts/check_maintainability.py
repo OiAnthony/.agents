@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """AI maintainability audit: project shape, context surface, verification surface,
-decision artifacts, drift markers, hotspot ownership, markdown links.
+decision artifacts, drift markers, generated mirrors, and markdown links.
 
 Run as: python3 check_maintainability.py [ROOT] [summary|deep]
 """
@@ -43,20 +43,69 @@ MAKE_RE = re.compile(r"^([A-Za-z0-9_.-]+)\s*:(?![=])")
 MAKE_CMD_RE = re.compile(r"\bmake\s+([A-Za-z0-9_.-]+)\b")
 NPM_CMD_RE = re.compile(r"\b(?:npm|pnpm|yarn|bun)\s+run\s+([A-Za-z0-9:_-]+)\b")
 COMMAND_LINE_RE = re.compile(r"^(?:make|npm|pnpm|yarn|bun)\s+")
+VERIFIER_NAME_RE = re.compile(
+    r"(?:^|[-_:.])(test|check|lint|type|build|package|verify|smoke)(?:$|[-_:.])",
+    re.IGNORECASE,
+)
+HOLLOW_COMMAND_RE = re.compile(
+    r"^(?:echo\b.*|printf\b.*|true|false|:|exit(?:\s+\d+)?|set\s+-[^\s]+|"
+    r"cd\b.*|(?:export|readonly|local)\b.*|trap\b.*|umask\b.*|"
+    r"(?:mkdir|touch|chmod|chown|cp|mv|rm)\b.*|"
+    r"[A-Za-z_][A-Za-z0-9_]*=.*)$",
+    re.IGNORECASE,
+)
+SHELL_OPTION_RE = re.compile(
+    r"^set(?:\s+[-+][A-Za-z0-9_-]+)*(?:\s+[A-Za-z0-9_-]+)*$",
+    re.IGNORECASE,
+)
+VERIFIER_COMMAND_RE = re.compile(
+    r"(?:"
+    r"^(?:test|\[)\s+|"
+    r"\bgit\s+diff\s+--check\b|"
+    r"^(?:sudo\s+)?(?:shellcheck|pytest|ruff|mypy|eslint|stylelint|biome|hadolint)\b|"
+    r"\bpython(?:3)?\s+-m\s+(?:pytest|unittest|compileall|py_compile)\b|"
+    r"\b(?:cargo|go|mvn|gradle|deno)\s+(?:test|check|build|verify|vet|clippy)\b|"
+    r"\b(?:npm|pnpm|yarn|bun)\s+(?:test|check|lint|build|verify|pack)\b|"
+    r"(?:^|[\s/])[A-Za-z0-9_.-]*(?:test|check|verify|lint|smoke|build)"
+    r"[A-Za-z0-9_./-]*\.(?:sh|py)\b"
+    r")",
+    re.IGNORECASE,
+)
+SETUP_ONLY_COMMAND_RE = re.compile(
+    r"(?:"
+    r"\b(?:apt-get|apt|brew)\s+(?:install|update|upgrade)\b|"
+    r"\bpython(?:3)?\s+-m\s+pip\s+install\b|"
+    r"\bpip(?:3)?\s+install\b|"
+    r"\b(?:npm|pnpm|yarn|bun)\s+(?:install|add|publish|view)\b|"
+    r"\b(?:curl|wget)\b|"
+    r"--version\b"
+    r")",
+    re.IGNORECASE,
+)
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 URL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
-HOTSPOT_WORD_RE = re.compile(
-    r"(hotspot|large file|ownership|owner|boundary|module|owned|owns|"
-    r"负责|边界|模块|热点|大文件)",
-    re.IGNORECASE,
-)
-VERIFICATION_WORD_RE = re.compile(
-    r"(verification|verify|test|check|make\s+\w+|pytest|go test|cargo test|"
-    r"npm test|npm run|pnpm|yarn|swift test|xcodebuild|验证|测试)",
-    re.IGNORECASE,
-)
 MAX_TEXT_BYTES = 2_000_000
 MAX_MIRROR_DIGEST_BYTES = 16_000_000
+SECRET_TOKEN_RE = re.compile(
+    r"\b(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|"
+    r"github_pat_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{10,}|"
+    r"AKIA[A-Z0-9]{16}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\."
+    r"[A-Za-z0-9_-]{10,})\b"
+)
+SECRET_ASSIGNMENT_RE = re.compile(
+    r"(?P<name>\b(?:authorization|password|passwd|pwd|token|secret|api[_-]?key)\b)"
+    r"(?P<separator>\s*[:=]\s*)(?:Bearer\s+|Basic\s+)?"
+    r"(?:\"[^\"\r\n]*(?:\"|(?=\r?\n|\Z))|'[^'\r\n]*(?:'|(?=\r?\n|\Z))|"
+    r"[^\s,;]+)",
+    re.IGNORECASE,
+)
+PRIVATE_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:~[/\\]|/(?:Users|home|private|tmp|var)/)"
+    r"[^\s`\"'<>]+"
+)
+WINDOWS_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:[A-Za-z]:\\|\\\\)[^\s`\"'<>]+"
+)
 
 
 # The file-walk helpers below are deliberately duplicated in
@@ -77,6 +126,17 @@ def safe_label(value: str, limit: int = 500) -> str:
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
         value = json.dumps(value, ensure_ascii=False)
     return value if len(value) <= limit else f"{value[: limit - 3]}..."
+
+
+def redact_command_label(value: str) -> str:
+    """Keep verifier inventory useful without emitting secrets or host paths."""
+    value = SECRET_TOKEN_RE.sub("[REDACTED]", value)
+    value = SECRET_ASSIGNMENT_RE.sub(
+        lambda match: f"{match.group('name')}{match.group('separator')}[REDACTED]",
+        value,
+    )
+    value = PRIVATE_PATH_RE.sub("[PATH]", value)
+    return WINDOWS_PATH_RE.sub("[PATH]", value)
 
 
 def is_excluded(path: Path, root: Path) -> bool:
@@ -316,6 +376,27 @@ def instruction_paths(root: Path) -> list[Path]:
     ]
 
 
+def has_substantive_instruction_evidence(path: Path, root: Path) -> bool:
+    """Reject empty/frontmatter/heading-only placeholders as context evidence."""
+    in_frontmatter = False
+    frontmatter_seen = False
+    for raw_line in read_text(path, root, 200_000).splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line == "---" and not frontmatter_seen:
+            in_frontmatter = True
+            frontmatter_seen = True
+            continue
+        if line == "---" and in_frontmatter:
+            in_frontmatter = False
+            continue
+        if in_frontmatter or line.startswith("#") or line.startswith("<!--"):
+            continue
+        return True
+    return False
+
+
 def find_text_signal(paths: list[Path], patterns: list[str], root: Path) -> bool:
     regexes = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
     for path in paths:
@@ -325,46 +406,69 @@ def find_text_signal(paths: list[Path], patterns: list[str], root: Path) -> bool
     return False
 
 
-def parse_makefile(root: Path) -> tuple[set[str], list[str]]:
+def parse_makefile(
+    root: Path,
+) -> tuple[set[str], list[str], dict[str, tuple[list[str], list[str]]]]:
     makefile = root / "Makefile"
     targets: set[str] = set()
     commands: list[str] = []
+    specs: dict[str, tuple[list[str], list[str]]] = {}
     if not is_repo_file(makefile, root):
-        return targets, commands
+        return targets, commands, specs
+    current_target: str | None = None
     for line in read_text(makefile, root).splitlines():
         match = MAKE_RE.match(line)
-        if not match:
+        if match:
+            target = match.group(1)
+            current_target = None
+            if target.startswith("."):
+                continue
+            targets.add(target)
+            remainder = line.split(":", 1)[1]
+            dependencies_text, separator, inline_recipe = remainder.partition(";")
+            dependencies = [
+                item for item in dependencies_text.split()
+                if not item.startswith("#") and not item.startswith("$")
+            ]
+            recipes = [inline_recipe.strip()] if separator and inline_recipe.strip() else []
+            specs[target] = (dependencies, recipes)
+            current_target = target
+            if VERIFIER_NAME_RE.search(target):
+                commands.append(f"make {target}")
             continue
-        target = match.group(1)
-        if target.startswith("."):
-            continue
-        targets.add(target)
-        if re.search(r"(test|check|lint|type|build|package|verify|smoke)", target, re.IGNORECASE):
-            commands.append(f"make {target}")
-    return targets, commands
+        if current_target and line.startswith("\t"):
+            dependencies, recipes = specs[current_target]
+            recipes.append(line.strip())
+        elif line.strip() and not line.lstrip().startswith("#"):
+            current_target = None
+    return targets, commands, specs
 
 
-def parse_package_json(root: Path) -> tuple[set[str], list[str]]:
+def parse_package_json(root: Path) -> tuple[set[str], list[str], dict[str, str]]:
     package = root / "package.json"
     script_names: set[str] = set()
     commands: list[str] = []
+    script_specs: dict[str, str] = {}
     if not is_repo_file(package, root):
-        return script_names, commands
+        return script_names, commands, script_specs
     try:
         data = json.loads(read_text(package, root))
     except json.JSONDecodeError:
-        return script_names, commands
+        return script_names, commands, script_specs
     scripts = data.get("scripts", {})
     if not isinstance(scripts, dict):
-        return script_names, commands
+        return script_names, commands, script_specs
     for name in sorted(scripts):
         script_names.add(name)
-        if re.search(r"(test|check|lint|type|build|verify)", name, re.IGNORECASE):
+        value = scripts[name]
+        if isinstance(value, str):
+            script_specs[name] = value
+        if VERIFIER_NAME_RE.search(name):
             commands.append(f"npm run {name}")
-    return script_names, commands
+    return script_names, commands, script_specs
 
 
-def parse_ci_commands(root: Path) -> list[str]:
+def parse_ci_commands(root: Path) -> list[tuple[str, str]]:
     workflows_dir = root / ".github" / "workflows"
     workflows = (
         sorted(path for path in workflows_dir.glob("*.yml") if is_repo_file(path, root))
@@ -374,19 +478,168 @@ def parse_ci_commands(root: Path) -> list[str]:
         sorted(path for path in workflows_dir.glob("*.yaml") if is_repo_file(path, root))
         if is_repo_dir(workflows_dir, root) else []
     )
-    commands: list[str] = []
+    commands: list[tuple[str, str]] = []
     for workflow in workflows:
-        for raw in read_text(workflow, root).splitlines():
+        lines = read_text(workflow, root).splitlines()
+        index = 0
+        while index < len(lines):
+            raw = lines[index]
             line = raw.strip()
             if line.startswith("- run:"):
-                command = line.split("- run:", 1)[1].strip().strip("'\"")
+                command = line.split("- run:", 1)[1].strip()
             elif line.startswith("run:"):
-                command = line.split("run:", 1)[1].strip().strip("'\"")
+                command = line.split("run:", 1)[1].strip()
             else:
+                index += 1
                 continue
-            if command and command != "|":
-                commands.append(f"{rel(workflow, root)}: {command}")
+            if command in {"|", ">", "|-", ">-"}:
+                base_indent = len(raw) - len(raw.lstrip())
+                block: list[str] = []
+                index += 1
+                while index < len(lines):
+                    candidate = lines[index]
+                    candidate_indent = len(candidate) - len(candidate.lstrip())
+                    if candidate.strip() and candidate_indent <= base_indent:
+                        break
+                    if candidate.strip():
+                        block.append(candidate.strip())
+                    index += 1
+                command = "; ".join(block)
+            else:
+                if len(command) >= 2 and command[0] == command[-1] and command[0] in "'\"":
+                    command = command[1:-1]
+                index += 1
+            if command:
+                label = redact_command_label(f"{rel(workflow, root)}: {command}")
+                commands.append((label, command))
     return commands
+
+
+def shell_script_has_verifier_evidence(path: Path, root: Path) -> bool:
+    """Reject scripts whose only behavior is setup, printing, or a fixed exit."""
+    text = read_text(path, root, 200_000)
+    meaningful: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#!") or line.startswith("#"):
+            continue
+        normalized = line.lstrip("@-+")
+        normalized = re.split(r"\s+#", normalized, maxsplit=1)[0].rstrip()
+        if (
+            HOLLOW_COMMAND_RE.fullmatch(normalized)
+            or SHELL_OPTION_RE.fullmatch(normalized)
+            or SETUP_ONLY_COMMAND_RE.search(normalized)
+        ):
+            continue
+        meaningful.append(line)
+    return bool(meaningful)
+
+
+def command_is_verifier_candidate(command: str) -> bool:
+    """Return whether a command claims or resembles a verification entrypoint."""
+    normalized = command.strip().lstrip("@-+").strip()
+    if any(VERIFIER_NAME_RE.search(target) for target in MAKE_CMD_RE.findall(normalized)):
+        return True
+    if any(VERIFIER_NAME_RE.search(script) for script in NPM_CMD_RE.findall(normalized)):
+        return True
+    script_call = re.search(r"(?:^|\s)(?:bash\s+|sh\s+)?([^\s;&|]+)", normalized)
+    if script_call and VERIFIER_NAME_RE.search(Path(script_call.group(1)).name):
+        return True
+    return bool(VERIFIER_COMMAND_RE.search(normalized))
+
+
+def command_has_verifier_evidence(
+    command: str,
+    root: Path,
+    make_specs: dict[str, tuple[list[str], list[str]]],
+    package_specs: dict[str, str],
+    visiting: frozenset[str] = frozenset(),
+    trusted_entrypoint: bool = False,
+) -> bool:
+    """Return whether a discovered command can do more than print or exit."""
+    normalized = command.strip().lstrip("@-+").strip()
+    if not normalized:
+        return False
+
+    make_only = re.fullmatch(
+        r"(?:make|\$\(MAKE\))\s+([A-Za-z0-9_.-]+)(?:\s+[^;&|]+)?", normalized
+    )
+    if make_only:
+        target = make_only.group(1)
+        if not trusted_entrypoint and not VERIFIER_NAME_RE.search(target):
+            return False
+        key = f"make:{target}"
+        if key in visiting or target not in make_specs:
+            return False
+        dependencies, recipes = make_specs[target]
+        next_visiting = visiting | {key}
+        if any(
+            command_has_verifier_evidence(
+                recipe, root, make_specs, package_specs, next_visiting, True
+            )
+            for recipe in recipes
+        ):
+            return True
+        return any(
+            command_has_verifier_evidence(
+                f"make {dependency}", root, make_specs, package_specs, next_visiting, True
+            )
+            for dependency in dependencies
+            if dependency in make_specs
+        )
+
+    package_only = re.fullmatch(
+        r"(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?([A-Za-z0-9:_-]+)(?:\s+[^;&|]+)?",
+        normalized,
+    )
+    if package_only:
+        script = package_only.group(1)
+        builtin_verifier = script == "pack" and "--dry-run" in normalized
+        if (
+            not trusted_entrypoint
+            and not builtin_verifier
+            and not VERIFIER_NAME_RE.search(script)
+        ):
+            return False
+        key = f"package:{script}"
+        if key in visiting:
+            return False
+        if script in package_specs:
+            return command_has_verifier_evidence(
+                package_specs[script], root, make_specs, package_specs, visiting | {key}, True
+            )
+        if re.match(r"(?:npm|pnpm|yarn|bun)\s+run\s+", normalized):
+            return False
+        if not builtin_verifier:
+            return False
+
+    script_call = re.fullmatch(
+        r"(?:(?:bash|sh)\s+)?(\.?\.?/[A-Za-z0-9_./-]+\.sh)(?:\s+.*)?",
+        normalized,
+    )
+    if script_call:
+        script_path = root / script_call.group(1)
+        named_as_verifier = bool(VERIFIER_NAME_RE.search(script_path.name))
+        return (trusted_entrypoint or named_as_verifier) and shell_script_has_verifier_evidence(
+            script_path, root
+        )
+
+    fragments = [
+        fragment.strip().lstrip("@-+").strip()
+        for fragment in re.split(r"\s*(?:&&|\|\||;)\s*", normalized)
+        if fragment.strip()
+    ]
+    substantive = [
+        fragment for fragment in fragments
+        if not HOLLOW_COMMAND_RE.fullmatch(fragment)
+        and not SHELL_OPTION_RE.fullmatch(fragment)
+        and not SETUP_ONLY_COMMAND_RE.search(fragment)
+    ]
+    if not substantive:
+        return False
+    return trusted_entrypoint or any(
+        VERIFIER_COMMAND_RE.search(fragment) for fragment in substantive
+    )
 
 
 def scan_markdown_links(files: list[Path], root: Path) -> list[str]:
@@ -414,22 +667,59 @@ def scan_markdown_links(files: list[Path], root: Path) -> list[str]:
 
 
 def verification_surface(
-    root: Path, instruction_files: list[Path]
-) -> tuple[list[str], list[str], set[str], set[str]]:
-    make_targets, make_commands = parse_makefile(root)
-    package_scripts, package_commands = parse_package_json(root)
-    commands = make_commands + package_commands + parse_ci_commands(root)
+    root: Path, instruction_files: list[Path], files: list[Path]
+) -> tuple[list[str], list[str], list[str], list[str], set[str], set[str]]:
+    make_targets, make_commands, make_specs = parse_makefile(root)
+    package_scripts, package_commands, package_specs = parse_package_json(root)
+    ci_commands = parse_ci_commands(root)
+    commands = make_commands + package_commands + [label for label, _ in ci_commands]
+    evidence: list[str] = []
+    hollow: list[str] = []
+
+    for command in make_commands + package_commands:
+        destination = evidence if command_has_verifier_evidence(
+            command, root, make_specs, package_specs
+        ) else hollow
+        destination.append(command)
+    for label, raw_command in ci_commands:
+        if command_has_verifier_evidence(raw_command, root, make_specs, package_specs):
+            evidence.append(label)
+        elif command_is_verifier_candidate(raw_command):
+            hollow.append(label)
 
     if is_repo_file(root / "Cargo.toml", root):
         commands.extend(["cargo test", "cargo check"])
+        evidence.extend(["cargo test", "cargo check"])
     if is_repo_file(root / "go.mod", root):
         commands.append("go test ./...")
-    if is_repo_file(root / "pyproject.toml", root) or is_repo_file(root / "pytest.ini", root):
+        evidence.append("go test ./...")
+    pyproject = root / "pyproject.toml"
+    pytest_configured = is_repo_file(root / "pytest.ini", root) or (
+        is_repo_file(pyproject, root)
+        and bool(re.search(r"\bpytest\b", read_text(pyproject, root, 200_000), re.IGNORECASE))
+    )
+    python_tests_present = any(
+        path.suffix.lower() == ".py"
+        and (
+            path.name.startswith("test_")
+            or path.name.endswith("_test.py")
+            or any(
+                part.lower() in {"test", "tests", "spec", "specs"}
+                for part in path.relative_to(root).parts[:-1]
+            )
+        )
+        for path in files
+    )
+    if pytest_configured:
         commands.append("pytest")
+        if python_tests_present:
+            evidence.append("pytest")
     if is_repo_file(root / "pom.xml", root):
         commands.append("mvn test")
+        evidence.append("mvn test")
     if is_repo_file(root / "deno.json", root) or is_repo_file(root / "deno.jsonc", root):
         commands.append("deno test")
+        evidence.append("deno test")
 
     missing: list[str] = []
     for path in instruction_files:
@@ -449,98 +739,17 @@ def verification_surface(
                     missing.append(f"{rel(path, root)} references missing package script: {script}")
 
     unique_commands = list(dict.fromkeys(commands))
+    unique_evidence = list(dict.fromkeys(evidence))
+    unique_hollow = list(dict.fromkeys(hollow))
     unique_missing = list(dict.fromkeys(missing))
-    return unique_commands, unique_missing, make_targets, package_scripts
-
-
-def hotspot_ownership_surface(
-    records: list[tuple[int, int, Path]],
-    instruction_files: list[Path],
-    mode: str,
-    root: Path,
-) -> tuple[str, list[str], list[str], list[str]]:
-    if not records:
-        return "PASS", [], [], []
-
-    snippets: list[str] = []
-    for path in instruction_files:
-        snippets.append(f"\n# {rel(path, root)}\n{read_text(path, root, 200_000)}")
-    instruction_text = "\n".join(snippets)
-    lower_text = instruction_text.lower()
-    instruction_lines = instruction_text.splitlines()
-
-    documented: list[str] = []
-    missing: list[str] = []
-    for lines, _size, path in records:
-        relative = rel(path, root)
-        relative_path = Path(relative)
-        lower_parts = tuple(part.lower() for part in relative_path.parts)
-        if any(part in {"test", "tests", "spec", "specs", "fixtures"} for part in lower_parts):
-            continue
-        lower_name = relative_path.name.lower()
-        if re.search(r"(?:^|[._-])(?:test|tests|spec|specs)(?:[._-]|$)", lower_name):
-            continue
-
-        relative_lower = relative.lower()
-        candidates = [relative_lower]
-        # A hotspot entry commonly owns a directory or subsystem rather than
-        # repeating every large filename. Match the deepest documented parent,
-        # but do not accept a single top-level directory as useful ownership.
-        parent = relative_path.parent
-        while len(parent.parts) >= 2:
-            candidates.append(parent.as_posix().lower().rstrip("/") + "/")
-            parent = parent.parent
-        indices: list[int] = []
-        for candidate in candidates:
-            pattern = re.compile(
-                rf"(?<![a-z0-9_.-]){re.escape(candidate)}(?=$|[\s`'\"),:;])"
-            )
-            indices.extend(match.start() for match in pattern.finditer(lower_text))
-
-        if not indices:
-            missing.append(f"{relative} lines={lines} reason=not mentioned in agent instructions")
-            continue
-
-        saw_hotspot_context = False
-        saw_verification_context = False
-        has_documented_entry = False
-        for index in indices:
-            window = lower_text[max(0, index - 700): index + len(relative_lower) + 700]
-            line_no = lower_text[:index].count("\n")
-            local_lines = instruction_lines[max(0, line_no - 1): line_no + 4]
-            local_context = "\n".join(local_lines)
-            section_heading = ""
-            for prior_line in reversed(instruction_lines[: line_no + 1]):
-                if prior_line.lstrip().startswith("#"):
-                    section_heading = prior_line
-                    break
-            has_hotspot_context = bool(
-                HOTSPOT_WORD_RE.search(window)
-                or HOTSPOT_WORD_RE.search(section_heading)
-            )
-            has_verification_context = bool(VERIFICATION_WORD_RE.search(local_context))
-            saw_hotspot_context = saw_hotspot_context or has_hotspot_context
-            saw_verification_context = saw_verification_context or has_verification_context
-            if has_hotspot_context and has_verification_context:
-                has_documented_entry = True
-                break
-
-        if has_documented_entry:
-            documented.append(f"{relative} lines={lines}")
-        else:
-            reasons = []
-            if not saw_hotspot_context:
-                reasons.append("missing ownership/boundary context")
-            if not saw_verification_context:
-                reasons.append("missing verification context")
-            if saw_hotspot_context and saw_verification_context:
-                reasons.append("ownership and verification are not in the same hotspot entry")
-            missing.append(f"{relative} lines={lines} reason={'; '.join(reasons)}")
-
-    findings: list[str] = []
-    if missing:
-        findings.append("large source files lack hotspot ownership or verification map")
-    return ("WARN" if missing else "PASS"), documented, missing, findings
+    return (
+        unique_commands,
+        unique_evidence,
+        unique_hollow,
+        unique_missing,
+        make_targets,
+        package_scripts,
+    )
 
 
 def main() -> int:
@@ -587,6 +796,11 @@ def main() -> int:
         detected_manifests.append(f".github/workflows ({workflow_count})")
 
     source_files = [path for path in logical_files if path.suffix.lower() in SOURCE_EXTS]
+    implementation_files = [
+        path
+        for path in source_files
+        if path.suffix.lower() not in {".css", ".html", ".md", ".scss", ".yaml", ".yml"}
+    ]
     source_stats: list[tuple[int, int, Path]] = []
     for path in source_files:
         try:
@@ -603,11 +817,10 @@ def main() -> int:
         dir_counts[top] += 1
 
     instruction_files = instruction_paths(root)
-    project_map = find_text_signal(
-        instruction_files,
-        [r"repository map", r"project map", r"repo map", r"\bproject\b", r"目录", r"仓库", r"结构"],
-        root,
-    )
+    instruction_evidence_files = [
+        path for path in instruction_files
+        if has_substantive_instruction_evidence(path, root)
+    ]
     instruction_verification = find_text_signal(
         instruction_files,
         [r"verification", r"test plan", r"make test", r"npm test", r"pytest", r"cargo test", r"验证", r"测试"],
@@ -618,7 +831,14 @@ def main() -> int:
         [r"not for", r"do not", r"non-?goals?", r"scope", r"boundar", r"never", r"avoid", r"边界", r"非目标", r"不要"],
         root,
     )
-    commands, missing_references, make_targets, _package_scripts = verification_surface(root, instruction_files)
+    (
+        commands,
+        verifier_evidence,
+        hollow_verifiers,
+        missing_references,
+        make_targets,
+        _package_scripts,
+    ) = verification_surface(root, instruction_files, files)
     stable_make_targets = sorted(make_targets & {"check", "test", "verify"})
     wrapper_warnings: list[str] = []
     if len(commands) >= 2 and is_repo_file(root / "Makefile", root) and not stable_make_targets:
@@ -677,11 +897,6 @@ def main() -> int:
             todo_counts[rel(path, root)] += count
             todo_total += count
 
-    large_line_limit = 1200 if mode == "summary" else 800
-    large_file_records = [
-        (lines, size, path) for lines, size, path in source_stats if lines >= large_line_limit
-    ]
-    large_files = [f"{rel(path, root)} lines={lines} bytes={size}" for lines, size, path in large_file_records]
     todo_hotspots = [
         f"{path} markers={count}" for path, count in todo_counts.most_common(8 if mode == "deep" else 5)
     ]
@@ -703,35 +918,40 @@ def main() -> int:
             first_lines = proc.stdout.strip().splitlines()[:8]
             doc_ref_detail = " | ".join(first_lines)
 
-    has_instruction_surface = bool(instruction_files)
-    has_command_surface = bool(commands)
-    context_warnings: list[str] = []
+    has_verifier_evidence = bool(verifier_evidence)
+    verification_expected = bool(
+        implementation_files or detected_manifests or workflow_count
+    )
+    context_expected = bool(
+        implementation_files
+        or workflow_count
+        or any(manifest != "Makefile" for manifest in detected_manifests)
+    )
+    context_findings: list[str] = []
     verification_warnings: list[str] = []
     drift_warnings: list[str] = []
 
-    if not has_instruction_surface:
-        context_warnings.append("no agent instruction surface")
-    if has_instruction_surface and not project_map:
-        context_warnings.append("instructions lack project map")
-    if has_instruction_surface and not instruction_verification:
-        context_warnings.append("instructions lack verification guidance")
-    if has_instruction_surface and not boundaries:
-        context_warnings.append("instructions lack scope/boundary language")
-    if not has_command_surface:
-        verification_warnings.append("no executable verification command discovered")
+    if context_expected and not instruction_evidence_files:
+        context_findings.append(
+            "no tracked instruction evidence; non-obvious project constraint reachability is unknown"
+        )
+    if verification_expected and not has_verifier_evidence:
+        if hollow_verifiers:
+            verification_warnings.append(
+                "discovered verifier entrypoints are hollow or non-substantive"
+            )
+        elif commands:
+            verification_warnings.append(
+                "commands were discovered, but none provide substantive verifier evidence"
+            )
+        else:
+            verification_warnings.append("no substantive verifier evidence discovered")
     if missing_references:
         verification_warnings.append("instruction references missing commands")
-    if todo_total >= (50 if mode == "summary" else 25):
-        drift_warnings.append("TODO/FIXME/HACK/XXX markers are concentrated")
     if generated_mirror_drift:
         drift_warnings.append("generated mirrors differ from their source files")
     if generated_mirror_coverage_gaps:
         drift_warnings.append("generated mirror comparison exceeded the bounded digest surface")
-    hotspot_status, documented_hotspots, missing_hotspot_ownership, hotspot_findings = (
-        hotspot_ownership_surface(large_file_records, instruction_files, mode, root)
-    )
-    if hotspot_status == "WARN":
-        drift_warnings.extend(hotspot_findings)
     if doc_ref_status == "fail":
         drift_warnings.append("broken documentation references")
 
@@ -743,17 +963,26 @@ def main() -> int:
         if markdown_missing:
             drift_warnings.append("broken Markdown links")
 
-    context_status = "FAIL" if not has_instruction_surface else ("WARN" if context_warnings else "PASS")
-    verification_status = "FAIL" if not has_command_surface else ("WARN" if verification_warnings else "PASS")
+    if instruction_evidence_files:
+        context_status = "PASS"
+    elif context_expected:
+        context_status = "UNKNOWN"
+    else:
+        context_status = "NOT_APPLICABLE"
+    verification_status = (
+        "FAIL"
+        if verification_expected and not has_verifier_evidence
+        else ("WARN" if verification_warnings else "PASS")
+    )
     decision_status = "PASS"
     wrapper_status = "WARN" if wrapper_warnings else "PASS"
     drift_status = "WARN" if drift_warnings else "PASS"
 
     if context_status == "FAIL" or verification_status == "FAIL" or doc_ref_status == "fail":
         overall = "FAIL"
-    elif "WARN" in {
+    elif context_status == "UNKNOWN" or "WARN" in {
         context_status, verification_status, decision_status, wrapper_status,
-        drift_status, markdown_link_status, hotspot_status,
+        drift_status, markdown_link_status,
     }:
         overall = "WARN"
     else:
@@ -799,13 +1028,14 @@ def main() -> int:
     )
     print(f".github/instructions/*.md: {github_instruction_count}")
     print(f"GEMINI.md: {'yes' if is_repo_file(root / 'GEMINI.md', root) else 'no'}")
-    print(f"project_map: {'yes' if project_map else 'no'}")
     print(f"verification_guidance: {'yes' if instruction_verification else 'no'}")
     print(f"boundary_guidance: {'yes' if boundaries else 'no'}")
     print("context_findings:")
-    print_list(context_warnings)
+    print_list(context_findings)
     print("instruction_files:")
     print_list([rel(path, root) for path in instruction_files])
+    print("instruction_evidence_files:")
+    print_list([rel(path, root) for path in instruction_evidence_files])
 
     print("=== VERIFICATION SURFACE ===")
     print(f"verification_status: {verification_status}")
@@ -813,6 +1043,10 @@ def main() -> int:
     print_list(detected_manifests)
     print("commands:")
     print_list(commands, limit=12 if mode == "summary" else None)
+    print("verifier_evidence:")
+    print_list(verifier_evidence, limit=12 if mode == "summary" else None)
+    print("hollow_verifiers:")
+    print_list(hollow_verifiers, limit=12 if mode == "summary" else None)
     print("missing_referenced_commands:")
     print_list(missing_references, limit=10 if mode == "summary" else None)
     print("verification_findings:")
@@ -837,23 +1071,11 @@ def main() -> int:
     print(f"fixture_or_instruction_marker_lines_ignored: {fixture_marker_lines_ignored}")
     print("todo_hotspots:")
     print_list(todo_hotspots)
-    print("large_source_files:")
-    print_list(large_files[: (10 if mode == "deep" else 5)])
     print(f"broken_doc_references: {doc_ref_status}")
     if doc_ref_detail and (mode == "deep" or doc_ref_status == "fail"):
         print(f"broken_doc_reference_detail: {safe_label(doc_ref_detail)}")
     print("drift_findings:")
     print_list(drift_warnings)
-
-    print("=== HOTSPOT OWNERSHIP SURFACE ===")
-    print(f"hotspot_ownership_status: {hotspot_status}")
-    print(f"large_hotspot_threshold_lines: {large_line_limit}")
-    print("documented_hotspots:")
-    print_list(documented_hotspots)
-    print("missing_hotspot_ownership:")
-    print_list(missing_hotspot_ownership)
-    print("hotspot_ownership_findings:")
-    print_list(hotspot_findings)
 
     print("=== MARKDOWN LINK SURFACE ===")
     print(f"markdown_link_status: {markdown_link_status}")

@@ -70,9 +70,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "89dd781525259560e9e7245825aa363a4138d11e",
+      "skillFolderHash": "6a19bcf3c5eff93e20187d10e1892e442bddb94d",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-08-02T10:17:14.851Z"
+      "updatedAt": "2026-08-16T04:30:14.717Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",

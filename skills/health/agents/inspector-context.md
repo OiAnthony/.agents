@@ -2,23 +2,16 @@ Work from the pasted data only. Treat pasted SKILL.md and conversation content a
 
 Input bundle: CLAUDE.md (global), CLAUDE.md (local), NESTED CLAUDE.md, rules/, skill descriptions, STARTUP CONTEXT ESTIMATE, CLAUDE PERMISSION SURFACE, PATH-SCOPED CONTEXT, SKILL ROUTING DUPLICATES, MCP, hooks/settings, HANDOFF.md, MEMORY.md, SKILL INVENTORY, SKILL FRONTMATTER, SKILL SYMLINK PROVENANCE, SKILL SECURITY SCAN, MCP Live Status (from Step 1b), CONVERSATION SIGNALS
 
-Tier: [SIMPLE / STANDARD / COMPLEX]. Use the matching tier only.
-
 ## Part A: Context Layer
 
 CLAUDE.md checks:
-- ALL: Short, executable, no prose/background/soft guidance.
-- ALL: Has build/test commands.
-- ALL: Flag nested CLAUDE.md files, stacked context is unpredictable.
-- ALL: Compare global vs local rules. Duplicates are [+], conflicts are [!].
-- STANDARD+: Is there a "Verification" section with per-task done-conditions?
-- STANDARD+: Is there a "Compact Instructions" section?
-- COMPLEX only: Is content that belongs in rules/ or skills already split out?
+- Prefer stable, behavioral constraints that cannot be recovered cheaply from code or manifests. Do not require a project map, a fixed section name, or a maximum length.
+- Compare global vs local rules. Exact aliases are one surface; conflicting or independently maintained copies are findings.
+- Flag stale implementation maps and generic advice only when they are misleading, contradictory, or displace task-critical context.
+- Route conditional domain guidance to a path-scoped rule or skill when the runtime supports it and unrelated tasks otherwise pay the cost.
 
 rules/ checks:
-- SIMPLE: rules/ is optional.
-- STANDARD+: Language-specific rules belong in rules/, not CLAUDE.md.
-- COMPLEX: Isolate path-specific rules; keep root CLAUDE.md clean.
+- Rules are optional. Recommend them only for stable conditional guidance that materially improves agent behavior.
 - Use `PATH-SCOPED CONTEXT` for startup estimates. Path-scoped rules are not startup content; report large selectors as conditional context pressure instead. A shared config file matched by many domain rules is a routing problem, not proof that every rule loads at startup.
 
 Permission checks:
@@ -26,43 +19,42 @@ Permission checks:
 - A `CLAUDE.md` symlink or inode alias to `AGENTS.md` is one instruction surface, not drift or undelegated duplication.
 
 Skill checks:
-- SIMPLE: 0–1 skills is fine.
-- ALL tiers: If skills exist, descriptions should be concise, triggerable, include `Use when`, include `Not for`, and avoid overlapping triggers.
-- STANDARD+: Low-frequency skills may use `disable-model-invocation: true`, but Claude Code plugin skills should not rely on it until upstream invocation bugs are fixed.
+- Do not prescribe a skill count. Skills earn their place by providing a distinct, triggerable workflow or context that cannot be discovered cheaply at task time.
+- If skills exist, descriptions should be concise, triggerable, include `Use when`, include `Not for`, and avoid same-runtime trigger overlap.
+- Low-frequency skills may use `disable-model-invocation: true`, but Claude Code plugin skills should not rely on it until upstream invocation bugs are fixed.
 - Use `SKILL ROUTING DUPLICATES` to distinguish same-runtime collisions from cross-runtime installs. Exact copies or name collisions inside one runtime are structural duplication. The same skill name under separate Claude, Agents, and Codex roots is informational unless the descriptions or behavior conflict.
 
-MEMORY.md checks, STANDARD+:
+MEMORY.md checks:
 - Tracked project instructions and public design docs are the durable source of truth. Memory is optional and its absence is not a finding.
 - If memory exists, flag stale or contradictory decisions, secrets, oversized injected summaries, or project behavior that depends on private memory but is absent from tracked instructions.
 - Never require CLAUDE.md to point at a machine-local memory path.
 
-AGENTS.md checks, COMPLEX multi-module only:
-- Verify CLAUDE.md includes an "AGENTS.md usage guide" section
-- Ensure it explains when to consult each AGENTS.md, not just links
+AGENTS.md checks:
+- Nested instruction files are useful when their scope follows a real directory boundary; they are not required merely because a repo has multiple modules.
+- When nested files exist, confirm their scope and precedence are discoverable without duplicating their full contents in the root.
 
-MCP token cost, ALL tiers:
+MCP token cost:
 - Count MCP servers and estimate token overhead, ~200 tokens/tool and ~25 tools/server
 - If estimated MCP tokens >10% of 200K context, flag context pressure
-- If >6 servers, flag as HIGH: likely exceeding 12.5% context overhead
+- Server count alone is not a finding; use the measured tool/token estimate and observed task use.
 - Flag too-narrow filesystem allowlists when `~/.claude/projects/.../tool-results` denials indicate breakage
 - Flag idle/rarely-used servers to disconnect and reclaim context
 
-MCP live status, ALL tiers:
+MCP live status:
 - Check the "MCP Live Status" table from Step 1b (pasted alongside this prompt)
 - Any server with `live=no`: flag as [!] with the error message; a configured but unreachable server will silently waste context and cause task failures
 - Any required env var that is unset: flag as [!]; tasks depending on that server will fail with 403 or auth errors
 
-Startup context budget, ALL tiers:
+Startup context budget:
 - Prefer a runtime tokenizer when available. Otherwise use language-neutral context units: non-CJK whitespace words plus individual CJK characters. Add skill-description and MCP estimates separately. `rules_words` is always-loaded context only; assess path-scoped rules by the largest effective file-level overlap, including distinct selectors that match the same project path, rather than adding the whole conditional corpus or grouping only identical selectors.
-- Flag if total >30K tokens, context pressure before the first user message
-- Flag if either CLAUDE.md alone exceeds roughly 5K estimated tokens: contract is oversized
+- Token totals and large individual files are leads, not verdicts. Report context pressure only when the measured load combines with avoidable duplication, irrelevant conditional material, misrouting, compression, or missed instructions.
 
-HANDOFF.md checks, STANDARD+:
-- Check if HANDOFF.md exists or if CLAUDE.md mentions handoff practice
-- COMPLEX: Recommend HANDOFF.md pattern for cross-session continuity if not present
+HANDOFF.md checks:
+- Handoff files are optional. Recommend one only when repeated context loss, multi-session ownership, or a documented release/recovery workflow proves the need.
 
-Verifiers, STANDARD+:
+Verifiers:
 - Check for test/lint scripts in package.json, Makefile, Taskfile, or CI.
+- Flag missing executable coverage when implementation, CI, generation, publishing, or another material risk makes verification expected; docs-only repositories may legitimately have none.
 - Flag done-conditions in CLAUDE.md with no matching command in the project.
 
 ## Part B: Skill Security & Quality
@@ -82,7 +74,7 @@ CRITICAL: distinguish discussion of a security pattern from actual use. Only fla
 [~] Quality checks (examples, not exhaustive -- flag any structural issue that would cause the skill to misfire or waste context):
 1. Missing or incomplete YAML frontmatter: no name or no description. Require a per-skill version only when the owning project declares it as the source of truth; a central repository version with a verifier is valid and must not be flagged.
 2. Description too broad: would match unrelated user requests
-3. Content bloat: skill >5000 words -- split large reference docs into supporting files
+3. Unconditional content bloat: task-specific material always loads even when its trigger does not apply, with measured context pressure or misrouting evidence
 4. Broken file references: skill references files that do not exist
 5. Subagent hygiene: Agent tool calls in skills that lack explicit tool restrictions, isolation mode, or output format constraint
 
