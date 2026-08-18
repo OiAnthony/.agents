@@ -167,6 +167,8 @@ For other engineering projects or English posts, apply the same structure (commu
 | Polished a review report until it sounded timeless | Keep snapshots labeled as snapshots, or distill them into stable rules. Do not make dated claims sound evergreen |
 | User flagged one word as "not my voice"; only that instance was fixed | A flagged word marks a smell class, not a typo. Sweep the whole text for the same class (same register, same template shape) before returning |
 | Hit the requested word count by explaining the same three ideas from four angles | Count the material first. Research, ask up to three questions, or ship shorter. Padding is a failed draft, not a long one |
+| Flagged or rewrote a phrase that was the author's own wording | With source material, grep it before flagging or fixing; restore the original, don't paraphrase it |
+| Fixed an AI phrase with fresh invented color; the author flagged the new words too | Fix by subtraction: keep to facts in the material, add no new imagery |
 
 ## Output
 
