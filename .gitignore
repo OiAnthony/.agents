@@ -22,9 +22,14 @@ backup/
 .workbuddy/
 .commandcode/
 skills/.system/
-skills/.nowledge-mem/
 
 # Locally managed skills
 skills/ccloud*/
 skills/develop-pi-tui-extension
 skills/rewrite-doc
+
+# NowledgeMem managed skills
+.nowledge-mem
+skills/.nowledge-mem/
+skills/html-effectiveness
+skills/writing-technical-articles

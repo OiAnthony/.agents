@@ -200,15 +200,6 @@
       "installedAt": "2026-08-02T10:19:31.736Z",
       "updatedAt": "2026-08-02T10:19:31.736Z"
     },
-    "impeccable": {
-      "source": "pbakaus/impeccable",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
-      "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "4d310f86e09770a91df86b2edb31ce1fdf0651d8",
-      "installedAt": "2026-08-03T03:36:31.983Z",
-      "updatedAt": "2026-08-11T07:36:06.065Z"
-    },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
