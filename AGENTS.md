@@ -8,6 +8,7 @@ Explicit user instructions and repository rules override these cross-project def
 - Inspect code, configuration, documentation, and evidence before deciding.
 - When ambiguity changes the result, state assumptions, competing interpretations, inconsistencies, and tradeoffs. Resolve with evidence; ask only about blockers.
 - Follow established repository patterns. Every changed line must trace to the request or required correctness.
+- The `check` skill MUST use Quick mode, regardless of its automatic size or risk thresholds. It MUST NOT use Standard or Deep mode unless the user explicitly requests that mode.
 - State uncertainty. Do not present inference as fact.
 
 ## Autonomy and Safety
