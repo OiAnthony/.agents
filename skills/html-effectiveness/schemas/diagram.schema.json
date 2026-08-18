@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/html-effectiveness/diagram.schema.json",
+  "title": "HTML Effectiveness Diagram",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["diagram_type", "meta"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "diagram_type": {
+      "enum": [
+        "architecture", "architecture-board", "workflow", "sequence", "dataflow", "lifecycle",
+        "quadrant", "timeline", "tree", "layer-stack", "venn",
+        "bar", "line", "donut", "candlestick", "waterfall", "class", "er"
+      ]
+    },
+    "meta": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "caption": { "type": "string" },
+        "description": { "type": "string" },
+        "density": { "enum": ["editorial", "teaching", "board"] },
+        "animation": { "enum": ["none", "trace"] }
+      }
+    },
+    "nodes": { "type": "array" },
+    "edges": { "type": "array" },
+    "components": { "type": "array" },
+    "connections": { "type": "array" },
+    "states": { "type": "array" },
+    "transitions": { "type": "array" },
+    "participants": { "type": "array" },
+    "messages": { "type": "array" },
+    "series": { "type": "array" },
+    "categories": { "type": "array" },
+    "values": { "type": "array" }
+  }
+}

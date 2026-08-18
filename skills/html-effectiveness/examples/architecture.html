@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Request processing architecture</title>
+<style data-artifact-style>:root {
+  --parchment: #f5f4ed;
+  --ivory: #faf9f5;
+  --sand: #e8e6dc;
+  --brand: #1b365d;
+  --brand-light: #2d5a8a;
+  --brand-tint: #eef2f7;
+  --near-black: #141413;
+  --dark-warm: #3d3d3a;
+  --olive: #504e49;
+  --stone: #6b6a64;
+  --border: #e8e6dc;
+  --success: #4a7c59;
+  --danger: #8b3a3a;
+  --warning: #9b6728;
+  --serif: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Charter, Georgia, serif;
+  --mono: "SFMono-Regular", Consolas, Monaco, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--parchment); color: var(--near-black); }
+body { margin: 0; min-height: 100vh; background: var(--parchment); color: var(--near-black); font: 16px/1.55 var(--serif); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; }
+a { color: var(--brand); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 48px 0 80px; }
+header { margin-bottom: 28px; }
+h1, h2, h3 { margin: 0; font-weight: 500; line-height: 1.22; }
+h1 { max-width: 900px; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -.025em; }
+h2 { margin: 44px 0 18px; padding-left: 10px; border-left: 3px solid var(--brand); font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0 0 16px; }
+.eyebrow { margin-bottom: 8px; color: var(--brand); font: 600 11px/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.lead { max-width: 760px; margin-top: 14px; color: var(--dark-warm); font-size: 1.08rem; }
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.card { padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--ivory); }
+.card > :last-child { margin-bottom: 0; }
+.metrics { display: flex; gap: 28px; margin: 28px 0; padding: 18px 0; border-block: 1px dotted var(--border); }
+.metric { flex: 1; min-width: 0; }
+.metric-value { display: block; color: var(--brand); font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.metric-label { color: var(--stone); font-size: .85rem; }
+.callout { margin: 28px 0; padding: 18px 20px; border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; background: var(--ivory); }
+.tag, .badge { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 9px; border-radius: 999px; background: var(--brand-tint); color: var(--brand); font: 600 11px/1 var(--mono); }
+.badge.success { color: var(--success); }
+.badge.warning { color: var(--warning); }
+.badge.danger { color: var(--danger); }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: 10px 12px; border-bottom: 1px dotted var(--border); text-align: left; vertical-align: top; }
+th { color: var(--dark-warm); font-weight: 600; }
+code, pre { font-family: var(--mono); }
+pre { overflow: auto; padding: 18px; border-radius: 10px; background: var(--near-black); color: var(--ivory); font-size: .82rem; }
+.doc-footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 48px; padding-top: 16px; border-top: 1px dotted var(--border); color: var(--stone); font: 12px/1.4 var(--mono); }
+.diagram-shell { position: relative; margin: 24px 0; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--parchment); }
+.diagram-toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px dotted var(--border); background: color-mix(in srgb, var(--ivory) 94%, transparent); }
+.diagram-toolbar input { width: min(260px, 42vw); padding: 7px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--ivory); color: var(--near-black); }
+.diagram-toolbar button { padding: 7px 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--ivory); color: var(--dark-warm); cursor: pointer; }
+.diagram-toolbar button:hover, .diagram-toolbar button:focus-visible { border-color: var(--brand); color: var(--brand); outline: none; }
+.diagram-toolbar .spacer { flex: 1; }
+.diagram-viewport { overflow: auto; touch-action: pan-x pan-y; }
+.diagram { display: block; width: 100%; height: auto; min-width: 680px; background: var(--parchment); }
+.diagram .node { cursor: pointer; transition: opacity .15s ease; }
+.diagram .node rect, .diagram .node circle { fill: var(--ivory); stroke: var(--near-black); stroke-width: 1.2; }
+.diagram .node.focal rect, .diagram .node.focal circle { fill: var(--brand-tint); stroke: var(--brand); stroke-width: 2; }
+.diagram .node.future { opacity: .58; }
+.diagram .node.future rect { stroke: var(--stone); stroke-dasharray: 7 5; }
+.diagram .node-title { fill: var(--near-black); font: 600 15px/1.2 var(--serif); }
+.diagram .node-subtitle { fill: var(--stone); font: 11px/1.2 var(--mono); }
+.diagram .edge { fill: none; stroke: var(--olive); stroke-width: 1.4; marker-end: url(#arrow); }
+.diagram .edge.focal { stroke: var(--brand); stroke-width: 2; }
+.diagram .edge.async, .diagram .edge.future { stroke-dasharray: 7 5; }
+.diagram .edge-label { fill: var(--olive); font: 11px/1.2 var(--mono); paint-order: stroke; stroke: var(--parchment); stroke-width: 7px; stroke-linejoin: round; }
+.diagram .lane, .diagram .stage { fill: var(--ivory); stroke: var(--border); }
+.diagram .lane-label, .diagram .stage-label, .diagram .axis-label { fill: var(--stone); font: 600 11px/1.2 var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+.diagram .selected rect, .diagram .selected circle { stroke: var(--brand); stroke-width: 3; }
+.diagram.searching .node:not(.match), .diagram.searching .edge:not(.match) { opacity: .2; }
+.diagram.trace-mode .edge { opacity: .18; }
+.diagram.trace-mode .edge.trace { opacity: 1; stroke: var(--brand); stroke-width: 2.4; stroke-dasharray: 10 8; animation: trace 1s linear infinite; }
+.diagram-detail { min-height: 48px; padding: 12px 16px; border-top: 1px dotted var(--border); color: var(--dark-warm); font-size: .92rem; }
+.diagram-node-index { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 12px; border-top: 1px dotted var(--border); background: var(--ivory); }
+.diagram-node-index button { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--parchment); color: var(--dark-warm); font-size: .82rem; cursor: pointer; }
+.diagram-node-index button:hover, .diagram-node-index button:focus-visible { border-color: var(--brand); color: var(--brand); outline: 2px solid var(--brand-tint); outline-offset: 2px; }
+figure { margin: 30px 0; }
+figcaption { margin-top: 10px; color: var(--olive); text-align: center; font-size: .88rem; }
+@keyframes trace { to { stroke-dashoffset: -36; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; } }
+@media (max-width: 800px) {
+  .shell { width: min(100% - 28px, 1120px); padding-top: 28px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .metrics { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .doc-footer { flex-direction: column; }
+  .diagram-toolbar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body class="">
+<main class="shell"><header><div class="eyebrow">architecture</div><h1>Request processing architecture</h1><p class="lead">Authentication completes before business routing</p></header><figure><figcaption>The gateway protects the service boundary.</figcaption><div class="diagram-shell" data-diagram-shell><div class="diagram-toolbar"><input data-diagram-search type="search" aria-label="Search diagram" placeholder="Search nodes"><button type="button" data-action="zoom-out">−</button><button type="button" data-action="zoom-in">+</button><button type="button" data-action="reset">Reset</button><button type="button" data-action="trace">Trace</button><span class="spacer"></span><button type="button" data-action="export-svg">SVG</button><button type="button" data-action="export-png">PNG</button></div><div class="diagram-viewport" role="region" tabindex="0" aria-label="Scrollable diagram canvas"><svg class="diagram" data-title="request-processing-architecture" viewBox="0 0 760 362" role="img" aria-labelledby="diagram-title diagram-desc" xmlns="http://www.w3.org/2000/svg">
+<title id="diagram-title">Request processing architecture</title><desc id="diagram-desc">A client sends a request to the gateway. The gateway authenticates the request and routes it to the application service, which reads the database.</desc>
+<defs>
+  <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="#e3e2dc"/></pattern>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#f5f4ed"/><rect width="100%" height="100%" fill="url(#dots)" opacity=".5"/>
+<text x="40" y="36" text-anchor="start" class="node-title">Request processing architecture</text><text x="40" y="56" text-anchor="start" class="node-subtitle">Authentication completes before business routing</text><line x1="40" y1="68" x2="720" y2="68" stroke="#1b365d" stroke-width="1"/>
+<g><rect x="242" y="70" width="388" height="224" rx="12" fill="none" stroke="#6b6a64" stroke-dasharray="7 5"/><text x="250" y="86" text-anchor="start" class="stage-label">Trusted application boundary</text></g><path class="edge focal" data-edge-from="client" data-edge-to="gateway" d="M 220 128 L 240 128 L 240 128 L 260 128"/><path class="edge focal" data-edge-from="gateway" data-edge-to="service" d="M 416 128 L 436 128 L 436 128 L 456 128"/><path class="edge" data-edge-from="service" data-edge-to="database" d="M 534 160 L 534 186 L 534 186 L 534 212"/><text x="543" y="190" text-anchor="start" class="edge-label">Read/write</text><g class="node" data-node-id="client" data-label="Client" data-detail="Browser">
+<rect x="64" y="96" width="156" height="64" rx="8"/>
+<text x="76" y="124" text-anchor="start" class="node-title">Client</text>
+<text x="76" y="144" text-anchor="start" class="node-subtitle">Browser</text></g><g class="node focal" data-node-id="gateway" data-label="API Gateway" data-detail="Validates identity before routing.">
+<rect x="260" y="96" width="156" height="64" rx="8"/>
+<text x="272" y="124" text-anchor="start" class="node-title">API Gateway</text>
+<text x="272" y="144" text-anchor="start" class="node-subtitle">Authentication</text></g><g class="node" data-node-id="service" data-label="Application" data-detail="Business logic">
+<rect x="456" y="96" width="156" height="64" rx="8"/>
+<text x="468" y="124" text-anchor="start" class="node-title">Application</text>
+<text x="468" y="144" text-anchor="start" class="node-subtitle">Business logic</text></g><g class="node" data-node-id="database" data-label="Database" data-detail="Persistent state">
+<rect x="456" y="212" width="156" height="64" rx="8"/>
+<text x="468" y="240" text-anchor="start" class="node-title">Database</text>
+<text x="468" y="260" text-anchor="start" class="node-subtitle">Persistent state</text></g>
+</svg></div><div class="diagram-node-index" role="group" aria-label="Diagram nodes"><button type="button" data-node-target="client">Client</button><button type="button" data-node-target="gateway">API Gateway</button><button type="button" data-node-target="service">Application</button><button type="button" data-node-target="database">Database</button></div><div class="diagram-detail" data-diagram-detail aria-live="polite">Select a node to inspect its details.</div></div></figure></main>
+<script>(function () {
+  'use strict';
+
+  function download(name, blob) {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }
+
+  function serializeSvg(svg) {
+    const copy = svg.cloneNode(true);
+    copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    const style = document.querySelector('style[data-artifact-style]');
+    if (style) {
+      const node = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      node.textContent = style.textContent;
+      copy.insertBefore(node, copy.firstChild);
+    }
+    return new XMLSerializer().serializeToString(copy);
+  }
+
+  document.querySelectorAll('[data-diagram-shell]').forEach(function (shell, index) {
+    const svg = shell.querySelector('svg.diagram');
+    if (!svg) return;
+    const input = shell.querySelector('[data-diagram-search]');
+    const detail = shell.querySelector('[data-diagram-detail]');
+    const originalViewBox = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+    let zoom = 1;
+
+    function setZoom(next) {
+      zoom = Math.max(0.55, Math.min(2.5, next));
+      const width = originalViewBox[2] / zoom;
+      const height = originalViewBox[3] / zoom;
+      const x = originalViewBox[0] + (originalViewBox[2] - width) / 2;
+      const y = originalViewBox[1] + (originalViewBox[3] - height) / 2;
+      svg.setAttribute('viewBox', [x, y, width, height].join(' '));
+    }
+
+    shell.addEventListener('click', function (event) {
+      const action = event.target.closest('[data-action]');
+      if (action) {
+        const name = action.dataset.action;
+        if (name === 'zoom-in') setZoom(zoom * 1.2);
+        if (name === 'zoom-out') setZoom(zoom / 1.2);
+        if (name === 'reset') { zoom = 1; svg.setAttribute('viewBox', originalViewBox.join(' ')); }
+        if (name === 'trace') {
+          svg.classList.toggle('trace-mode');
+          svg.querySelectorAll('.edge').forEach(function (edge) { edge.classList.toggle('trace'); });
+        }
+        if (name === 'export-svg') {
+          download((svg.dataset.title || 'diagram') + '.svg', new Blob([serializeSvg(svg)], { type: 'image/svg+xml' }));
+        }
+        if (name === 'export-png') {
+          const image = new Image();
+          const source = serializeSvg(svg);
+          const url = URL.createObjectURL(new Blob([source], { type: 'image/svg+xml' }));
+          image.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1600, originalViewBox[2] * 2);
+            canvas.height = canvas.width * originalViewBox[3] / originalViewBox[2];
+            const context = canvas.getContext('2d');
+            context.fillStyle = '#f5f4ed';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function (blob) { if (blob) download((svg.dataset.title || 'diagram') + '.png', blob); });
+            URL.revokeObjectURL(url);
+          };
+          image.src = url;
+        }
+        return;
+      }
+
+      const targetButton = event.target.closest('[data-node-target]');
+      const node = targetButton
+        ? svg.querySelector(`[data-node-id="${CSS.escape(targetButton.dataset.nodeTarget)}"]`)
+        : event.target.closest('.node');
+      if (!node) return;
+      svg.querySelectorAll('.node.selected').forEach(function (item) { item.classList.remove('selected'); });
+      node.classList.add('selected');
+      if (detail) detail.textContent = node.dataset.detail || node.dataset.label || 'No additional detail.';
+    });
+
+    if (input) {
+      input.addEventListener('input', function () {
+        const query = input.value.trim().toLowerCase();
+        svg.classList.toggle('searching', Boolean(query));
+        svg.querySelectorAll('.node').forEach(function (node) {
+          node.classList.toggle('match', !query || (node.textContent + ' ' + (node.dataset.detail || '')).toLowerCase().includes(query));
+        });
+      });
+    }
+
+    if (detail && !detail.id) detail.id = 'diagram-detail-' + index;
+  });
+})();
+</script>
+</body>
+</html>

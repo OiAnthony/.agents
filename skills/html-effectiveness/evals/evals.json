@@ -1,0 +1,41 @@
+{
+  "skill_name": "html-effectiveness",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a self-contained HTML architecture diagram for a checkout request. Show Browser -> API Gateway -> Checkout Service -> PostgreSQL. Put Kafka on an asynchronous branch from Checkout Service to Fraud Worker. Mark API Gateway as the only focal node. Include a clear caption and node details. Save the diagram specification and final HTML.",
+      "expected_output": "A typed architecture JSON specification and an offline HTML diagram with static inline SVG, correct focal treatment, async route, caption, details, and no external resources.",
+      "files": [],
+      "expectations": [
+        "The output includes both a JSON diagram specification and an HTML artifact.",
+        "The HTML contains inline SVG with accessible title and description.",
+        "The HTML has no external script, stylesheet, font, image, or module dependency.",
+        "The specification has one focal node and an asynchronous Kafka branch."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Build an offline HTML product report for quarterly revenue. The values are Q1 18, Q2 22, Q3 21, Q4 29 million USD. Use the correct chart type, state the main insight in the caption, and include a compact metric strip. Save the chart specification and final report HTML.",
+      "expected_output": "A self-contained report with a bar chart for absolute quarterly values, a conclusion-led caption, metrics, static inline SVG, and no network dependency.",
+      "files": [],
+      "expectations": [
+        "The output uses a bar chart rather than a donut chart.",
+        "The caption states the Q4 growth insight instead of only naming the data range.",
+        "The HTML is self-contained and includes static inline SVG.",
+        "All four quarterly values appear in the output."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a self-contained HTML lifecycle diagram for a deployment job. States: Queued, Running, Waiting for approval, Deploying, Succeeded, Failed. Failed can retry to Running. Waiting can return to Running when rejected. Use a teaching-density diagram and make Running the only focal state. Save the specification and HTML.",
+      "expected_output": "A validated lifecycle specification and offline HTML artifact that shows recovery transitions, a single focal active state, static SVG, and readable interaction controls.",
+      "files": [],
+      "expectations": [
+        "The specification uses lifecycle semantics with all six named states.",
+        "Failed has a retry transition to Running and Waiting has a rejection transition to Running.",
+        "Running is the only focal state.",
+        "The HTML is self-contained and contains accessible static SVG."
+      ]
+    }
+  ]
+}

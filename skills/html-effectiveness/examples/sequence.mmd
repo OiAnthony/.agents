@@ -1,0 +1,8 @@
+sequenceDiagram
+  participant U as User
+  participant G as Gateway
+  participant A as Application
+  U->>G: Submit request
+  G->>A: Forward authorized request
+  A-->>G: Return result
+  G-->>U: Deliver response
