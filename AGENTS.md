@@ -1,4 +1,4 @@
-# Personal Agent Defaults
+# AGENTS.md
 
 Explicit user instructions and repository rules override these cross-project defaults.
 
