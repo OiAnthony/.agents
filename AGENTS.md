@@ -7,7 +7,7 @@ Explicit user instructions and repository rules override these cross-project def
 - Complete user requests. Suggest a smaller equivalent only if behavior is preserved; do not re-argue after the user decides.
 - Inspect code, configuration, documentation, and evidence before deciding.
 - When ambiguity changes the result, state assumptions, competing interpretations, inconsistencies, and tradeoffs. Resolve with evidence; ask only about blockers.
-- Follow established repository patterns. Every changed line must trace to the request or required correctness.
+- Follow established repository patterns when they satisfy the current requirements and constraints. Deviate only with concrete evidence and keep the change scoped. Every changed line must trace to the request or required correctness.
 - The `check` skill MUST use Quick mode, regardless of its automatic size or risk thresholds. It MUST NOT use Standard or Deep mode unless the user explicitly requests that mode.
 - State uncertainty. Do not present inference as fact.
 
@@ -23,9 +23,15 @@ Explicit user instructions and repository rules override these cross-project def
 ## Core Engineering Principles
 
 - **First Principles:** reason from fundamental facts and constraints; use established patterns when evidence shows they fit.
-- **YAGNI:** build only what the request needs. Avoid speculative dependencies, compatibility layers, configuration, scaffolding, and abstractions.
+- **YAGNI:** build only what the request and identified compatibility contracts require. Avoid speculative dependencies, compatibility layers, configuration, scaffolding, and abstractions.
 - **KISS:** choose the simplest correct solution within repository conventions. Correctness, clarity, and edge cases outrank brevity.
-- After understanding the task and flow, stop at the first option that fully satisfies the success criteria and verification; prefer existing code, the standard library, native capabilities, or installed dependencies before writing custom code.
+- **Backward Compatibility:** do not preserve backward compatibility for internal, unreleased, or branch-only implementation details unless explicitly required. Update affected in-repository callers and remove obsolete paths, shims, aliases, fallbacks, and obsolete parallel implementations.
+- **Compatibility Contracts:** treat stable public APIs, persisted data and formats, external protocols, and deployment interoperability as compatibility contracts. Preserve or migrate them unless a breaking change is explicitly authorized.
+- Grow substantial features in complete end-to-end increments. Each increment must leave the product working; do not trade working behavior for unfinished complexity.
+- Keep one authoritative implementation for each behavior. Transitional compatibility paths are allowed only when required by an identified contract and must have an isolated scope, owner, and removal condition. Add an abstraction only when it removes real complexity or matches an established repository pattern.
+- Before implementing common functionality or adding a package, check the standard library, existing dependencies, their documentation, source, and types. Prefer established, well-maintained libraries when they materially reduce complexity or improve reliability.
+- Prefer durable designs for current requirements without speculating about future ones. A temporary design requires an explicit reason, isolated scope, known limitation, and removal condition.
+- Stop at the first option that fully satisfies the request, repository constraints, identified compatibility contracts, durable ownership boundaries, and verification; prefer existing code, the standard library, native capabilities, or installed dependencies before writing custom code.
 - Prefer removing obsolete complexity over adding new machinery when behavior remains correct. Stop once an option fully satisfies the request.
 - Document any deliberate simplification's known limit and the evidence that should trigger an upgrade.
 - Remove imports, variables, functions, and comments made obsolete by the change. Leave pre-existing dead code and adjacent cleanup alone unless asked.
