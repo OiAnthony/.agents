@@ -1,12 +1,12 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-18T22:19:21.285Z",
+  "generatedAt": "2026-08-19T22:20:57.523Z",
   "upstream": {
     "owner": "larksuite",
     "repo": "cli",
     "ref": "main",
-    "commit": "2829ecd18846d8390dfac558125f602b07232206",
-    "skillsTree": "3005c53ae908fafdc1d3642070108985f3092b17"
+    "commit": "755daa4de3ea12785c43a15244ffb8f012122c13",
+    "skillsTree": "52df55111eb5599da578362baae662c46b427caa"
   },
   "skills": [
     "lark-approval",
@@ -38,7 +38,7 @@
     "lark-workflow-standup-report"
   ],
   "overridesSha256": "9ec0011148fa418e3b540d902a5ee20ec697b9cf30c003185ea9b8654c297812",
-  "bundleSha256": "8fcfb57bb328c79ea88f6da8f60ae5bb136b04a3aa41212450d1c7911eb35ce2",
+  "bundleSha256": "c13e43cbc9ed0b82a51fb79f45fa9faf8d49028ef19710ae8206b9614123a11f",
   "files": [
     {
       "sourcePath": "skills/lark-approval/references/lark-approval-approvals-get.md",
@@ -1394,7 +1394,7 @@
       "sourcePath": "skills/lark-event/references/lark-event-im.md",
       "targetPath": "lark-event/references/lark-event-im.md",
       "sourceSha256": "b023f08657250ae2d1b513cbeb80d4776d786b270ffc459a1bd142eae156f3a6",
-      "outputSha256": "ec60201a044f254bd10db027a3fef9133e84a972c5c74030bd39307e6fd656b7"
+      "outputSha256": "9210349406ff9c336bba5a96f4abe59c6b0ceeba9d71f13b28762f50f3ef9976"
     },
     {
       "sourcePath": "skills/lark-event/references/lark-event-minutes.md",
@@ -3175,8 +3175,8 @@
     {
       "sourcePath": "skills/lark-workflow-meeting-summary/SKILL.md",
       "targetPath": "lark-workflow-meeting-summary/GUIDE.md",
-      "sourceSha256": "ad3db979a2e6d8932ab33058967e1dab82090f8d8d82b16c59ee2955eb967d61",
-      "outputSha256": "369e4056aa32da75094a3f63272c44366f068ec7aa872eabe45da617a58c8ba4"
+      "sourceSha256": "f309d6d35880bd7ea68945f62d4c23efeee27071610ab87210c5e01b33994cf0",
+      "outputSha256": "638e9538534bdffca4931cdf22387d9bb9a9aae17b32749ee8c97938934cbe51"
     },
     {
       "sourcePath": "skills/lark-workflow-standup-report/SKILL.md",
