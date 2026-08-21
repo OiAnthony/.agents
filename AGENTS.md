@@ -1,5 +1,7 @@
 # AGENTS.md
 
+This file is the canonical source for cross-project user instructions. Tool-specific instruction files should reference or import it instead of duplicating its rules.
+
 Explicit user instructions and repository rules override these cross-project defaults.
 
 ## Decision Policy
@@ -25,10 +27,12 @@ Explicit user instructions and repository rules override these cross-project def
 - **First Principles:** reason from fundamental facts and constraints; use established patterns when evidence shows they fit.
 - **YAGNI:** build only what the request and identified compatibility contracts require. Avoid speculative dependencies, compatibility layers, configuration, scaffolding, and abstractions.
 - **KISS:** choose the simplest correct solution within repository conventions. Correctness, clarity, and edge cases outrank brevity.
+- Prefer names and structure that make behavior clear over comments that restate the code. Keep comments for non-obvious rationale, constraints, risks, and external contracts.
 - **Backward Compatibility:** do not preserve backward compatibility for internal, unreleased, or branch-only implementation details unless explicitly required. Update affected in-repository callers and remove obsolete paths, shims, aliases, fallbacks, and obsolete parallel implementations.
 - **Compatibility Contracts:** treat stable public APIs, persisted data and formats, external protocols, and deployment interoperability as compatibility contracts. Preserve or migrate them unless a breaking change is explicitly authorized.
 - Grow substantial features in complete end-to-end increments. Each increment must leave the product working; do not trade working behavior for unfinished complexity.
-- Keep one authoritative implementation for each behavior. Transitional compatibility paths are allowed only when required by an identified contract and must have an isolated scope, owner, and removal condition. Add an abstraction only when it removes real complexity or matches an established repository pattern.
+- Keep responsibilities and ownership boundaries clear. Within a boundary, colocate code and data that change together; avoid scattering one behavior across unrelated modules.
+- Keep one authoritative implementation for each behavior. Transitional compatibility paths are allowed only when required by an identified contract and must have an isolated scope, owner, and removal condition. Add an abstraction only when it removes real complexity or matches an established repository pattern. Keep simple one-off logic local unless extraction names a real concept, owns an invariant, or removes meaningful duplication.
 - Before implementing common functionality or adding a package, check the standard library, existing dependencies, their documentation, source, and types. Prefer established, well-maintained libraries when they materially reduce complexity or improve reliability.
 - Prefer durable designs for current requirements without speculating about future ones. A temporary design requires an explicit reason, isolated scope, known limitation, and removal condition.
 - Stop at the first option that fully satisfies the request, repository constraints, identified compatibility contracts, durable ownership boundaries, and verification; prefer existing code, the standard library, native capabilities, or installed dependencies before writing custom code.
@@ -37,9 +41,11 @@ Explicit user instructions and repository rules override these cross-project def
 - Remove imports, variables, functions, and comments made obsolete by the change. Leave pre-existing dead code and adjacent cleanup alone unless asked.
 - For bugs, reproduce failure, trace the flow and shared callers, fix the root cause at the narrowest shared boundary, and confirm the same reproduction passes.
 
-## Evidence and Verification
+## Sources of Truth and Verification
 
-- Treat documentation, history, memory, and prior summaries as leads, not proof. Current implementation and runtime evidence take precedence when they conflict.
+- Use active user instructions and explicitly adopted specifications or canonical documentation for intended behavior. Treat source code, configuration, passing behavioral tests, and reproducible runtime results as authoritative evidence of current behavior.
+- Treat documentation, history, memory, and prior summaries as leads, not proof. Verify material claims against the current implementation, runtime evidence, or the applicable authoritative source.
+- If sources disagree, investigate and report the conflict. Update the appropriate source; do not silently choose whichever is convenient.
 - Define observable success criteria before non-trivial changes; for multi-step work, pair each brief step with a check.
 - Use source and configuration for structural claims.
 - Use reproduction, tests, logs, execution, or artifact inspection for behavioral claims.
