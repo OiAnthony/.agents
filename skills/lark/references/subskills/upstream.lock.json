@@ -1,12 +1,12 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-08-19T22:20:57.523Z",
+  "generatedAt": "2026-08-20T22:22:54.344Z",
   "upstream": {
     "owner": "larksuite",
     "repo": "cli",
     "ref": "main",
-    "commit": "755daa4de3ea12785c43a15244ffb8f012122c13",
-    "skillsTree": "52df55111eb5599da578362baae662c46b427caa"
+    "commit": "da371dc242b6c04823f78f53a537dfd0ab6e6377",
+    "skillsTree": "9e737079be8e1fd58920855198fafc5b06e31ab2"
   },
   "skills": [
     "lark-approval",
@@ -38,7 +38,7 @@
     "lark-workflow-standup-report"
   ],
   "overridesSha256": "9ec0011148fa418e3b540d902a5ee20ec697b9cf30c003185ea9b8654c297812",
-  "bundleSha256": "c13e43cbc9ed0b82a51fb79f45fa9faf8d49028ef19710ae8206b9614123a11f",
+  "bundleSha256": "895d86cdec2124a7f3114220833530df797e076eac0b5ab73206da61449eef0c",
   "files": [
     {
       "sourcePath": "skills/lark-approval/references/lark-approval-approvals-get.md",
@@ -313,8 +313,8 @@
     {
       "sourcePath": "skills/lark-apps/references/lark-apps-cache.md",
       "targetPath": "lark-apps/references/lark-apps-cache.md",
-      "sourceSha256": "2318a7daa1a16c5603a256c237020d146b00dad252068859c2094d051f0fe584",
-      "outputSha256": "001379abb98e40e757d72ad9190c6b7749021a6125c9c2139ca4cd15bb0ae90f"
+      "sourceSha256": "a1be94a9a477369e756169c78a11b92dc591dfdfbef5264498027cddf4a51964",
+      "outputSha256": "19a0a3620c612e9695ac090c6b326629c87b701e2f84035f4e234529bd2b36f9"
     },
     {
       "sourcePath": "skills/lark-apps/references/lark-apps-cloud-dev.md",
@@ -469,8 +469,8 @@
     {
       "sourcePath": "skills/lark-apps/SKILL.md",
       "targetPath": "lark-apps/GUIDE.md",
-      "sourceSha256": "0361e7e7a9b77bb65e7a047d412f47d387131b5ed106eb67c36bfb632256175d",
-      "outputSha256": "ec6bea20b048cc69263ec5124eee212208f61d6d1fe376ab86d063015fee04af"
+      "sourceSha256": "ec93c646ddc2c723f93469f49edaf48e4d0f0e4d3c38b80a518d1d154e584d28",
+      "outputSha256": "2ba7621c6a6e4a4a8da670bc05a974b88efb937d009af94d885a37f5672f765c"
     },
     {
       "sourcePath": "skills/lark-attendance/SKILL.md",
@@ -505,8 +505,8 @@
     {
       "sourcePath": "skills/lark-base/references/lark-base-dashboard-block-config.md",
       "targetPath": "lark-base/references/lark-base-dashboard-block-config.md",
-      "sourceSha256": "ea971c601ac3f5a999947c244aadb1ebbe6a7a62a4ba60468a34d2f7c5f4b69c",
-      "outputSha256": "ea971c601ac3f5a999947c244aadb1ebbe6a7a62a4ba60468a34d2f7c5f4b69c"
+      "sourceSha256": "3b3b525c55488484db3491e0ba49a702391d51d25ba6bb0d10fb7a104752070e",
+      "outputSha256": "3b3b525c55488484db3491e0ba49a702391d51d25ba6bb0d10fb7a104752070e"
     },
     {
       "sourcePath": "skills/lark-base/references/lark-base-dashboard-block-get-data.md",
@@ -517,8 +517,8 @@
     {
       "sourcePath": "skills/lark-base/references/lark-base-dashboard.md",
       "targetPath": "lark-base/references/lark-base-dashboard.md",
-      "sourceSha256": "d57ba917f88b2a98c8c1e046d90082a2128dab0004ff222fdb77e4579822c7f1",
-      "outputSha256": "10000fdd9c7aa02acf16b7e31b5a0290abd3d73a0fdec8d29f51807fc8746b3d"
+      "sourceSha256": "3614bbc7df1686e82fcae01cdab08a3eb977a9eac310e9a65256cd216526439b",
+      "outputSha256": "f97cac55f75abda8704b3aec8d2377d517bc0a1e532a7d1d7434a4cbf58bfcfa"
     },
     {
       "sourcePath": "skills/lark-base/references/lark-base-data-analysis-pandas.md",
@@ -655,8 +655,8 @@
     {
       "sourcePath": "skills/lark-base/SKILL.md",
       "targetPath": "lark-base/GUIDE.md",
-      "sourceSha256": "252dc87222a1f6442ccd76eb68c89d122d4c3b25d750fc14037f4f9bb5bf8cfa",
-      "outputSha256": "252dc87222a1f6442ccd76eb68c89d122d4c3b25d750fc14037f4f9bb5bf8cfa"
+      "sourceSha256": "6994649bf1e086f2b0b7951822187d5ef98820602db37ed118a6adfd32d3d088",
+      "outputSha256": "6994649bf1e086f2b0b7951822187d5ef98820602db37ed118a6adfd32d3d088"
     },
     {
       "sourcePath": "skills/lark-calendar/references/lark-calendar-create.md",
@@ -1394,7 +1394,7 @@
       "sourcePath": "skills/lark-event/references/lark-event-im.md",
       "targetPath": "lark-event/references/lark-event-im.md",
       "sourceSha256": "b023f08657250ae2d1b513cbeb80d4776d786b270ffc459a1bd142eae156f3a6",
-      "outputSha256": "9210349406ff9c336bba5a96f4abe59c6b0ceeba9d71f13b28762f50f3ef9976"
+      "outputSha256": "5548720e39c994c02286dbc0e8c73e84f7b6cf31c5f67a768f5fb3ff795208e5"
     },
     {
       "sourcePath": "skills/lark-event/references/lark-event-minutes.md",
