@@ -1,5 +1,10 @@
 # 全局 Skills 更新 CHANGELOG
 
+## 2026-08-25
+
+- **agent-browser**（浏览器自动化技能）：
+  - 新增 `derive-client` 子能力：通过录制 HAR 流量，为某个站点生成一个独立的 API 客户端。
+
 ## 2026-08-22
 
 - **lark**（飞书技能）：
