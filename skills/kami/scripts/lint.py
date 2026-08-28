@@ -38,9 +38,15 @@ RGBA_VAR_DEF = re.compile(r"--([\w-]+)\s*:\s*[^;]*rgba\s*\(", re.IGNORECASE)
 BG_VAR_USE = re.compile(r"background(?:-color)?\s*:\s*[^;]*var\s*\(\s*--([\w-]+)", re.IGNORECASE)
 RGBA_BORDER_DIRECT = re.compile(r"border(?:-\w+)?\s*:\s*[^;]*rgba\s*\(", re.IGNORECASE)
 BORDER_VAR_USE = re.compile(r"border(?:-\w+)?\s*:\s*[^;]*var\s*\(\s*--([\w-]+)", re.IGNORECASE)
-LINE_HEIGHT_LOOSE = re.compile(r"line-height\s*:\s*1\.[6-9]\d*", re.IGNORECASE)
+LINE_HEIGHT_VALUE = re.compile(
+    r"line-height\s*:\s*([0-9]*\.?[0-9]+)(?![\w.%])",
+    re.IGNORECASE,
+)
 UNICODE_ARROW = re.compile(r"→")  # U+2192; should not appear in EN template body
-HEX_ANY = re.compile(r"#[0-9a-fA-F]{3,6}\b")
+HEX_ANY = re.compile(
+    r"#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})"
+    r"(?![0-9a-fA-F])"
+)
 # Thin closed border: border shorthand (not single-side) with sub-1pt width -- pitfall #2
 THIN_CLOSED_BORDER = re.compile(
     r"border(?!-(?:left|right|top|bottom))\s*:\s*[^;]*0\.\d+pt",
@@ -94,19 +100,49 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
     findings: list[Finding] = []
     text = _strip_css_block_comments(raw_text)
     lines = text.splitlines()
-
-    # Pass 1: collect variable names that hold rgba(...) so the tag-background
-    # bug can be detected through one level of indirection.
-    rgba_vars: set[str] = set()
-    for raw in lines:
-        m = RGBA_VAR_DEF.search(raw)
-        if m:
-            rgba_vars.add(m.group(1))
-
     is_en = path.name.endswith("-en.html")
-    # Screen-only templates (landing pages) never go through WeasyPrint, so the
-    # Mermaid-unsafe-SVG rule does not apply to them.
+    # Screen-only landing pages do not pass through WeasyPrint. Their browser
+    # gradients may use alpha, and CJK screen copy has a documented 1.65
+    # line-height ceiling instead of the print ceiling of 1.55.
     is_screen = path.name in set(SCREEN_TEMPLATES.values())
+
+    def line_for(offset: int) -> int:
+        return line_offset + text.count("\n", 0, offset) + 1
+
+    # Pass 1: scan declarations across the whole stylesheet. CSS may wrap a
+    # declaration across lines or place several custom properties on one line;
+    # a per-line `search` silently missed both shapes.
+    rgba_vars = {m.group(1) for m in RGBA_VAR_DEF.finditer(text)}
+    for match in (() if is_screen else RGBA_BG_DIRECT.finditer(text)):
+        findings.append(Finding(
+            path,
+            line_for(match.start()),
+            "rgba-background",
+            "rgba() used directly on background (tag double-rectangle bug)",
+        ))
+    for match in (() if is_screen else BG_VAR_USE.finditer(text)):
+        if match.group(1) in rgba_vars:
+            findings.append(Finding(
+                path,
+                line_for(match.start()),
+                "rgba-background",
+                f"background: var(--{match.group(1)}) resolves to rgba() (tag double-rectangle bug)",
+            ))
+    for match in (() if is_screen else RGBA_BORDER_DIRECT.finditer(text)):
+        findings.append(Finding(
+            path,
+            line_for(match.start()),
+            "rgba-border",
+            "rgba() used on border (violates solid-color invariant)",
+        ))
+    for match in (() if is_screen else BORDER_VAR_USE.finditer(text)):
+        if match.group(1) in rgba_vars:
+            findings.append(Finding(
+                path,
+                line_for(match.start()),
+                "rgba-border",
+                f"border: var(--{match.group(1)}) resolves to rgba() (solid-color invariant)",
+            ))
 
     # Pass 2: per-line rule checks
     is_python = path.suffix == ".py"
@@ -124,24 +160,6 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
         if is_python and line.startswith("#"):
             continue
 
-        if RGBA_BG_DIRECT.search(raw):
-            findings.append(Finding(path, line_offset + i, "rgba-background",
-                                    "rgba() used directly on background (tag double-rectangle bug)"))
-
-        bg_var = BG_VAR_USE.search(raw)
-        if bg_var and bg_var.group(1) in rgba_vars:
-            findings.append(Finding(path, line_offset + i, "rgba-background",
-                                    f"background: var(--{bg_var.group(1)}) resolves to rgba() (tag double-rectangle bug)"))
-
-        if RGBA_BORDER_DIRECT.search(raw):
-            findings.append(Finding(path, line_offset + i, "rgba-border",
-                                    "rgba() used on border (violates solid-color invariant)"))
-
-        border_var = BORDER_VAR_USE.search(raw)
-        if border_var and border_var.group(1) in rgba_vars:
-            findings.append(Finding(path, line_offset + i, "rgba-border",
-                                    f"border: var(--{border_var.group(1)}) resolves to rgba() (solid-color invariant)"))
-
         if is_en and UNICODE_ARROW.search(raw):
             # skip CSS comment lines (/* ... */) and the arrow-in-CSS-content patterns
             stripped = raw.lstrip()
@@ -149,10 +167,11 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
                 findings.append(Finding(path, line_offset + i, "arrow-unicode-in-en",
                                         "to (U+2192) in English template; use 'to' or '->' per patterns Section 2"))
 
-        m = LINE_HEIGHT_LOOSE.search(raw)
-        if m:
-            findings.append(Finding(path, line_offset + i, "line-height-too-loose",
-                                    f"{m.group(0)} exceeds 1.55 ceiling"))
+        for match in LINE_HEIGHT_VALUE.finditer(raw):
+            ceiling = 1.65 if is_screen and not is_en else 1.55
+            if float(match.group(1)) > ceiling:
+                findings.append(Finding(path, line_offset + i, "line-height-too-loose",
+                                        f"{match.group(0)} exceeds {ceiling:.2f} ceiling"))
 
         for hex_match in HEX_ANY.finditer(raw):
             h = hex_match.group(0).lower()
@@ -298,7 +317,11 @@ def _off_palette_findings(
     return findings
 
 
-ROOT_TOKEN_DEF = re.compile(r"(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,6})\b")
+ROOT_TOKEN_DEF = re.compile(
+    r"(--[\w-]+)\s*:\s*"
+    r"(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3}))"
+    r"(?![0-9a-fA-F])"
+)
 
 
 def _root_token_findings(path: Path, allowed: set[str]) -> list[Finding]:

@@ -426,6 +426,11 @@ def build_catalog_feed(root: Path) -> str:
         [k for k in DOCUMENT_TEMPLATE_NOTES if k in PUBLIC_DOCUMENT_TEMPLATE_KINDS], start=1
     ):
         name, description = DOCUMENT_TEMPLATE_NOTES[kind]
+        encoding_formats = ["text/html", "application/pdf"]
+        if kind == "slides":
+            encoding_formats.append(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
         documents.append(
             {
                 "@type": "ListItem",
@@ -438,7 +443,7 @@ def build_catalog_feed(root: Path) -> str:
                     "description": description,
                     "genre": "document template",
                     "inLanguage": template_locales(kind),
-                    "encodingFormat": ["text/html", "application/pdf"],
+                    "encodingFormat": encoding_formats,
                 },
             }
         )

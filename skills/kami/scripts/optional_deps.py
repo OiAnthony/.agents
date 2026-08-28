@@ -10,8 +10,10 @@ from __future__ import annotations
 import importlib
 import importlib.metadata
 import shutil
+import struct
 import subprocess
 import sys
+from pathlib import Path
 
 from shared import ROOT, configure_weasyprint_runtime, kami_version
 
@@ -126,9 +128,55 @@ def _probe_module(name: str):
     return importlib.import_module(name)
 
 
+def _font_file_valid(path: Path) -> bool:
+    """Validate enough of an SFNT/WOFF header to reject truncated font files."""
+    try:
+        file_size = path.stat().st_size
+        with path.open("rb") as stream:
+            header = stream.read(48)
+    except OSError:
+        return False
+    if len(header) < 12:
+        return False
+
+    signature = header[:4]
+    if signature in {b"\x00\x01\x00\x00", b"OTTO", b"true", b"typ1"}:
+        table_count = struct.unpack(">H", header[4:6])[0]
+        directory_end = 12 + table_count * 16
+        if table_count == 0 or directory_end > file_size:
+            return False
+        try:
+            with path.open("rb") as stream:
+                stream.seek(12)
+                directory = stream.read(table_count * 16)
+        except OSError:
+            return False
+        if len(directory) != table_count * 16:
+            return False
+        for offset in range(0, len(directory), 16):
+            table_offset, table_length = struct.unpack(
+                ">II", directory[offset + 8:offset + 16]
+            )
+            if table_offset > file_size or table_length > file_size - table_offset:
+                return False
+        return True
+
+    if signature == b"wOF2":
+        if len(header) < 48:
+            return False
+        declared_length = struct.unpack(">I", header[8:12])[0]
+        table_count = struct.unpack(">H", header[12:14])[0]
+        sfnt_size = struct.unpack(">I", header[16:20])[0]
+        return declared_length == file_size and table_count > 0 and sfnt_size > 0
+
+    return False
+
+
 def _probe_font(family: str, bundled_names: tuple[str, ...], purpose: str) -> dict:
     font_dir = ROOT / "assets" / "fonts"
-    bundled = [name for name in bundled_names if (font_dir / name).is_file()]
+    present = [name for name in bundled_names if (font_dir / name).is_file()]
+    bundled = [name for name in present if _font_file_valid(font_dir / name)]
+    invalid_bundled = [name for name in present if name not in bundled]
     matched = None
     matcher = shutil.which("fc-match")
     if matcher:
@@ -145,17 +193,23 @@ def _probe_font(family: str, bundled_names: tuple[str, ...], purpose: str) -> di
         except (OSError, subprocess.TimeoutExpired):
             matched = None
     resolved = bool(matched and family.casefold() in matched.casefold())
-    status = "available" if bundled or resolved else "unconfirmed"
+    status = (
+        "degraded" if invalid_bundled
+        else "available" if bundled or resolved
+        else "unconfirmed"
+    )
+    detail = None
+    if invalid_bundled:
+        detail = f"bundled font file is empty or truncated: {', '.join(invalid_bundled)}"
+    elif status != "available":
+        detail = "not bundled and fontconfig did not confirm the requested family"
     return {
         "name": family,
         "status": status,
         "purpose": purpose,
         "bundled": bundled,
         "fontconfig_match": matched,
-        "detail": (
-            None if status == "available"
-            else "not bundled and fontconfig did not confirm the requested family"
-        ),
+        "detail": detail,
     }
 
 

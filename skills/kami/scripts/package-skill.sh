@@ -31,7 +31,10 @@ PACKAGE_REQUIRED_ENTRIES=(
 )
 
 mkdir -p "$(dirname "$OUT")"
-rm -f "$OUT"
+if [ -d "$OUT" ]; then
+  echo "ERROR: package output is a directory: $OUT" >&2
+  exit 1
+fi
 
 cd "$ROOT"
 
@@ -39,7 +42,9 @@ MANIFEST="$(mktemp)"
 FILTERED_MANIFEST="$(mktemp)"
 ZIP_MANIFEST="$(mktemp)"
 STAGING="$(mktemp -d)"
-trap 'rm -f "$MANIFEST" "$FILTERED_MANIFEST" "$ZIP_MANIFEST"; rm -rf "$STAGING"' EXIT
+CANDIDATE_DIR="$(mktemp -d "$(dirname "$OUT")/.kami-package.XXXXXX")"
+CANDIDATE="$CANDIDATE_DIR/kami.zip"
+trap 'rm -f "$MANIFEST" "$FILTERED_MANIFEST" "$ZIP_MANIFEST"; rm -rf "$STAGING" "$CANDIDATE_DIR"' EXIT
 
 git ls-files > "$MANIFEST"
 awk '
@@ -80,10 +85,10 @@ done < "$FILTERED_MANIFEST"
 (
   cd "$STAGING"
   find "$PACKAGE_ROOT_NAME" -type f | sort > "$ZIP_MANIFEST"
-  zip -X -q "$OUT" -@ < "$ZIP_MANIFEST"
+  zip -X -q "$CANDIDATE" -@ < "$ZIP_MANIFEST"
 )
 
-entries="$(zipinfo -1 "$OUT")"
+entries="$(zipinfo -1 "$CANDIDATE")"
 bad_root="$(printf '%s\n' "$entries" | awk -v prefix="${PACKAGE_ROOT_NAME}/" 'index($0, prefix) != 1 { print }')"
 if [ -n "$bad_root" ]; then
   echo "ERROR: package entries must live under ${PACKAGE_ROOT_NAME}/:" >&2
@@ -105,11 +110,12 @@ for required in "${PACKAGE_REQUIRED_ENTRIES[@]}"; do
   fi
 done
 
-size_bytes="$(wc -c < "$OUT" | tr -d '[:space:]')"
+size_bytes="$(wc -c < "$CANDIDATE" | tr -d '[:space:]')"
 if (( size_bytes > PACKAGE_MAX_BYTES )); then
   echo "ERROR: package exceeds ${PACKAGE_MAX_BYTES} bytes: ${size_bytes} bytes" >&2
   exit 1
 fi
 
+mv -f "$CANDIDATE" "$OUT"
 echo "OK: package audit passed (${size_bytes} bytes, limit ${PACKAGE_MAX_BYTES})"
 echo "OK: wrote $OUT"

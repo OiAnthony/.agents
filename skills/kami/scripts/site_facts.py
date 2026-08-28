@@ -41,13 +41,19 @@ SITE_LOCALE_PAGES = (
 # locale-page tuple so adding a locale automatically joins both checks.
 # index.md is the Markdown twin agents read instead of the homepage, so it
 # carries the same install and product facts.
+DEVELOPER_FACT_FILES = (
+    "developers.html",
+    "developers.md",
+)
 FULL_PUBLIC_FACT_FILES = (
     "README.md",
     "llms.txt",
     "index.md",
     SITE_BASE_PAGE,
     *SITE_LOCALE_PAGES,
+    *DEVELOPER_FACT_FILES,
 )
+SITE_VERSION_BADGE_FILES = (SITE_BASE_PAGE, *SITE_LOCALE_PAGES)
 REDIRECT_SITE_FILE = "index-en.html"
 SITE_SURFACE_ABSENT = "__site_surface_absent__"
 
@@ -226,10 +232,10 @@ def site_fact_issues(files: Mapping[str, str] | None = None) -> list[str]:
         if rel != "llms.txt" and CLAUDE_DESKTOP_PACKAGE_URL not in text:
             issues.append(f"{rel}: missing Claude Desktop package URL {CLAUDE_DESKTOP_PACKAGE_URL}")
 
-        # The site pages carry a hand-written Kami version badge; tie it to the
-        # tracked VERSION file so a release bump cannot leave a page behind.
-        # README and llms.txt intentionally carry no version string.
-        if rel.endswith(".html") and f"v{kami_version()}" not in text:
+        # The homepage HTML pages carry a hand-written Kami version badge; tie
+        # those pages to VERSION without forcing the prose/developer files to
+        # repeat a badge they do not display.
+        if rel in SITE_VERSION_BADGE_FILES and f"v{kami_version()}" not in text:
             issues.append(f"{rel}: missing Kami version badge v{kami_version()}")
 
         if not _contains_template_count(text, template_count):

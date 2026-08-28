@@ -16,7 +16,8 @@ Usage:
         --subtitle-cn "插件安装修复，审计清理沉淀。"
 
 The default rev range is `<latest tag>..HEAD`. Output goes to stdout; pipe
-to a file or `pbcopy` to feed `gh release create --notes-file`.
+it to a file, then pass that file to `gh release edit --notes-file` after the
+tag-triggered workflow creates the release placeholder.
 """
 from __future__ import annotations
 
@@ -62,7 +63,10 @@ def _run(cmd: list[str]) -> str:
 
 def latest_tag() -> str | None:
     try:
-        out = _run(["git", "describe", "--tags", "--abbrev=0"]).strip()
+        out = _run([
+            "git", "describe", "--tags", "--abbrev=0",
+            "--match", "V[0-9]*.[0-9]*.[0-9]*",
+        ]).strip()
     except RuntimeError:
         return None
     return out or None

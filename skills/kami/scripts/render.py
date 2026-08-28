@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 from highlight import highlight_code_blocks
@@ -88,10 +89,12 @@ def set_pdf_metadata(pdf_path: Path, author: str | None = None) -> None:
     if not needs_update:
         return
 
+    # Clone the whole document catalog, not only its pages. WeasyPrint writes
+    # useful document-level structures such as outlines, named destinations,
+    # and /Lang; rebuilding from add_page() silently discards those while the
+    # page count and pixels still look correct.
     writer = PdfWriter()
-    for page in reader.pages:
-        writer.add_page(page)
-
+    writer.clone_document_from_reader(reader)
     writer.add_metadata(metadata)
 
     with open(pdf_path, "wb") as f:
@@ -127,6 +130,30 @@ def render_pdf(src: Path, out: Path) -> int:
     return page_count
 
 
+_PPTX_REQUIRED_ENTRIES = {
+    "[Content_Types].xml",
+    "_rels/.rels",
+    "ppt/presentation.xml",
+}
+
+
+def _pptx_issue(path: Path) -> str | None:
+    """Return why ``path`` is not a readable PPTX package, else ``None``."""
+    if not path.is_file():
+        return "output not produced"
+    try:
+        with zipfile.ZipFile(path) as archive:
+            bad_entry = archive.testzip()
+            if bad_entry is not None:
+                return f"corrupt ZIP entry: {bad_entry}"
+            missing = sorted(_PPTX_REQUIRED_ENTRIES - set(archive.namelist()))
+    except (OSError, zipfile.BadZipFile) as exc:
+        return f"invalid PPTX package: {exc}"
+    if missing:
+        return f"missing PPTX package entry: {', '.join(missing)}"
+    return None
+
+
 def build_slides(name: str = "slides") -> bool:
     """Run a python-pptx slide script from the shared registry; True on success."""
     source = pptx_targets().get(name)
@@ -140,19 +167,27 @@ def build_slides(name: str = "slides") -> bool:
 
     EXAMPLES.mkdir(parents=True, exist_ok=True)
     out = EXAMPLES / f"{name}.pptx"
-    # Pass --out so the slides script writes directly to the target path. Older
-    # slides.py defaults to 'output.pptx' in cwd; new copies accept --out.
-    result = subprocess.run(
-        [sys.executable, str(src), "--out", str(out)],
-        cwd=str(src.parent),
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print(f"ERROR: {name}: {result.stderr.strip() or 'script failed'}")
-        return False
-    if out.exists():
-        print(f"OK: {name}: generated {out.name}")
-        return True
-    print(f"ERROR: {name}: {out.name} not produced")
-    return False
+    # Build beside the destination and replace only after the new file proves
+    # to be a readable PPTX package. A successful script that forgets to write
+    # must not let an older output masquerade as this run's artifact.
+    with tempfile.TemporaryDirectory(
+        dir=out.parent,
+        prefix=f".{out.name}-",
+    ) as staging_dir:
+        candidate = Path(staging_dir) / out.name
+        result = subprocess.run(
+            [sys.executable, str(src), "--out", str(candidate)],
+            cwd=str(src.parent),
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"ERROR: {name}: {result.stderr.strip() or 'script failed'}")
+            return False
+        issue = _pptx_issue(candidate)
+        if issue:
+            print(f"ERROR: {name}: {issue}")
+            return False
+        os.replace(candidate, out)
+    print(f"OK: {name}: generated {out.name}")
+    return True

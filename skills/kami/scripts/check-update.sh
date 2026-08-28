@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # Quiet daily update check for the installed kami skill.
 #
-# Reads the public VERSION file on the default branch and compares it to the
-# bundled VERSION. If a newer version exists, prints one line so the agent can
-# relay it. No data is ever sent (a plain read-only GET); any failure is silent;
-# the check runs at most once per day via a cache marker, so it never blocks work.
+# Writes a local daily cache marker, then resolves GitHub's latest published
+# release and compares its tag to the bundled VERSION. If a newer version exists,
+# prints one line so the agent can relay it. It uploads no user document or task
+# content; any failure is silent, so the check never blocks work.
 set -u
 
 SKILL="kami"
 REPO="tw93/Kami"
 DEFAULT_UPDATE_CMD="npx skills add tw93/kami/plugins/kami -a universal -g -y"
-# KAMI_UPDATE_URL overrides the source (used by tests); defaults to the public VERSION.
-REMOTE_URL="${KAMI_UPDATE_URL:-https://raw.githubusercontent.com/${REPO}/main/VERSION}"
+# KAMI_UPDATE_URL overrides the source with a plain version file (used by tests).
+LATEST_RELEASE_URL="https://github.com/${REPO}/releases/latest"
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 local_ver="$(tr -d '[:space:]' < "${root}/VERSION" 2>/dev/null)"
@@ -33,16 +33,31 @@ esac
 # dated marker file rewritten in place, so the cache dir does not accumulate
 # a new empty update-checked-YYYY-MM-DD file every day.
 day="$(date +%F 2>/dev/null)" || exit 0
-cache_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/${SKILL}"
+if [ -n "${XDG_CACHE_HOME:-}" ]; then
+  cache_root="${XDG_CACHE_HOME}"
+elif [ -n "${HOME:-}" ]; then
+  cache_root="${HOME}/.cache"
+else
+  exit 0
+fi
+cache_dir="${cache_root}/${SKILL}"
 marker="${cache_dir}/update-checked"
 [ "$(cat "${marker}" 2>/dev/null)" = "${day}" ] && exit 0
-mkdir -p "${cache_dir}" 2>/dev/null
-printf '%s' "${day}" > "${marker}" 2>/dev/null   # write first so an offline run does not retry all day
+mkdir -p "${cache_dir}" 2>/dev/null || exit 0
+printf '%s' "${day}" > "${marker}" 2>/dev/null || exit 0   # write first so an offline run does not retry all day
 rm -f "${cache_dir}"/update-checked-2* 2>/dev/null   # sweep legacy per-day markers
 
 command -v curl >/dev/null 2>&1 || exit 0
-remote_ver="$(curl -fsSL --max-time 3 "${REMOTE_URL}" 2>/dev/null | tr -d '[:space:]')"
+if [ -n "${KAMI_UPDATE_URL:-}" ]; then
+  remote_ver="$(curl -fsSL --max-time 3 "${KAMI_UPDATE_URL}" 2>/dev/null | tr -d '[:space:]')"
+else
+  release_url="$(curl -fsSL --max-time 3 -o /dev/null -w '%{url_effective}' \
+    "${LATEST_RELEASE_URL}" 2>/dev/null)"
+  release_tag="${release_url##*/}"
+  remote_ver="${release_tag#V}"
+fi
 [ -n "${remote_ver}" ] || exit 0
+[[ "${remote_ver}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 0
 [ "${remote_ver}" = "${local_ver}" ] && exit 0
 
 # Only notify when the remote version sorts strictly higher. Numeric-field

@@ -362,9 +362,11 @@ def _tool_result(msg_id, payload: dict, *, is_error: bool = False) -> None:
 
 def handle(msg: dict) -> None:
     method = msg.get("method")
+    has_id = "id" in msg
     msg_id = msg.get("id")
     if msg.get("jsonrpc") != "2.0" or not isinstance(method, str):
-        _reply_error(msg_id, -32600, "invalid request")
+        if has_id:
+            _reply_error(msg_id, -32600, "invalid request")
         return
     raw_params = msg.get("params")
     if raw_params is None:
@@ -372,11 +374,13 @@ def handle(msg: dict) -> None:
     elif isinstance(raw_params, dict):
         params = raw_params
     else:
-        if msg_id is not None:
+        if has_id:
             _reply_error(msg_id, -32602, "params must be an object")
         return
 
     if method == "initialize":
+        if not has_id:
+            return
         client_version = params.get("protocolVersion")
         agreed = client_version if client_version in SUPPORTED_PROTOCOL_VERSIONS else PROTOCOL_VERSION
         _reply(msg_id, {
@@ -385,7 +389,7 @@ def handle(msg: dict) -> None:
             "serverInfo": {"name": "kami", "version": kami_version()},
         })
         return
-    if msg_id is None:
+    if not has_id:
         return  # notifications (initialized, cancelled, ...) need no reply
     if method == "ping":
         _reply(msg_id, {})

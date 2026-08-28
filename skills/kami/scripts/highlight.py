@@ -13,10 +13,14 @@ import sys
 from shared import token_value
 
 CODE_BLOCK_RE = re.compile(
-    r'(<pre[^>]*>\s*<code\s+class="language-([\w+-]+)"[^>]*>)'
-    r'(.*?)'
-    r'(</code>\s*</pre>)',
-    re.DOTALL,
+    r'(?P<open><pre\b[^>]*>\s*<code\b[^>]*>)'
+    r'(?P<code>.*?)'
+    r'(?P<close></code\s*>\s*</pre\s*>)',
+    re.DOTALL | re.IGNORECASE,
+)
+CLASS_ATTR_RE = re.compile(
+    r'''(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))''',
+    re.IGNORECASE,
 )
 
 _KAMI_PALETTE: dict[str, str] | None = None
@@ -96,15 +100,33 @@ def _build_kami_style():
     return KamiStyle
 
 
+def _language_from_open_tag(open_tag: str) -> str | None:
+    """Return the first ``language-*`` class token from a code start tag."""
+    code_tag = re.search(r"<code\b(?P<attrs>[^>]*)>", open_tag, re.IGNORECASE)
+    if code_tag is None:
+        return None
+    class_attr = CLASS_ATTR_RE.search(code_tag.group("attrs"))
+    if class_attr is None:
+        return None
+    class_value = next(value for value in class_attr.groups() if value is not None)
+    for token in class_value.split():
+        match = re.fullmatch(r"language-([\w+-]+)", token, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    return None
+
+
 def _highlight_block(match: re.Match[str]) -> str:
     from pygments import highlight as pyg_highlight
     from pygments.formatters import HtmlFormatter
     from pygments.lexers import get_lexer_by_name
 
-    open_tag = match.group(1)
-    language = match.group(2)
-    code = match.group(3)
-    close_tag = match.group(4)
+    open_tag = match.group("open")
+    language = _language_from_open_tag(open_tag)
+    if language is None:
+        return match.group(0)
+    code = match.group("code")
+    close_tag = match.group("close")
 
     code_text = html_mod.unescape(code)
 
@@ -129,7 +151,10 @@ def highlight_code_blocks(html_text: str) -> str:
     Returns HTML unchanged if Pygments is not installed or no
     language-tagged blocks are found.
     """
-    if not CODE_BLOCK_RE.search(html_text):
+    matches = list(CODE_BLOCK_RE.finditer(html_text))
+    if not matches or not any(
+        _language_from_open_tag(match.group("open")) for match in matches
+    ):
         return html_text
 
     try:

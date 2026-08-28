@@ -205,11 +205,15 @@ def public_template_kind(name: str) -> str:
 
 
 def public_document_template_kinds() -> set[str]:
-    """Return public document-template kinds represented by HTML_TEMPLATES."""
+    """Return every normalized document kind represented by HTML_TEMPLATES.
+
+    Do not filter through ``PUBLIC_DOCUMENT_TEMPLATE_KINDS`` here. Callers use
+    this derived set to detect a newly registered document kind whose public
+    facts or content schema have not been added yet.
+    """
     return {
         public_template_kind(name)
         for name in HTML_TEMPLATES
-        if public_template_kind(name) in PUBLIC_DOCUMENT_TEMPLATE_KINDS
     }
 
 
@@ -304,6 +308,12 @@ def load_checks_thresholds() -> dict[str, Any]:
     return {
         "rhythm": {"max_content_run": 5, "divider_min_deck_size": 12},
         "density": {"warn_pct": 0.25, "sparse_pct": 0.50, "dpi": 36},
+        "resume_balance": {
+            "min_fill_pct": 0.83,
+            "max_fill_pct": 0.95,
+            "max_gap_pct": 0.12,
+            "dpi": 36,
+        },
         "orphan": {"max_words": 2, "max_chars": 15},
         "visual": {"dpi": 110},
     }
