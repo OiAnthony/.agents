@@ -575,7 +575,7 @@ def display_path(path: Path, root: Path, home: Path) -> str:
     return safe_label(path.as_posix())
 
 
-def candidate_skill_files(root: Path, home: Path) -> list[Path]:
+def candidate_skill_files(root: Path, home: Path) -> tuple[list[Path], int]:
     roots = [
         root / ".claude" / "skills",
         root / ".agents" / "skills",
@@ -607,12 +607,16 @@ def candidate_skill_files(root: Path, home: Path) -> list[Path]:
     for repository in repository_roots:
         candidates.extend(repository.glob("skills/*/SKILL.md"))
     unique: dict[Path, Path] = {}
+    mirrors_collapsed = 0
     for path in candidates:
         canonical = resolve_audit_file(path)
         if canonical is None:
             continue
+        if canonical in unique:
+            mirrors_collapsed += 1
+            continue
         unique[canonical] = path
-    return sorted(unique)
+    return sorted(unique.values()), mirrors_collapsed
 
 
 def skill_runtime(path: Path, root: Path, home: Path) -> str:
@@ -634,7 +638,8 @@ def skill_runtime(path: Path, root: Path, home: Path) -> str:
 
 def summarize_skill_duplicates(root: Path, home: Path) -> tuple[str, list[str]]:
     by_name: dict[str, list[tuple[Path, str, str]]] = defaultdict(list)
-    for path in candidate_skill_files(root, home):
+    skill_files, mirrors_collapsed = candidate_skill_files(root, home)
+    for path in skill_files:
         name = skill_name(path)
         if not name:
             continue
@@ -685,6 +690,7 @@ def summarize_skill_duplicates(root: Path, home: Path) -> tuple[str, list[str]]:
     lines = [
         "=== SKILL ROUTING DUPLICATES ===",
         f"skill_files_scanned: {sum(len(entries) for entries in by_name.values())}",
+        f"mirrored_skill_files_collapsed: {mirrors_collapsed}",
         f"source_skill_files_scanned: {len(source_skill_files)}",
         f"duplicate_skill_names: {len(duplicate_lines)}",
         "duplicate_skills:",

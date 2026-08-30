@@ -65,6 +65,7 @@ VERIFIER_COMMAND_RE = re.compile(
     r"^(?:sudo\s+)?(?:shellcheck|pytest|ruff|mypy|eslint|stylelint|biome|hadolint)\b|"
     r"\bpython(?:3)?\s+-m\s+(?:pytest|unittest|compileall|py_compile)\b|"
     r"\b(?:cargo|go|mvn|gradle|deno)\s+(?:test|check|build|verify|vet|clippy)\b|"
+    r"\bswift\s+(?:build|test)\b|"
     r"\b(?:npm|pnpm|yarn|bun)\s+(?:test|check|lint|build|verify|pack)\b|"
     r"(?:^|[\s/])[A-Za-z0-9_.-]*(?:test|check|verify|lint|smoke|build)"
     r"[A-Za-z0-9_./-]*\.(?:sh|py)\b"
@@ -84,6 +85,18 @@ SETUP_ONLY_COMMAND_RE = re.compile(
 )
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 URL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+RUSTDOC_LINK_RE = re.compile(
+    r"(?:^|/)(?:constant|enum|fn|macro|mod|static|struct|trait|type|union)\."
+    r"[^/]+\.html$"
+)
+ACTIONABLE_COMMAND_RE = re.compile(
+    r"(?:"
+    r"\b(?:run|execute|invoke)\s+$|"
+    r"\b(?:build|check|package|test|verify)\s+(?:using|via|with)\s+$|"
+    r"\b(?:command|verification|verifier)\s*:\s*$"
+    r")",
+    re.IGNORECASE,
+)
 MAX_TEXT_BYTES = 2_000_000
 MAX_MIRROR_DIGEST_BYTES = 16_000_000
 SECRET_TOKEN_RE = re.compile(
@@ -646,8 +659,19 @@ def scan_markdown_links(files: list[Path], root: Path) -> list[str]:
     missing: list[str] = []
     markdown_files = [path for path in files if path.suffix.lower() == ".md"]
     for path in markdown_files:
+        fence: tuple[str, int] | None = None
         for lineno, line in enumerate(read_text(path, root).splitlines(), 1):
-            for raw in MARKDOWN_LINK_RE.findall(line):
+            fence_match = re.match(r"^\s{0,3}(`{3,}|~{3,})", line)
+            if fence_match:
+                marker = fence_match.group(1)
+                if fence is None:
+                    fence = (marker[0], len(marker))
+                elif marker[0] == fence[0] and len(marker) >= fence[1]:
+                    fence = None
+                continue
+            if fence is not None:
+                continue
+            for raw in MARKDOWN_LINK_RE.findall(strip_markdown_inline_code(line)):
                 target = raw.strip().split()[0].strip("<>")
                 if not target or target.startswith("#") or URL_RE.match(target):
                     continue
@@ -660,10 +684,60 @@ def scan_markdown_links(files: list[Path], root: Path) -> list[str]:
                 # broken-doc finding.
                 if target.startswith("/"):
                     continue
+                if is_rustdoc_generated_link(path, target, root):
+                    continue
                 full = path.parent / target
                 if not is_safe_repo_reference(full, root):
                     missing.append(f"{rel(path, root)}:{lineno} -> {target}")
     return missing
+
+
+def strip_markdown_inline_code(line: str) -> str:
+    """Blank inline code spans while preserving non-code Markdown text."""
+    output: list[str] = []
+    open_ticks = 0
+    index = 0
+    while index < len(line):
+        if line[index] != "`":
+            output.append(line[index] if open_ticks == 0 else " ")
+            index += 1
+            continue
+        end = index
+        while end < len(line) and line[end] == "`":
+            end += 1
+        run = end - index
+        if open_ticks == 0:
+            open_ticks = run
+        elif run == open_ticks:
+            open_ticks = 0
+        output.extend(" " * run)
+        index = end
+    return "".join(output)
+
+
+def is_rustdoc_generated_link(source: Path, target: str, root: Path) -> bool:
+    """Recognize links that Rustdoc resolves only in generated crate docs."""
+    if not RUSTDOC_LINK_RE.search(target):
+        return False
+    current = source.parent
+    while True:
+        if is_repo_file(current / "Cargo.toml", root):
+            return True
+        if current == root:
+            return False
+        try:
+            current.relative_to(root)
+        except ValueError:
+            return False
+        current = current.parent
+
+
+def actionable_inline_command_snippets(line: str) -> list[str]:
+    snippets: list[str] = []
+    for match in re.finditer(r"`([^`]+)`", line):
+        if ACTIONABLE_COMMAND_RE.search(line[: match.start()]):
+            snippets.append(match.group(1))
+    return snippets
 
 
 def verification_surface(
@@ -693,6 +767,9 @@ def verification_surface(
     if is_repo_file(root / "go.mod", root):
         commands.append("go test ./...")
         evidence.append("go test ./...")
+    if is_repo_file(root / "Package.swift", root):
+        commands.append("swift test")
+        evidence.append("swift test")
     pyproject = root / "pyproject.toml"
     pytest_configured = is_repo_file(root / "pytest.ini", root) or (
         is_repo_file(pyproject, root)
@@ -726,7 +803,7 @@ def verification_surface(
         text = read_text(path, root, 200_000)
         snippets: list[str] = []
         for raw_line in text.splitlines():
-            snippets.extend(re.findall(r"`([^`]+)`", raw_line))
+            snippets.extend(actionable_inline_command_snippets(raw_line))
             stripped = raw_line.strip().strip("`")
             if COMMAND_LINE_RE.match(stripped):
                 snippets.append(stripped)
@@ -779,7 +856,8 @@ def main() -> int:
     detected_manifests = [
         name
         for name in [
-            "Makefile", "package.json", "Cargo.toml", "go.mod", "pyproject.toml",
+            "Makefile", "package.json", "Cargo.toml", "go.mod", "Package.swift",
+            "pyproject.toml",
             "pytest.ini", "pom.xml", "deno.json", "deno.jsonc",
         ]
         if is_repo_file(root / name, root)

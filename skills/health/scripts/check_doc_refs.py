@@ -122,13 +122,30 @@ def resolve_ref(source: Path, raw: str, root: Path, home: Path) -> Path:
     return Path(os.path.abspath(source.parent / ref))
 
 
-def target_exists(target: Path, raw: str, root: Path, home: Path) -> bool:
+def target_status(target: Path, raw: str, root: Path, home: Path) -> str:
     scope = home / ".claude" if raw.startswith("~/") else root
-    if scope.is_symlink():
-        return False
+    # The global instruction file is commonly a deliberate link to a managed
+    # rules repository. Report that trust boundary without reading through it.
+    # Other linked references stay failures: treating arbitrary global rule
+    # links as advisory would hide real escaped targets.
+    symlink_status = "external" if raw == "~/.claude/CLAUDE.md" else "missing"
+    try:
+        relative = target.relative_to(scope)
+    except ValueError:
+        return "external"
+    current = scope
+    try:
+        if current.is_symlink():
+            return symlink_status
+        for part in relative.parts:
+            current /= part
+            if current.is_symlink():
+                return symlink_status
+    except OSError:
+        return "missing"
     if raw.endswith("/"):
-        return is_repo_dir(target, scope)
-    return is_repo_file(target, scope)
+        return "exists" if is_repo_dir(target, scope) else "missing"
+    return "exists" if is_repo_file(target, scope) else "missing"
 
 
 def collect_scan_files(root: Path) -> list[Path]:
@@ -153,6 +170,7 @@ def main() -> int:
     scan_files = collect_scan_files(root)
 
     missing: list[str] = []
+    unverifiable: list[str] = []
     seen: set[tuple[Path, int, str]] = set()
     for path in scan_files:
         in_fence = False
@@ -174,17 +192,26 @@ def main() -> int:
                 seen.add(key)
 
                 target = resolve_ref(path, raw, root, home)
-                exists = target_exists(target, raw, root, home)
-                if not exists:
-                    source = path.relative_to(root)
+                status = target_status(target, raw, root, home)
+                source = path.relative_to(root)
+                if status == "missing":
                     missing.append(
                         f"MISSING: {safe_label(source.as_posix())}:{lineno} "
                         f"-> {safe_label(raw)}"
                     )
+                elif status == "external":
+                    unverifiable.append(
+                        f"UNVERIFIED_EXTERNAL: {safe_label(source.as_posix())}:{lineno} "
+                        f"-> {safe_label(raw)}"
+                    )
 
     if missing:
-        print("\n".join(missing))
+        print("\n".join(missing + unverifiable))
         return 1
+
+    if unverifiable:
+        print("\n".join(unverifiable))
+        return 0
 
     print("doc references: ok")
     return 0
