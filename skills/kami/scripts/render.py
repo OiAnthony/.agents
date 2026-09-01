@@ -1,6 +1,6 @@
 """Artifact production primitives shared by build, verify, and the MCP server.
 
-One home for the render pipeline (read HTML, highlight code blocks, WeasyPrint
+One home for the render pipeline (read HTML, strictly render LaTeX to SVG, highlight code blocks, WeasyPrint
 to PDF, stamp Kami metadata, count pages) and the PPTX fallback build. Before
 this module existed the pipeline lived in build.py and was duplicated by
 verify.py (through injected callbacks, to dodge a circular import) and the MCP
@@ -18,6 +18,7 @@ import zipfile
 from pathlib import Path
 
 from highlight import highlight_code_blocks
+from math_render import MathRenderError, render_latex_in_html
 from optional_deps import (
     MissingDepError,
     require_pypdf_reader,
@@ -104,16 +105,19 @@ def set_pdf_metadata(pdf_path: Path, author: str | None = None) -> None:
 def render_pdf(src: Path, out: Path) -> int:
     """Render an HTML file to PDF and return its page count.
 
-    The full pipeline every caller must agree on: build-time code highlighting,
-    WeasyPrint with base_url at the source directory, Kami PDF metadata, page
-    count via pypdf. Raises MissingDepError when weasyprint/pypdf are absent;
-    callers decide how to report it.
+    The full pipeline every caller must agree on: strict TeX-to-SVG math rendering,
+    build-time code highlighting, WeasyPrint with base_url at the source directory, Kami PDF metadata, page
+    count via pypdf. Raises MissingDepError when weasyprint/pypdf are absent
+    and MathRenderError when formula source or the locked renderer is invalid;
+    callers decide how to report either failure.
     """
     HTML = require_weasyprint_html()
     PdfReader = require_pypdf_reader()
 
     out.parent.mkdir(parents=True, exist_ok=True)
-    html_text = highlight_code_blocks(src.read_text(encoding="utf-8"))
+    html_text = src.read_text(encoding="utf-8")
+    html_text = render_latex_in_html(html_text)
+    html_text = highlight_code_blocks(html_text)
     # Build and validate beside the destination, then atomically replace it.
     # Metadata stamping and the final page read can still fail after WeasyPrint
     # succeeds; writing straight to `out` would destroy the last good artifact

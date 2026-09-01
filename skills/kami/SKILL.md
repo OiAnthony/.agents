@@ -47,6 +47,8 @@ Design, writing, production, and diagram guidance live in `CHEATSHEET.md` and `r
 
 Code blocks with `class="language-*"` are highlighted only when optional `Pygments` is installed in the build environment. Without it, PDFs still render and code blocks stay monochrome.
 
+**Mathematics is strict LaTeX, never pseudo-math.** When a document contains mathematics, author formulas only as standard LaTeX delimiters in rendered body text: inline `\( ... \)` and display `\[ ... \]`. Delimiters inside title metadata, form options, literal/code, script, style, SVG, template, and MathML regions are treated as text. Do not replace formulas with Unicode approximations, ASCII fractions, screenshots, or raw TeX printed on the page. The renderer requires Node.js 20 or Node.js 22 and newer. Before shipping HTML/PDF, run `bash scripts/ensure_mathjax.sh`, then `python3 scripts/math_render.py --in-place filled.html`; this converts every formula into MathJax SVG. `render_pdf` also performs this conversion in memory as a hard fallback and fails if MathJax or the TeX is invalid. Finish with `python3 scripts/math_render.py --check filled.html`; a completed HTML must contain no raw TeX delimiters in rendered body text.
+
 ## Step 1.5 · Intent extraction (silent)
 
 Before picking a template, silently confirm purpose, audience, hard constraints, and what outcome counts as success. Skip any dimension the conversation or the document type already answers (a resume's purpose is always "get an interview").
@@ -343,10 +345,10 @@ Before finalizing, scan the draft. Any body page that would render under 50% ful
 
 1. Merge upward into the previous section.
 2. Merge downward into the next section.
-3. Promote a list to a small diagram or table that earns the space.
-4. Pin a `.co` callout to bottom (slides-weasy only). Whitespace above a pinned callout is intentional, not sparse.
+3. Remove the page and fold its one useful assertion or proof into a neighbor.
+4. Convert existing information to a small diagram or table only when that form is clearer even without the density problem.
 
-Forbidden ways to "fill" a sparse page: padding with filler prose, repeating the heading as a sentence, inventing statistics, restating the prior page in different words. If the merge options don't apply, the page itself shouldn't exist.
+Forbidden ways to "fill" a sparse page: padding with filler prose, repeating the heading as a sentence, inventing statistics, restating the prior page in different words, or adding a callout, chart, icon, or image whose only job is to occupy space. If the merge options don't apply, the page itself shouldn't exist.
 
 ### Last-page exemption
 
@@ -367,6 +369,29 @@ Mechanical checks (`--check-placeholders`, `--check-resume-balance`, `--check-de
 Fix a failing row by rewriting from the source material. If the source cannot support a row (for example, no outcome fact exists), ask the user for the missing fact. Do not pad, and do not fall back to generic claims ("保障稳定运行", "improved efficiency").
 
 This pass is internal: run it silently; surface it only when a row cannot be fixed without new information from the user.
+
+## Step 4.3 · Table editorial pass (any table)
+
+Run this whenever the artifact contains a table. A Kami table should separate rows through alignment and breathing room first; rules are only quiet guides.
+
+- **One chromatic system:** keep table text in the neutral ink hierarchy and use `var(--border)` for header, body, and total-row rules. Do not color values by category, use `--brand` borders, add per-column hues, tint the header, or draw vertical rules. Use weight, signs, and labels for meaning instead.
+- **Hairline hierarchy:** header and total rules are `0.6pt`; body row rules are `0.25pt`. If the line is noticed before the values, it is too heavy. Total rows gain weight from typography plus the slightly stronger neutral rule, not from a blue line.
+- **Vertical padding floor:** normal tables target at least `6pt` on headers and `5pt` on cells. One-page and resume templates may step down once to `5pt` / `4pt` after a real render proves the page contract needs it. `.compact` still keeps at least `3pt` on headers and `2.5pt` on cells.
+- **Compact is earned:** use `.compact` for five or more columns, eight or more body rows, or a verified page-fit constraint. Do not use it by reflex, and do not reduce padding again before merging or re-authoring nearby content.
+- **Striping is exceptional:** start without `.striped`. Add its neutral fill only when a table has at least eight body rows and the normal-size render still makes row tracking difficult. Do not use striping merely to decorate the table.
+
+Verify the rendered page at normal viewing size. Each row must read as a separate unit without the rules forming a grid, the first and last lines of text must not crowd a rule, and changing the padding must re-pass neighboring pages plus the page-count contract.
+
+## Step 4.4 · Subtractive visual pass
+
+Before rendering, remove every visual primitive that does not encode data, state, grouping, or a relationship. Kami hierarchy should come from type, whitespace, labels, alignment, and restrained fills before it comes from a line.
+
+- Do not add decorative eyebrow ticks, short cover or contact rules, side-border accents on headings, quotations, or callouts, or fake dash bullets.
+- A filled callout or analyst box needs only its fill, padding, and typography. A quotation needs only indentation, olive text, and reading space. A section title needs only type scale and margin.
+- Keep rules that do real work: table hairlines, chart axes, diagram connectors, input boundaries, full-width separators between content regions, and current-state indicators.
+- Use the deletion test: hide the line. If meaning, state, grouping, and navigation remain clear, delete it. Restore spacing rather than replacing it with another ornament.
+
+Render every affected page after the pass. Confirm that the removed primitive did not collapse the intended pause, alter the page-count contract, or leave neighboring elements visually unanchored.
 
 ## Step 4.5 · Auto-select output format
 
@@ -391,6 +416,9 @@ python3 scripts/build.py landing-page        # screen-first static HTML template
 python3 scripts/build.py --verify slides    # single slide deck verification
 python3 scripts/build.py --check-placeholders path/to/filled.html
 python3 scripts/build.py --check-markdown path/to/filled.pdf
+bash scripts/ensure_mathjax.sh                            # strict TeX renderer dependency
+python3 scripts/math_render.py --in-place filled.html     # TeX -> MathJax SVG in delivered HTML
+python3 scripts/math_render.py --check filled.html        # fail on raw/unrendered TeX
 python3 scripts/build.py --check-content content.json path/to/filled.html
 python3 scripts/build.py --check-visual path/to/filled.pdf
 python3 scripts/build.py --check-fonts path/to/filled.pdf   # which family actually drew the CJK text
@@ -403,6 +431,8 @@ python3 scripts/build.py --doctor         # installed render/check/font capabili
 python3 scripts/build.py --check            # lint + token/theme + public-site fact checks
 python3 scripts/build_metadata.py --check   # Claude/Codex plugin mirror + marketplace drift check
 ```
+
+> **Strict LaTeX mathematics**: Use only `\( inline \)` / `\[ display \]` as formula source. The delivered HTML/PDF must contain MathJax SVG, not Unicode pseudo-formulas, raw TeX, or formula screenshots. Run `ensure_mathjax.sh`, `math_render.py --in-place`, and `math_render.py --check` before render/hand-off.
 
 > **Screen verify**: `--check-density` is a print gate. For ANY browser-delivered surface (landing page, docs page, dashboard, testimonial wall, article index), screenshotting the rendered page at 375px and 1280px in every locale is a hard step before declaring done, not an on-request extra: scan for line widows, sparse blocks, and single-line-surface wraps, and report the result. Do not wait for the user to ask "does it work on mobile". See `references/design.md` Section 12 «Responsive screenshot verification».
 
@@ -426,6 +456,7 @@ A task is done when the user receives, in the closing message:
 2. Which checks ran and their results, including the page-count contract.
 3. Every remaining `[DATA NEEDED]` gap, listed explicitly. Never declare done with an unreported gap.
 4. The visual verdict, stated honestly by surface: for PDFs the `--check-visual` pass status (which includes the font gate); for screen surfaces the 375px/1280px screenshot result; when rendering could not be inspected, say "build verified, visuals unconfirmed", not "done".
+5. For documents containing mathematics, the strict LaTeX result: MathJax SVG rendering and `scripts/math_render.py --check` both passed.
 
 ## Fonts
 

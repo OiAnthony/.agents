@@ -1,0 +1,11 @@
+{
+  "name": "kami-mathjax-runtime",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": "20 || >=22"
+  },
+  "dependencies": {
+    "@mathjax/src": "4.1.3"
+  }
+}

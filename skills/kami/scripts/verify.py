@@ -15,6 +15,7 @@ from pathlib import Path
 
 from checks import _resume_balance_issues, scan_density
 from lint import scan_file
+from math_render import MathRenderError
 from optional_deps import MissingDepError, require_pymupdf, require_pypdf_reader
 from render import build_slides, render_pdf
 from shared import (
@@ -339,7 +340,7 @@ def verify_target(name: str, source: str, max_pages: int, src_dir: Path) -> list
     out = EXAMPLES / f"{name}.pdf"
     try:
         n = render_pdf(src, out)
-    except MissingDepError as exc:
+    except (MissingDepError, MathRenderError) as exc:
         issues.append(str(exc))
         return issues
 

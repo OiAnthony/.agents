@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -73,6 +74,20 @@ def archive_payload_issues(tracked: Path, candidate: Path) -> list[str]:
     return issues
 
 
+def check_run_issues(runs: list[dict[str, object]], sha: str) -> list[str]:
+    """Require the exact release SHA to have passed check.yml on main push."""
+    for run in runs:
+        if (
+            run.get("headSha") == sha
+            and run.get("headBranch") == "main"
+            and run.get("event") == "push"
+            and run.get("status") == "completed"
+            and run.get("conclusion") == "success"
+        ):
+            return []
+    return [f"no successful completed check.yml main push run for {sha}"]
+
+
 def _git(*args: str) -> str:
     result = subprocess.run(
         ["git", *args],
@@ -91,9 +106,30 @@ def resolve_tag_commit(tag: str) -> str:
     return _git("rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}")
 
 
+def mainline_issues(tag_sha: str, main_ref: str) -> list[str]:
+    """Require the release commit to be reachable from the reviewed main ref."""
+    main_sha = _git("rev-parse", "--verify", f"{main_ref}^{{commit}}")
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", tag_sha, main_sha],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+    if result.returncode == 1:
+        return [f"tag commit {tag_sha} is not reachable from {main_ref} ({main_sha})"]
+    raise RuntimeError(
+        result.stderr.strip() or f"could not compare {tag_sha} with {main_ref}"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag", required=True, help="version tag being published")
+    parser.add_argument("--main-ref", help="reviewed main ref that must contain the tag")
+    parser.add_argument("--checks-json", type=Path, help="gh check.yml runs as JSON")
     parser.add_argument("--tracked-archive", type=Path)
     parser.add_argument("--candidate-archive", type=Path)
     args = parser.parse_args(argv)
@@ -107,6 +143,16 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     issues = release_identity_issues(args.tag, version, head_sha, tag_sha)
+    try:
+        if args.main_ref:
+            issues.extend(mainline_issues(tag_sha, args.main_ref))
+        if args.checks_json:
+            runs = json.loads(args.checks_json.read_text(encoding="utf-8"))
+            if not isinstance(runs, list):
+                raise ValueError("checks JSON must be an array")
+            issues.extend(check_run_issues(runs, head_sha))
+    except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+        issues.append(f"release provenance could not be verified: {exc}")
     if bool(args.tracked_archive) != bool(args.candidate_archive):
         issues.append("provide both --tracked-archive and --candidate-archive")
     elif args.tracked_archive and args.candidate_archive:

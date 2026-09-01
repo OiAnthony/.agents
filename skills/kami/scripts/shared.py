@@ -51,21 +51,21 @@ def _default_cache_dir() -> Path:
         return Path("/private/tmp/kami-fontconfig-cache")
     xdg = os.environ.get("XDG_CACHE_HOME")
     if xdg:
-        return Path(xdg) / "kami"
-    return Path.home() / ".cache" / "kami"
+        return Path(xdg)
+    return Path.home() / ".cache"
 
 
 def configure_weasyprint_runtime() -> None:
     """Make platform-native libraries discoverable before importing WeasyPrint.
 
     On macOS, also surface Homebrew's gobject lib so cairo/pango can load.
-    On Linux/other, only the fontconfig cache hint is set; the system loader
-    is expected to find the libraries.
+    Linux and other platforms keep the caller's XDG cache base unchanged; the
+    system loader and fontconfig already follow the platform default.
     """
-    os.environ.setdefault("XDG_CACHE_HOME", str(_default_cache_dir()))
-
     if sys.platform != "darwin":
         return
+
+    os.environ.setdefault("XDG_CACHE_HOME", str(_default_cache_dir()))
 
     brew_lib = next(
         (p / "lib" for p in _HOMEBREW_PREFIXES if (p / "lib" / "libgobject-2.0.dylib").exists()),

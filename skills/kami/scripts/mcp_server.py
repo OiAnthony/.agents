@@ -38,6 +38,7 @@ from checks import (
     check_placeholders,
 )
 from content import check_content
+from math_render import check_latex_file
 from optional_deps import MissingDepError, doctor_report
 from render import render_pdf
 from shared import (
@@ -56,7 +57,7 @@ from verify import check_fonts
 PROTOCOL_VERSION = "2025-06-18"
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 
-CHECK_RULESET_VERSION = 2
+CHECK_RULESET_VERSION = 3
 CHECK_REGISTRY = {
     "html.placeholders": {
         "scope": "html", "severity": "error", "required_engine": "stdlib",
@@ -65,6 +66,10 @@ CHECK_REGISTRY = {
     "html.markdown-residue": {
         "scope": "html", "severity": "error", "required_engine": "stdlib",
         "explanation": "Rendered audience copy must not expose raw Markdown syntax.",
+    },
+    "html.math": {
+        "scope": "html", "severity": "error", "required_engine": "stdlib",
+        "explanation": "Completed HTML must not expose raw or invalid LaTeX source.",
     },
     "content.contract": {
         "scope": "content-ir", "severity": "error", "required_engine": "stdlib",
@@ -129,7 +134,7 @@ TOOLS = [
         "name": "kami_check",
         "description": (
             "Run Kami's deterministic checks for a file. HTML: placeholders + "
-            "markdown residue (+ content coverage when a content IR JSON is "
+            "strict mathematics + markdown residue (+ content coverage when a content IR JSON is "
             "given). PDF: markdown residue + orphans + density. JSON: content "
             "IR schema validation. Returns the legacy report plus stable rule "
             "IDs, findings, coverage status, and explicit degraded checks."
@@ -236,6 +241,7 @@ def _check_plan(path: Path, content: str | None) -> list[tuple[str, object, list
     if suffix in {".html", ".htm"}:
         checks: list[tuple[str, object, list[str]]] = [
             ("html.placeholders", check_placeholders, [str(path)]),
+            ("html.math", check_latex_file, [str(path)]),
             ("html.markdown-residue", check_markdown_residue, [str(path)]),
         ]
         if content:

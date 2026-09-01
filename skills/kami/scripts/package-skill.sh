@@ -23,6 +23,11 @@ PACKAGE_REQUIRED_ENTRIES=(
   "references/design.md"
   "scripts/build.py"
   "scripts/ensure-fonts.sh"
+  "scripts/ensure_mathjax.sh"
+  "scripts/math_render.py"
+  "scripts/mathjax_svg.js"
+  "scripts/mathjax-runtime/package.json"
+  "scripts/mathjax-runtime/package-lock.json"
   "scripts/site_facts.py"
   "scripts/content.py"
   "scripts/visual.py"
@@ -58,7 +63,8 @@ awk '
   /^assets\/fonts\/JetBrainsMono\.woff2$/ { print; next }
   /^assets\/fonts\/LICENSE-SourceHanSerifK\.txt$/ { print; next }
   /^references\// { print; next }
-  /^scripts\/(build|check-update|checks|content|ensure-fonts|highlight|lint|mcp_server|mermaid_normalize|optional_deps|render|shared|site_facts|tokens|verify|visual)\.(py|sh)$/ { print; next }
+  /^scripts\/(build|check-update|checks|content|ensure-fonts|ensure_mathjax|highlight|lint|math_render|mathjax_svg|mcp_server|mermaid_normalize|optional_deps|render|shared|site_facts|tokens|verify|visual)\.(py|sh|js)$/ { print; next }
+  /^scripts\/mathjax-runtime\/package(-lock)?\.json$/ { print; next }
 ' "$MANIFEST" > "$FILTERED_MANIFEST"
 
 # Coverage gate: every tracked scripts/ file must be either packaged by the

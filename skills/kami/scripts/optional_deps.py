@@ -1,4 +1,4 @@
-"""Centralized loader for optional third-party deps (weasyprint, pypdf, PyMuPDF).
+"""Centralized probes for Python render deps and the locked MathJax runtime.
 
 build.py previously had inline `from weasyprint import HTML` try/except blocks
 with duplicated install hints; this module collapses those into one resolver
@@ -15,6 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from math_render import probe_mathjax
 from shared import ROOT, configure_weasyprint_runtime, kami_version
 
 # On Linux, WeasyPrint links against cairo / pango / harfbuzz at runtime; a bare
@@ -243,6 +244,15 @@ def doctor_report() -> dict:
             lambda: _probe_module("pygments"), required=False,
         ),
     ]
+    mathjax = probe_mathjax()
+    dependencies.append({
+        "name": "mathjax",
+        "status": mathjax["status"],
+        "required": False,
+        "purpose": "strict TeX to SVG rendering when a document contains mathematics",
+        "version": mathjax.get("version"),
+        **({"detail": mathjax["detail"]} if mathjax.get("detail") else {}),
+    })
     fonts = [
         _probe_font(
             "JetBrains Mono", ("JetBrainsMono.woff2",),
@@ -283,6 +293,11 @@ def doctor_report() -> dict:
                 item["status"] == "available"
                 for item in dependencies
                 if item["name"] == "python-pptx"
+            ),
+            "strict_math": next(
+                item["status"] == "available"
+                for item in dependencies
+                if item["name"] == "mathjax"
             ),
         },
     }

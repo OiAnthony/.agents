@@ -59,6 +59,7 @@ from lint import (
     check_style,
     scan_file,
 )
+from math_render import MathRenderError
 from optional_deps import MissingDepError, run_doctor
 from render import build_slides, render_pdf
 from shared import (
@@ -94,7 +95,7 @@ def build_html(name: str, source: str, max_pages: int,
 
     try:
         n = render_pdf(src, EXAMPLES / f"{name}.pdf")
-    except MissingDepError as exc:
+    except (MissingDepError, MathRenderError) as exc:
         print(f"ERROR: {exc}")
         return False
 

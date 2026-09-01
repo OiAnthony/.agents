@@ -94,10 +94,10 @@ takeaways; each body chapter stands alone as an essay.
 
 **Rules**:
 - Every chapter opens with a "claim paragraph" (2-3 sentences summarizing the argument)
-- After long paragraphs (>5 lines), intersperse callouts / quotes / figures to relieve eye fatigue
+- Break long paragraphs with real evidence, an attributed quote, or a useful figure when one exists. Otherwise edit the prose or add a descriptive subhead; do not invent a component for rhythm alone
 - Highlight key data / conclusions with `<span class="hl">`
 - Chapters with external facts must preserve source cues so readers can distinguish fact, judgment, and inference
-- Use "chapter breaks" (blank page + chapter number) between major sections
+- Give a major section its own opener only when it improves navigation. Do not insert a ceremonial blank page
 
 ### Letter
 
@@ -255,7 +255,7 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Core rule**: every slide title should be a full declarative sentence (an assertion), not a topic label. The body provides one piece of evidence supporting the assertion.
 
-**Density bar**: each body slide carries one assertion + 3-5 supporting items (or 1 chart + 2-3 callouts). Slides with fewer than 3 items and no chart must merge into an adjacent slide. Pinned `.co` callouts at bottom are intentional; bare trailing whitespace on a slide is a draft defect. See SKILL.md Step 4.1.
+**Density bar**: each body slide carries one assertion + 3-5 supporting items (or 1 chart + 2-3 callouts). Slides with fewer than 3 items and no chart must merge into an adjacent slide. A pinned `.co` callout is valid only when it adds a real relationship, constraint, or conclusion; never use it to fill trailing whitespace. See SKILL.md Step 4.1.
 
 | Avoid | Use |
 |---|---|
@@ -318,7 +318,7 @@ and inline-code backticks before delivery, then run `python3 scripts/build.py
 
 **Rules**:
 1. Evidence density: at least one data point per paragraph. A paragraph with zero numbers is an opinion paragraph and should be rare
-2. Callout or figure after every 3-4 paragraphs of dense text. Long unbroken prose causes eye fatigue in print
+2. When dense prose needs relief, use an existing attributed quote, evidence figure, descriptive subhead, or paragraph edit. Do not manufacture a callout on a fixed cadence
 3. Counter-arguments addressed before they become reader objections. If you can predict the pushback, address it proactively
 4. Source cues preserved inline: "(Gartner, 2025)" or "according to the company's 10-K" so readers can distinguish fact from inference
 5. Each chapter should stand alone as a mini-essay with its own arc: claim -> evidence -> conclusion
@@ -520,7 +520,7 @@ Layout lives in `references/design.md` «Testimonial wall»; these rules govern 
 - **State the price once, at medium weight.** One factual line (`$N · One-time purchase` shape), set in a readable but non-headline size. A giant price number turns the section into a price tag and invites "why so expensive" instead of "what do I get". Emphasis comes from placement (centered, own block, generous whitespace), not font size.
 - **The number appears at most twice on the page.** Once in the pricing section, at most once as a hero token. Every extra repetition of the price amplifies price sensitivity.
 - **CTA buttons carry the action, never the price.** `Buy {{PRODUCT}}`, not `Buy for $19`. The buyer already saw the number; putting it on the button makes the click feel like a payment instead of a decision.
-- **Keep the card quiet.** No border, no shadow on the pricing card; if it uses a gradient, it must resolve to the page background color, not to white. The pricing block should feel native to the page, not like a foreign widget.
+- **Keep the block quiet.** No border, shadow, or gradient on pricing. One restrained fill is enough when grouping is necessary; otherwise let typography and spacing carry it.
 - **Compare honestly.** Name the competitors, show their subscription price with `<s>`, then your one-time price. No vague "other tools charge more".
 - **Terms at the bottom.** Payment methods, refund policy, device limit. Factual, not promotional.
 

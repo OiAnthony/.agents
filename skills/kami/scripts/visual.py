@@ -31,6 +31,8 @@ REVIEW_CHECKLIST = (
     "density: body pages read 60-80% full (cover and last page exempt), no orphan trailing line",
     "wraps: no line one word from wrapping, no line wrapping early before filling its container",
     "alignment: columns share baselines, margins are even, nothing crowds the page edge",
+    "tables: one neutral rule color, hairline dividers, and enough vertical padding for each row to breathe",
+    "subtraction: no decorative ticks, short rules, or side accents; every visible rule separates data, regions, relationships, or state",
 )
 
 MIN_DPI = 36
