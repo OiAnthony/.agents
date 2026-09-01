@@ -97,23 +97,12 @@
   }
   .ticker-block { flex: 1; }
   .ticker-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 7pt;
     font-size: 9pt;
     color: var(--brand);
     letter-spacing: 1.5pt;
     text-transform: uppercase;
     font-weight: 500;
     margin-bottom: 4pt;
-  }
-  .ticker-eyebrow::before {
-    content: "";
-    width: 8pt;
-    height: 1.5pt;
-    border-radius: 0.75pt;
-    background: var(--brand);
-    flex-shrink: 0;
   }
   .ticker-name {
     font-family: var(--serif);
@@ -237,17 +226,17 @@
     text-align: left;
     font-weight: 500;
     color: var(--dark-warm);
-    padding: 5pt 8pt;
-    border-bottom: 1pt solid var(--border);
+    padding: 6pt 8pt;
+    border-bottom: 0.6pt solid var(--border);
     background: transparent;
   }
   table td, .kami-table td {
-    padding: 4pt 8pt;
-    border-bottom: 0.3pt solid var(--border-soft);
+    padding: 5pt 8pt;
+    border-bottom: 0.25pt solid var(--border);
     vertical-align: top;
   }
   table.compact th, .kami-table.compact th { padding: 3pt 6pt; font-size: 8pt; }
-  table.compact td, .kami-table.compact td { padding: 2pt 6pt; font-size: 8pt; line-height: 1.4; }
+  table.compact td, .kami-table.compact td { padding: 2.5pt 6pt; font-size: 8pt; line-height: 1.4; }
   table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
     text-align: right; font-variant-numeric: tabular-nums;
   }
@@ -256,13 +245,12 @@
     background: var(--ivory);
   }
   table .total td, .kami-table .total td {
-    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+    font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
 
   /* ========== CALLOUT ========== */
   .callout {
     background: var(--ivory);
-    border-left: 2pt solid var(--brand);
     padding: 8pt 12pt;
     border-radius: 3pt;
     margin: 10pt 0;
@@ -271,8 +259,6 @@
   }
   .callout blockquote,
   .callout .quote {
-    border-left: none;
-    padding-left: 0;
     margin: 6pt 0;
     color: var(--olive);
   }
@@ -328,7 +314,6 @@
   /* ========== ANALYST SUMMARY ========== */
   .analyst-box {
     background: var(--ivory);
-    border-left: 1.4pt solid var(--brand);
     border-radius: 4pt;
     padding: 10pt 14pt;
     margin: 12pt 0;
@@ -423,7 +408,7 @@
 
 <!-- ========== FINANCIALS ========== -->
 <h2>财务概览</h2>
-<table class="financial striped">
+<table class="financial">
   <thead>
     <tr>
       <th>指标</th>
@@ -480,7 +465,7 @@
 <h2>竞争格局</h2>
 <p>{{行业格局概述，1-2 段。}}</p>
 
-<table class="financial compact striped">
+<table class="financial compact">
   <thead>
     <tr>
       <th>公司</th>

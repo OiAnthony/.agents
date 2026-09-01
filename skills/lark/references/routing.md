@@ -18,19 +18,16 @@
 | [`lark-im`](subskills/lark-im/GUIDE.md) | 消息、群聊、reaction 和聊天附件；交互卡片、加急、群成员和 Feed 置顶 | 邮箱邮件；视频会议会中消息 | — |
 | [`lark-mail`](subskills/lark-mail/GUIDE.md) | 邮件读取、搜索、草稿、发送、回复和转发；邮件文件夹、标签、联系人和收信规则 | 即时通讯消息；纯联系人查询 | — |
 | [`lark-markdown`](subskills/lark-markdown/GUIDE.md) | 飞书原生 Markdown 文件读取、创建、patch 和 diff | 将 Markdown 导入在线文档；普通云盘管理 | — |
-| [`lark-minutes`](subskills/lark-minutes/GUIDE.md) | 搜索妙记和处理 minute_token；上传音视频、读取或编辑妙记转写和摘要 | 按会议定位关联产物；已知 note_id 的会议纪要 | — |
-| [`lark-note`](subskills/lark-note/GUIDE.md) | 使用已知 note_id 查询会议纪要详情和原始逐字记录 | 搜索会议或妙记；读取 Docx 正文 | — |
+| [`lark-meeting`](subskills/lark-meeting/GUIDE.md) | 查询进行中的会议、历史会议、参会人和会议产物；使用已知 note_id 查询会议纪要，处理逐字稿、妙记和会中互动；发送会中消息或让应用机器人加入、离开会议 | 预约会议、忙闲和会议室管理；普通日程与未来会议安排 | — |
 | [`lark-okr`](subskills/lark-okr/GUIDE.md) | OKR 周期、目标、关键结果、对齐和进展 | 普通任务；绩效评估 | — |
 | [`lark-openapi-explorer`](subskills/lark-openapi-explorer/GUIDE.md) | 查找和调用 CLI 尚未封装的飞书原生 OpenAPI | 已有 domain guide 或 CLI 命令覆盖的操作 | — |
 | [`lark-sheets`](subskills/lark-sheets/GUIDE.md) | 电子表格、工作表、range、单元格、公式和样式；图表、透视表、筛选和财务建模 | 多维表格；按名称搜索云盘中的表格文件 | — |
 | [`lark-skill-maker`](subskills/lark-skill-maker/GUIDE.md) | 把飞书 API 操作封装成自定义 lark-cli Skill | 直接执行已有飞书业务操作 | — |
 | [`lark-slides`](subskills/lark-slides/GUIDE.md) | 创建、读取和编辑飞书幻灯片及页面 | 独立白板；普通文件上传下载 | — |
 | [`lark-task`](subskills/lark-task/GUIDE.md) | 普通任务、清单、子任务、提醒和协作者；任务附件和任务智能体 | 审批待办 | — |
-| [`lark-vc`](subskills/lark-vc/GUIDE.md) | 搜索已结束会议；查询会议纪要、逐字稿、待办和参会人快照 | 进行中的会议和会中事件；未来日程 | — |
-| [`lark-vc-agent`](subskills/lark-vc-agent/GUIDE.md) | 加入或离开正在进行的会议；读取会中事件、发言状态、共享内容和会中消息 | 已结束会议、纪要和录制查询 | — |
 | [`lark-whiteboard`](subskills/lark-whiteboard/GUIDE.md) | 读取、创建或编辑飞书白板；使用白板图表 DSL | 幻灯片页面内的流程图 | — |
 | [`lark-wiki`](subskills/lark-wiki/GUIDE.md) | 知识空间、空间成员和 Wiki 节点；组织、移动或复制知识库文档节点 | 编辑节点内的文档正文；上传普通文件 | — |
-| [`lark-workflow-meeting-summary`](subskills/lark-workflow-meeting-summary/GUIDE.md) | 汇总一段时间内的会议纪要；生成会议周报或结构化会议报告 | 查询单个已知会议 | lark-vc |
+| [`lark-workflow-meeting-summary`](subskills/lark-workflow-meeting-summary/GUIDE.md) | 汇总一段时间内的会议纪要；生成会议周报或结构化会议报告 | 查询单个已知会议 | lark-meeting |
 | [`lark-workflow-standup-report`](subskills/lark-workflow-standup-report/GUIDE.md) | 汇总指定日期的日程与未完成任务；生成今日、明日或本周安排摘要 | 只查询日程或只查询任务 | lark-calendar；lark-task |
 
 ## Internal support domains
@@ -39,4 +36,8 @@
 
 | Domain | Use for |
 | --- | --- |
+| [`lark-minutes`](subskills/lark-minutes/GUIDE.md) | 兼容显式指定的旧名称，会议请求统一交由 lark-meeting |
+| [`lark-note`](subskills/lark-note/GUIDE.md) | 兼容显式指定的旧名称，会议请求统一交由 lark-meeting |
 | [`lark-shared`](subskills/lark-shared/GUIDE.md) | CLI 配置、认证、identity、scope 和 app 权限 |
+| [`lark-vc`](subskills/lark-vc/GUIDE.md) | 兼容显式指定的旧名称，会议请求统一交由 lark-meeting |
+| [`lark-vc-agent`](subskills/lark-vc-agent/GUIDE.md) | 兼容显式指定的旧名称，会议请求统一交由 lark-meeting |

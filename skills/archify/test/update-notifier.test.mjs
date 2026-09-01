@@ -12,7 +12,7 @@ import {
   acknowledgeUpdate,
   checkForUpdate,
 } from '../scripts/check-update.mjs';
-import { DEFAULT_MANIFEST_URL, compareSemver } from '../scripts/update-contract.mjs';
+import { DEFAULT_MANIFEST_URL, compareSemver, parseSemver } from '../scripts/update-contract.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..');
@@ -3243,10 +3243,13 @@ test('CLI acknowledgement emits the documented one-line success schema', async (
       ? path.join(home, 'Library', 'Caches', 'archify-skill')
       : path.join(xdg, 'archify-skill');
   const releasePath = path.join(skillRoot, 'skill-release.json');
+  const installedRelease = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
+  const [major, minor, patch] = parseSemver(installedRelease.version).core;
+  const candidateVersion = `${major}.${minor}.${BigInt(patch) + 1n}`;
   const offered = await checkForUpdate({
     releasePath,
     cacheDirectory,
-    fetchImpl: async () => response(remoteRelease()),
+    fetchImpl: async () => response(remoteReleaseForVersion(candidateVersion)),
     now: () => baseTime,
     random: () => 0.5,
     timeoutMs: 50,

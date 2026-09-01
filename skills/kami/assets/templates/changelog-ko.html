@@ -91,23 +91,12 @@
   }
   .title-block { flex: 1; }
   .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 7pt;
     font-family: var(--sans);
     font-size: 9pt;
     color: var(--brand);
     letter-spacing: 1.5pt;
     font-weight: 500;
     margin-bottom: 8pt;
-  }
-  .eyebrow::before {
-    content: "";
-    width: 8pt;
-    height: 1.5pt;
-    border-radius: 0.75pt;
-    background: var(--brand);
-    flex-shrink: 0;
   }
   /* KO locale tuning: Source Han Serif K hangul reads optically smaller, so the
      title sits at the CN baseline (26pt / 1.15). See references/design.md. */
@@ -132,16 +121,13 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ========== SECTION HEAD - brand left bar ========== */
+  /* ========== SECTION HEAD - type and spacing only ========== */
   h2 {
     font-family: var(--serif);
     font-size: 14pt;
     font-weight: 500;
     color: var(--near-black);
     margin: 20pt 0 10pt 0;
-    border-left: 2.5pt solid var(--brand);
-    border-radius: 1.5pt;
-    padding-left: 9pt;
     break-after: avoid;
   }
   h2:first-of-type { margin-top: 0; }

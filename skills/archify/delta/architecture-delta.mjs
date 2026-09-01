@@ -417,22 +417,50 @@ function transformNodeGroups(svg, transform) {
   return parts.join('');
 }
 
-const BOUNDARY_PAIR_RE = /<rect data-graph-role="structural-frame"[^>]*data-composition-frame-kind="([^"]+)"[^>]*\/>\s*<text[^>]*>([^<]+)<\/text>/g;
+const BOUNDARY_FRAME_RE = /<rect data-graph-role="structural-frame"[^>]*data-composition-frame-kind="([^"]+)"[^>]*data-composition-frame-label="([^"]+)"[^>]*\/>/g;
+const BOUNDARY_LABEL_RE = /<g data-graph-role="structural-frame-label"[^>]*data-composition-frame-kind="([^"]+)"[^>]*data-composition-frame-label="([^"]+)"[^>]*>[\s\S]*?<\/g>/g;
 
-function transformBoundaryPairs(svg, transform) {
-  return svg.replace(BOUNDARY_PAIR_RE, (pair, kind, label) => transform(pair, `${kind}:${label}`));
+function boundaryElements(svg) {
+  const collect = (pattern, part) => [...svg.matchAll(pattern)].map((match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+    markup: match[0],
+    key: `${match[1]}:${match[2]}`,
+    part,
+  }));
+  return [
+    ...collect(BOUNDARY_FRAME_RE, 'frame'),
+    ...collect(BOUNDARY_LABEL_RE, 'label'),
+  ].sort((left, right) => left.start - right.start);
+}
+
+function transformBoundaryElements(svg, transform) {
+  let cursor = 0;
+  const parts = [];
+  for (const element of boundaryElements(svg)) {
+    parts.push(svg.slice(cursor, element.start));
+    parts.push(transform(element.markup, element.key, element.part));
+    cursor = element.end;
+  }
+  parts.push(svg.slice(cursor));
+  return parts.join('');
 }
 
 export function annotateArchitectureSideSvg(svg, receipt, side) {
   const nodes = changeMap(receipt.changes.components);
   const edges = changeMap(receipt.changes.connections);
   const boundaries = boundaryChangeMap(receipt.changes.boundaries);
-  let result = transformBoundaryPairs(svg, (pair, key) => {
+  let result = transformBoundaryElements(svg, (markup, key, part) => {
     const change = boundaries.get(key);
-    if (!change) return pair;
-    return pair
-      .replace(/^<rect[^>]+\/>/, (tag) => addState(tag, change, side).replace(/\/>$/, ` data-delta-boundary-key="${esc(change.key)}"/>`))
-      .replace(/<text[^>]*>/, (tag) => tag.replace(/>$/, ` data-delta-state="${change.status}" data-delta-boundary-state="${change.status}" data-delta-boundary-key="${esc(change.key)}">`));
+    if (!change) return markup;
+    if (part === 'frame') {
+      return addState(markup, change, side)
+        .replace(/\/>$/, ` data-delta-boundary-key="${esc(change.key)}"/>`);
+    }
+    return markup.replace(
+      /<text[^>]*>/,
+      (tag) => tag.replace(/>$/, ` data-delta-state="${change.status}" data-delta-boundary-state="${change.status}" data-delta-boundary-key="${esc(change.key)}">`),
+    );
   });
   result = transformNodeGroups(result, (group, id) => {
     const change = nodes.get(id);
@@ -469,16 +497,27 @@ function forceElementState(markup, state, classifications = []) {
   return result;
 }
 
-function boundaryPairByKey(svg, key) {
-  for (const match of svg.matchAll(BOUNDARY_PAIR_RE)) {
-    if (`${match[1]}:${match[2]}` === key) return match[0];
-  }
-  return '';
+function boundaryMarkupByKey(svg, key) {
+  return boundaryElements(svg)
+    .filter((element) => element.key === key)
+    .map((element) => element.markup)
+    .join('\n');
+}
+
+function boundaryMarkupParts(markup) {
+  const parts = { frame: '', label: '' };
+  for (const element of boundaryElements(markup)) parts[element.part] = element.markup;
+  return parts;
 }
 
 function forceBoundaryState(markup, state, key, classifications = []) {
   return markup
     .replace(/^<rect[^>]+\/>/, (tag) => addState(tag, { classifications }, 'delta', state).replace(/\/>$/, ` data-delta-boundary-key="${esc(key)}"/>`))
+    .replace(
+      /<rect data-graph-role="structural-frame-label-mask"[^>]*\/>/,
+      (tag) => addState(tag, { classifications }, 'delta', state)
+        .replace(/\/>$/, ` data-delta-boundary-state="${state}" data-delta-boundary-mask-key="${esc(key)}"/>`),
+    )
     .replace(/<text[^>]*>/, (tag) => tag.replace(/>$/, ` data-delta-state="${state}" data-delta-boundary-state="${state}" data-delta-boundary-key="${esc(key)}">`));
 }
 
@@ -512,7 +551,8 @@ export function buildDeltaSvg(baseSvg, headSvg, receipt) {
   const boundaries = boundaryChangeMap(receipt.changes.boundaries);
   const baseNodePhantoms = [];
   const baseEdgePhantoms = [];
-  const baseBoundaryPhantoms = [];
+  const baseBoundaryFramePhantoms = [];
+  const baseBoundaryLabelPhantoms = [];
   const edgeMarkers = [];
   const boundaryMarkers = [];
 
@@ -534,20 +574,25 @@ export function buildDeltaSvg(baseSvg, headSvg, receipt) {
   for (const change of boundaries.values()) {
     const renderedKey = `${change.kind}:${esc(change.label)}`;
     if (change.status === 'removed') {
-      const phantom = forceBoundaryState(boundaryPairByKey(baseSvg, renderedKey), 'removed', change.key, change.classifications);
-      baseBoundaryPhantoms.push(phantom);
+      const phantom = forceBoundaryState(boundaryMarkupByKey(baseSvg, renderedKey), 'removed', change.key, change.classifications);
+      const parts = boundaryMarkupParts(phantom);
+      baseBoundaryFramePhantoms.push(parts.frame);
+      baseBoundaryLabelPhantoms.push(parts.label);
       boundaryMarkers.push(boundarySymbolMarkup(phantom, 'removed'));
     }
     else if (change.status === 'changed' || change.status === 'geometry-changed') {
-      baseBoundaryPhantoms.push(forceBoundaryState(boundaryPairByKey(baseSvg, renderedKey), 'moved-from', change.key, change.classifications));
+      const phantom = forceBoundaryState(boundaryMarkupByKey(baseSvg, renderedKey), 'moved-from', change.key, change.classifications);
+      const parts = boundaryMarkupParts(phantom);
+      baseBoundaryFramePhantoms.push(parts.frame);
+      baseBoundaryLabelPhantoms.push(parts.label);
     }
   }
 
   let delta = annotateArchitectureSideSvg(headSvg, receipt, 'head');
   delta = delta.replace(/^<svg[^>]+>/, (tag) => tag.replace(/viewBox="[^"]+"/, `viewBox="0 0 ${Math.max(baseW, headW) + 24} ${Math.max(baseH, headH) + 24}"`));
-  delta = delta.replace('        <!-- Boundaries (behind everything) -->', `        <!-- Baseline boundary phantoms -->\n${baseBoundaryPhantoms.join('\n')}\n\n        <!-- Boundaries (behind everything) -->`);
+  delta = delta.replace('        <!-- Boundaries (behind everything) -->', `        <!-- Baseline boundary frame phantoms -->\n${baseBoundaryFramePhantoms.filter(Boolean).join('\n')}\n\n        <!-- Boundaries (behind everything) -->`);
   delta = delta.replace('        <!-- Connection paths (before components for correct z-order) -->', `        <!-- Baseline relationship phantoms -->\n${baseEdgePhantoms.join('\n')}\n\n        <!-- Connection paths (before components for correct z-order) -->`);
-  delta = delta.replace('        <!-- Components -->', `        <!-- Baseline removed and move-from component phantoms -->\n${baseNodePhantoms.join('\n')}\n\n        <!-- Components -->`);
+  delta = delta.replace('        <!-- Components -->', `        <!-- Baseline boundary label phantoms (below current components) -->\n${baseBoundaryLabelPhantoms.filter(Boolean).join('\n')}\n\n        <!-- Baseline removed and move-from component phantoms -->\n${baseNodePhantoms.join('\n')}\n\n        <!-- Components -->`);
 
   for (const change of edges.values()) {
     if (change.status === 'added' || change.status === 'changed' || change.status === 'rerouted') {
@@ -558,7 +603,7 @@ export function buildDeltaSvg(baseSvg, headSvg, receipt) {
   for (const change of boundaries.values()) {
     if (!['added', 'changed', 'geometry-changed'].includes(change.status)) continue;
     const renderedKey = `${change.kind}:${esc(change.label)}`;
-    boundaryMarkers.push(boundarySymbolMarkup(boundaryPairByKey(delta, renderedKey), change.status));
+    boundaryMarkers.push(boundarySymbolMarkup(boundaryMarkupByKey(delta, renderedKey), change.status));
   }
   delta = delta.replace('        <!-- Legend -->', `        <!-- Delta relationship symbols -->\n${edgeMarkers.filter(Boolean).join('\n')}\n\n        <!-- Delta boundary symbols -->\n${boundaryMarkers.filter(Boolean).join('\n')}\n\n        <!-- Legend -->`);
   return prefixSvgIds(staticize(delta), 'delta');
@@ -671,7 +716,7 @@ rect[data-graph-role="structural-frame"][data-delta-state="added"]{stroke:var(--
 details{margin-top:12px;border:1px solid var(--d-line);border-radius:9px;background:#0a141e}summary{padding:13px 15px;cursor:pointer;font-weight:700}.changes{list-style:none;margin:0;padding:0 8px 8px}.changes li{border-top:1px solid rgba(138,160,181,.16)}.change-row{display:grid;grid-template-columns:30px 90px minmax(140px,1fr) minmax(100px,.7fr) minmax(120px,.8fr) minmax(140px,1.2fr);gap:10px;width:100%;margin:0;padding:9px 7px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;font-size:11px;text-align:left;align-items:baseline;cursor:pointer}.change-row:hover{background:rgba(125,211,252,.06)}.change-row[aria-current="step"]{background:rgba(125,211,252,.1);box-shadow:inset 0 0 0 1px var(--d-focus)}.change-row:disabled{cursor:default}.token{font:800 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.changes code,.change-row>span:last-child{color:var(--d-muted)}.proof-foot{display:flex;justify-content:space-between;gap:24px;margin-top:14px;color:var(--d-muted);font:650 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 html[data-theme="dark"] body{background:#071019!important;background-image:none!important}html[data-theme="light"]{color-scheme:light;--d-ink:#10283c;--d-muted:#587187;--d-line:#c8d6e2;--d-focus:#006b8f}html[data-theme="light"] body{background:#eef3f7!important;background-image:none!important;color:var(--d-ink)}html[data-theme="light"] .metric,html[data-theme="light"] .view-switch,html[data-theme="light"] details{background:#fff}html[data-theme="light"] .canvas{background:#f8fbfd}html[data-theme="light"] .view-switch button[aria-selected="true"]{background:#dbeaf5;color:#10283c}html[data-theme="light"] .delta-node-marker circle{fill:#fff}html[data-preset="blueprint"] body{background-image:none!important}
 @media(max-width:760px){.proof-page{width:100%;padding:12px}.proof-head{grid-template-columns:1fr;gap:14px;align-items:start}.proof-head h1{font-size:32px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.metric{min-width:0}.proof-tools{align-items:stretch;flex-wrap:wrap;gap:8px}.view-switch{display:flex;flex:1 1 100%}.view-switch button{flex:1;padding-inline:8px}.legend{flex-wrap:wrap;gap:8px}.proof-tools>div:last-child{margin-left:auto}.review-strip{grid-template-columns:auto auto auto auto}.review-status{grid-column:1/-1;padding:4px 2px 0}.canvas{min-height:0;padding:6px;overflow:auto}.canvas svg{min-width:720px;max-height:none}.snapshot-frame{min-width:720px}.changes{overflow-x:auto}.change-row{min-width:820px}.proof-foot{flex-direction:column;gap:4px}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.canvas[data-delta-review-active] [data-delta-review-current]{transition:none!important}}@media print{body{min-width:0;background:#fff;color:#111}.proof-page{width:100%;padding:0}.proof-tools,.review-strip,details{display:none!important}.canvas{display:none!important}.canvas[data-view="delta"]{display:block!important;border:0}.canvas[data-delta-review-active]{--review-same-opacity:1;--review-change-opacity:1}.canvas[data-delta-review-active] [data-delta-review-current]{opacity:1!important;transition:none!important}.proof-foot{color:#444}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.canvas[data-delta-review-active] [data-delta-review-current]{transition:none!important}}@media print{body{min-width:0;background:#fff;color:#111}.proof-page{width:100%;padding:0}.proof-tools,.review-strip,details{display:none!important}.canvas{display:none!important}.canvas[data-view="delta"]{display:block!important;border:0}.canvas[data-view="delta"] [data-delta-state="same"]{opacity:1!important;transition:none!important}.canvas[data-delta-review-active]{--review-same-opacity:1;--review-change-opacity:1}.canvas[data-delta-review-active] [data-delta-review-current]{opacity:1!important;transition:none!important}.proof-foot{color:#444}}
 </style></head>
 <body><main class="proof-page"><header class="proof-head"><div><p class="eyebrow">ARCHITECTURE DELTA · ${proof}</p><h1>See what changed<br>before you merge.</h1><p class="subtitle">${esc(receipt.base.title)} → ${esc(receipt.head.title)}</p></div><div class="metrics"><div class="metric add"><strong>${total(receipt.summary, 'added')}</strong><span>ADDED</span></div><div class="metric remove"><strong>${total(receipt.summary, 'removed')}</strong><span>REMOVED</span></div><div class="metric change"><strong>${changed}</strong><span>CHANGED</span></div></div></header>
 <div class="proof-tools"><div class="view-switch" role="tablist" aria-label="Architecture snapshot"><button role="tab" data-target="base" aria-selected="false">Before</button><button role="tab" data-target="delta" aria-selected="true">Delta</button><button role="tab" data-target="head" aria-selected="false">After</button></div><div class="legend"><span class="add"><i></i>+ ADD</span><span class="remove"><i></i>− DEL</span><span class="change"><i></i>~ MOD</span><span class="move"><i></i>↔ MOVE</span></div><div><button class="utility" id="export-svg" type="button">Export SVG</button> <button class="utility" id="share-card" type="button">Share Card</button> <button class="utility" id="preset" type="button">Preset</button> <button class="utility" id="theme" type="button">Theme</button></div></div>

@@ -23,7 +23,6 @@ Data-flow JSON files must set:
   "diagram_type": "dataflow",
   "meta": {
     "title": "Product Analytics Data Flow",
-    "subtitle": "Events, consent, PII isolation, warehouse sync, and consumers",
     "viewBox": [940, 720]
   },
   "stages": [],

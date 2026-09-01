@@ -3,7 +3,6 @@
   "diagram_type": "sequence",
   "meta": {
     "title": "Async Job Roundtrip",
-    "subtitle": "Acknowledgement, queueing, background work, retries, callback, polling, and final consistency",
     "output": "examples/async-job-roundtrip.html",
     "viewBox": [820, 920],
     "animation": "trace",

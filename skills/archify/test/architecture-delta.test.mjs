@@ -18,6 +18,8 @@ const skillRoot = path.resolve(__dirname, '..');
 const cli = path.join(skillRoot, 'bin/archify.mjs');
 const baseFixture = path.join(skillRoot, 'examples/checkout-platform.base.architecture.json');
 const headFixture = path.join(skillRoot, 'examples/checkout-platform.head.architecture.json');
+const checkedArtifact = path.resolve(skillRoot, '../examples/checkout-platform-delta.html');
+const checkedReceipt = path.resolve(skillRoot, '../examples/checkout-platform-delta.receipt.json');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-delta-'));
 
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -194,6 +196,45 @@ test('mixed semantic and geometry relationship changes retain both exact routes'
   assert.deepEqual(validateArchitectureDeltaHtml(html, receipt), { ok: true, checksPassed: 10, checkCount: 10 });
 });
 
+test('baseline boundary title masks stay below current components and carry delta identity', () => {
+  const documentAt = (pos, pad) => ({
+    schema_version: 1,
+    diagram_type: 'architecture',
+    meta: { title: 'Boundary mask z-order', quality_profile: 'standard', viewBox: [600, 400] },
+    components: [{ id: 'node', type: 'backend', label: 'Current node', pos, size: [120, 60] }],
+    connections: [],
+    boundaries: [{ kind: 'region', label: 'Boundary label', wraps: ['node'], pad }],
+  });
+  const basePath = path.join(tmp, 'boundary-mask.base.json');
+  const headPath = path.join(tmp, 'boundary-mask.head.json');
+  const output = path.join(tmp, 'boundary-mask.delta.html');
+  fs.writeFileSync(basePath, JSON.stringify(documentAt([250, 200], 30)));
+  fs.writeFileSync(headPath, JSON.stringify(documentAt([224, 180], 40)));
+
+  const result = run(['compare', 'architecture', basePath, headPath, output, '--json']);
+  assert.equal(result.status, 0, result.stderr);
+  const html = fs.readFileSync(output, 'utf8');
+  const delta = html.match(/<section class="canvas" data-view="delta">([\s\S]*?)<\/section>/)?.[1] || '';
+  const currentComponents = delta.indexOf('<!-- Components -->');
+  const currentNode = delta.indexOf('data-node-id="node"', currentComponents);
+  const phantomMask = delta.match(
+    /<rect data-graph-role="structural-frame-label-mask"[^>]*data-delta-state="moved-from"[^>]*data-delta-boundary-state="moved-from"[^>]*data-delta-boundary-mask-key="region:Boundary label"[^>]*\/>/,
+  )?.[0];
+  const currentNodeRect = delta.slice(currentNode).match(/<rect\b[^>]*\/>/)?.[0];
+  assert.ok(phantomMask && currentNodeRect, 'expected the phantom mask and current component rect');
+  const rect = (tag) => Object.fromEntries(
+    [...tag.matchAll(/\b(x|y|width|height)="([^"]+)"/g)].map((match) => [match[1], Number(match[2])]),
+  );
+  const maskBox = rect(phantomMask);
+  const nodeBox = rect(currentNodeRect);
+  const overlaps = maskBox.x < nodeBox.x + nodeBox.width
+    && maskBox.x + maskBox.width > nodeBox.x
+    && maskBox.y < nodeBox.y + nodeBox.height
+    && maskBox.y + maskBox.height > nodeBox.y;
+  assert.equal(overlaps, true, `expected overlap: ${JSON.stringify({ maskBox, nodeBox })}`);
+  assert.ok(delta.indexOf(phantomMask) < currentNode, 'phantom mask must paint below the current component');
+});
+
 test('same-label node id changes remain one removal plus one addition', () => {
   const base = read(baseFixture);
   const head = read(baseFixture);
@@ -290,6 +331,26 @@ test('compare CLI writes a deterministic three-state artifact and complete sidec
   assert.equal(receipt.completeness, 'complete');
   assert.equal(JSON.stringify(receipt).includes(tmp), false);
   assert.deepEqual(validateArchitectureDeltaHtml(firstHtml, receipt), { ok: true, checksPassed: 10, checkCount: 10 });
+});
+
+test('checked-in Checkout compare artifact is reproducible from its authoritative inputs', () => {
+  const artifact = path.join(tmp, 'checked-artifact.html');
+  const receipt = path.join(tmp, 'checked-artifact.receipt.json');
+  const result = run([
+    'compare',
+    'architecture',
+    baseFixture,
+    headFixture,
+    artifact,
+    '--receipt',
+    receipt,
+    '--quality',
+    'showcase',
+    '--json',
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(fs.readFileSync(artifact, 'utf8'), fs.readFileSync(checkedArtifact, 'utf8'));
+  assert.deepEqual(read(receipt), read(checkedReceipt));
 });
 
 test('artifact validation fails closed on missing, duplicate, or self-blessed review identity', () => {

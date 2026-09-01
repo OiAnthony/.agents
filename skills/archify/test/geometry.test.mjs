@@ -88,6 +88,18 @@ test('rectsOverlap: negative gap shrinks the hit box (label-collision convention
   assert.equal(rectsOverlap(rect(0, 0, 10, 10), rect(7, 0, 10, 10), -2), true);
 });
 
+test('rectsOverlap: non-finite geometry is not an overlap', () => {
+  // A component authored without pos lands here as NaN. Every comparison in the
+  // negated form is false for NaN, so the unguarded version reported a collision
+  // for every pair and buried the real "must include pos" diagnostic.
+  const nan = rect(Number.NaN, Number.NaN, 120, 60);
+  assert.equal(rectsOverlap(nan, nan, 8), false);
+  assert.equal(rectsOverlap(nan, rect(0, 0, 10, 10), 8), false);
+  assert.equal(rectsOverlap(rect(0, 0, 10, 10), nan, 8), false);
+  assert.equal(rectsOverlap(rect(0, 0, 10, 10), rect(20, 0, Number.NaN, 10)), false);
+  assert.equal(rectsOverlap(rect(0, 0, 10, 10), rect(5, 5, 10, Number.POSITIVE_INFINITY)), false);
+});
+
 test('segmentIntersectsRect: detects an edge crossing a node box', () => {
   assert.equal(segmentIntersectsRect({ start: [0, 5], end: [20, 5] }, rect(8, 0, 4, 10)), true);
   assert.equal(segmentIntersectsRect({ start: [0, 20], end: [20, 20] }, rect(8, 0, 4, 10)), false);
@@ -205,8 +217,7 @@ test('cleanFlowProblems exempts endpoints and ignores missing endpoint geometry'
     pathFor: () => ({ points: [[20, 10], [80, 10]] }),
     diagramType: 'workflow',
     relationCollection: 'edges',
-    obstacleKind: 'node',
-    profile: 'standard'
+    obstacleKind: 'node'
   });
   assert.deepEqual(endpointOnly, []);
 
@@ -235,8 +246,7 @@ test('cleanFlowProblems uses clearance, reports the first segment, and deduplica
     pathFor: () => ({ points: [[0, -1], [20, -1], [0, 5], [20, 5]] }),
     diagramType: 'workflow',
     relationCollection: 'edges',
-    obstacleKind: 'node',
-    profile: 'standard'
+    obstacleKind: 'node'
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /segment 0 \[0, -1\] -> \[20, -1\]/);
@@ -583,6 +593,57 @@ test('textUnits follows wide and halfwidth East Asian presentation boundaries', 
   assert.equal(textUnits('ㄱ'), 2); // Hangul compatibility letter is wide
   assert.equal(textUnits('︐︙'), 4); // vertical punctuation forms are wide
   assert.equal(textUnits('ｶﾀｶﾅ'), 4); // halfwidth Katakana stays one unit per glyph
+  assert.equal(textUnits('ꥠ'), 2); // Hangul Jamo Extended-A is wide
+});
+
+test('textUnits counts emoji-presentation symbols in the BMP as wide', () => {
+  // These render at the same square advance as the supplementary-plane emoji,
+  // so counting them as one unit under-measures a label and lets it overflow
+  // its node while the layout receipt still reads clean.
+  assert.equal(textUnits('✅'), 2);
+  assert.equal(textUnits('⭐'), 2);
+  assert.equal(textUnits('⚡'), 2);
+  assert.equal(textUnits('⌛'), 2);
+  assert.equal(textUnits('⏰'), 2);
+  assert.equal(textUnits('⛔'), 2);
+  assert.equal(textUnits('❗'), 2);
+  assert.equal(textUnits('⬛'), 2);
+  assert.equal(textUnits('☕'), 2);
+  assert.equal(textUnits('♿'), 2);
+  assert.equal(textUnits('✅ Done'), 7);
+  // Narrow and ambiguous neighbours in the same blocks stay one unit.
+  assert.equal(textUnits('→'), 1); // rightwards arrow
+  assert.equal(textUnits('☎'), 1); // black telephone
+  assert.equal(textUnits('①'), 1); // circled digit one
+  // Unicode 16.0 moved these from Neutral to Wide.
+  assert.equal(textUnits('☰'), 2); // trigram for heaven
+  assert.equal(textUnits('☷'), 2); // trigram for earth
+  assert.equal(textUnits('⚊'), 2); // monogram for yang
+  assert.equal(textUnits('⚏'), 2); // digram for greater yin
+  // Hangul Jamo Extended-A stops at its last assigned jamo; the unassigned
+  // tail of the block defaults to Neutral.
+  assert.equal(textUnits('ꥼ'), 2);
+  assert.equal(textUnits('꥽'), 1);
+});
+
+test('textUnits measures a variation-selector sequence from the selector', () => {
+  // VS16 asks for emoji presentation: the pair renders as one square, so it
+  // must stay two units even though the base is now counted wide on its own.
+  assert.equal(textUnits('⭐️'), 2); // star
+  assert.equal(textUnits('✅️'), 2); // check mark button
+  assert.equal(textUnits('☕️'), 2); // hot beverage
+  assert.equal(textUnits('⚡️'), 2); // high voltage
+  // Same rule the other way: a narrow base forced to emoji presentation
+  // renders as a square and is two units, not one.
+  assert.equal(textUnits('✈️'), 2); // airplane
+  assert.equal(textUnits('❤️'), 2); // red heart
+  // VS15 asks for text presentation, which renders narrow.
+  assert.equal(textUnits('⭐︎'), 1);
+  assert.equal(textUnits('✈︎'), 1);
+  // The selector never adds width of its own, alone or in a run.
+  assert.equal(textUnits('️'), 0);
+  assert.equal(textUnits('✅️ Done'), 7);
+  assert.equal(textUnits('⭐️⭐️'), 4);
 });
 
 test('semantic sigils cover every component and lifecycle kind without literal color', () => {
@@ -631,16 +692,33 @@ test('applyTemplate preserves dollar sequences in titles', () => {
 <p class="subtitle">[Subtitle description]</p>
 <!-- ARCHIFY:GUIDED_VIEWS_DATA -->
       <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
-    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->
-[Project Name] &bull; [Additional metadata]`;
+    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
   const html = applyTemplate(template, {
     title: 'Plan $$50 tier',
     subtitle: 'test',
-    footer: 'f',
     svg: '<svg/>',
     cards: '',
   });
   assert.match(html, /Plan \$\$50 tier/);
+  assert.match(html, /<p class="subtitle">test<\/p>/);
+});
+
+test('applyTemplate omits the subtitle row when no subtitle is authored', () => {
+  const template = `<html lang="en" data-theme="dark" data-preset="[VISUAL PRESET]">
+<title>[PROJECT NAME] Architecture Diagram</title>
+<h1>[PROJECT NAME] Architecture</h1>
+<p class="subtitle">[Subtitle description]</p>
+<!-- ARCHIFY:GUIDED_VIEWS_DATA -->
+      <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
+    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
+  const html = applyTemplate(template, {
+    title: 'Focused title',
+    subtitle: '   ',
+    svg: '<svg/>',
+    cards: '',
+  });
+  assert.doesNotMatch(html, /class="subtitle"/);
+  assert.doesNotMatch(html, /Subtitle description/);
 });
 
 test('applyTemplate requires the new evidence slot only when evidence is present', () => {
@@ -650,13 +728,12 @@ test('applyTemplate requires the new evidence slot only when evidence is present
 <p class="subtitle">[Subtitle description]</p>
 <!-- ARCHIFY:GUIDED_VIEWS_DATA -->
       <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
-    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->
-[Project Name] &bull; [Additional metadata]`;
+    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
   assert.doesNotThrow(() => applyTemplate(legacyTemplate, {
-    title: 'Legacy', subtitle: '', footer: '', svg: '<svg/>', cards: '',
+    title: 'Legacy', subtitle: '', svg: '<svg/>', cards: '',
   }));
   assert.throws(() => applyTemplate(legacyTemplate, {
-    title: 'Evidence', subtitle: '', footer: '', svg: '<svg/>', cards: '',
+    title: 'Evidence', subtitle: '', svg: '<svg/>', cards: '',
     sourceEvidence: { verified: true },
   }), /repository evidence requires placeholder/);
 });

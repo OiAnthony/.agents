@@ -3,7 +3,6 @@
   "diagram_type": "workflow",
   "meta": {
     "title": "Incident Response Runbook",
-    "subtitle": "Detection, triage, mitigation, communication, escalation, and recovery proof",
     "output": "examples/incident-response.html",
     "animation": "trace",
     "visual_preset": "signal-flow",

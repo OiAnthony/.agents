@@ -1,19 +1,14 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { esc, renderDefinitions, renderSemanticSigil, textUnits } from '../shared/utils.mjs';
-import { availableNodeTextWidth, fittedNodeFontSize, minimumNodeTextWidth } from '../shared/text-fit.mjs';
-
-// Font sizes for this renderer's component text; the fitting geometry is shared.
-const componentTextFit = {
-  sublabelPreferred: 9,
-  sublabelMinimum: 6,
-  tagPreferred: 7,
-  tagMinimum: 6,
-};
-import { animateAttr, focusEdgeAttrs, focusNodeAttrs, focusNodeTitle, loadDiagram, writeDiagram, svgAccessibleText, svgRootAttrs } from '../shared/cli.mjs';
+import { animateAttr, focusEdgeAttrs, focusNodeAttrs, focusNodeTitle, loadDiagramWithBrandMarks, writeDiagram, svgAccessibleText, svgRootAttrs } from '../shared/cli.mjs';
 import { componentBox, boundaryBox, connectionPath } from '../shared/layout-report.mjs';
 import { throwDiagnosticProblems } from '../shared/diagnostics.mjs';
 import { legendFootprint, relationshipLegendObstacles, resolveLegend, renderLegend as renderResolvedLegend } from '../shared/legend.mjs';
+import { availableNodeTextWidth, fittedNodeFontSize, minimumNodeTextWidth } from '../shared/text-fit.mjs';
+import { brandLabelFitWidth, brandMetadataFor, brandTopRailProblem, renderBrandMark } from '../shared/brand-marks.mjs';
+import { minimumReadableSourceTextPx } from '../shared/desktop-readability.mjs';
+import { translateMessage as i18nText } from '../shared/i18n.mjs';
 import { gridLayout, resolveComponentPos, validateGridPlacement } from './grid.mjs';
 import {
   asArray,
@@ -47,10 +42,17 @@ import {
   variantAccent,
 } from '../shared/geometry.mjs';
 
+const componentTextFit = {
+  sublabelPreferred: 9,
+  sublabelMinimum: 6,
+  tagPreferred: 7,
+  tagMinimum: 6,
+};
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const layoutJsonMode = process.argv.includes('--layout-json');
 const cliArgs = process.argv.filter((arg) => arg !== '--layout-json');
-const { diagram: arch, template, outPath, sourceEvidence } = loadDiagram({
+const { diagram: arch, template, outPath, sourceEvidence } = await loadDiagramWithBrandMarks({
   rendererDir: __dirname,
   diagramType: 'architecture',
   defaultExample: 'web-app.architecture.json',
@@ -67,18 +69,25 @@ const layout = {
   // (CHANGELOG v2.2.1): 30px on top/left/right, plus 20px extra at the bottom.
   boundaryPad: 30,
   boundaryExtraBottom: 20,
+  boundaryLabelBaseline: 18,
+  boundaryLabelClearance: 4,
+  boundaryLabelFontPreferred: 9,
+  boundaryLabelFontMinimum: 6,
+  boundaryLabelMaskHeight: 16,
+  boundaryLabelRailGap: 2,
+  boundaryLabelFrameInset: 4,
   legendH: 28,
 };
 
 const LEGEND_CATALOG = [
-  ['frontend', 'Frontend'],
-  ['backend', 'Backend'],
-  ['database', 'Database'],
-  ['cloud', 'Cloud'],
-  ['security', 'Security'],
-  ['messagebus', 'Message bus'],
-  ['external', 'External'],
-].map(([kind, label]) => ({ kind, label }));
+  'frontend',
+  'backend',
+  'database',
+  'cloud',
+  'security',
+  'messagebus',
+  'external',
+].map((kind) => ({ kind, label: i18nText(arch.meta.locale, `legend.architecture.${kind}`) }));
 
 // ---- Measure components from free coordinates --------------------------------
 function measureComponent(c) {
@@ -88,6 +97,7 @@ function measureComponent(c) {
 }
 
 const components = new Map(asArray(arch.components).map((c) => [c.id, measureComponent(c)]));
+const enforcesBoundaryTitleComposition = Boolean(arch.meta?.quality_profile);
 const componentSteps = new Map();
 for (const [index, conn] of asArray(arch.connections).entries()) {
   if (!componentSteps.has(conn.from)) componentSteps.set(conn.from, index);
@@ -106,29 +116,30 @@ function boundaryRect(boundary) {
   const maxX = Math.max(...members.map((m) => m.x + m.width));
   const maxY = Math.max(...members.map((m) => m.y + m.height));
   const pad = boundary.pad ?? layout.boundaryPad;
+  const topPad = Math.max(
+    pad,
+    layout.boundaryLabelBaseline + layout.boundaryLabelClearance,
+  );
   return {
     ...boundary,
     x: minX - pad,
-    y: minY - pad,
+    y: minY - topPad,
     width: maxX - minX + pad * 2,
-    height: maxY - minY + pad + layout.boundaryExtraBottom,
+    height: maxY - minY + topPad + layout.boundaryExtraBottom,
+    memberTop: minY,
   };
 }
 
-const boundaries = asArray(arch.boundaries).map(boundaryRect).filter(Boolean);
-const compositionFrames = boundaries.map((boundary, index) => ({
-  ...boundary,
-  id: boundary.id || index,
-  kind: boundary.kind || 'boundary',
-  radius: boundary.kind === 'security-group' ? 8 : 12,
-}));
+function rectContains(outer, inner) {
+  const epsilon = 1e-9;
+  return outer.x <= inner.x + epsilon
+    && outer.y <= inner.y + epsilon
+    && outer.x + outer.width + epsilon >= inner.x + inner.width
+    && outer.y + outer.height + epsilon >= inner.y + inner.height;
+}
 
-function componentContext(component) {
-  const scopes = boundaries
-    .filter((boundary) => asArray(boundary.wraps).includes(component.id))
-    .sort((a, b) => (b.width * b.height) - (a.width * a.height))
-    .map((boundary) => boundary.label);
-  return scopes.length ? scopes.join(' › ') : 'Architecture component';
+function boundaryLabelWidth(label, fontSize) {
+  return Math.max(30, textUnits(label) * fontSize * 0.6 + 10);
 }
 
 const architectureLegendEntries = resolveLegend(
@@ -137,19 +148,17 @@ const architectureLegendEntries = resolveLegend(
   new Set([...components.values()].map((component) => component.type)),
 );
 
-// ---- Auto viewBox: fit all geometry + the measured resolved legend ----------
-function autoViewBox() {
-  let maxX = 0;
-  let maxY = 0;
-  for (const c of components.values()) {
-    maxX = Math.max(maxX, c.x + c.width);
-    maxY = Math.max(maxY, c.y + c.height);
-  }
-  for (const b of boundaries) {
-    maxX = Math.max(maxX, b.x + b.width);
-    maxY = Math.max(maxY, b.y + b.height);
-  }
-
+function autoViewBoxFor(candidateBoundaries) {
+  const maxX = Math.max(
+    0,
+    ...[...components.values()].map((component) => component.x + component.width),
+    ...candidateBoundaries.map((boundary) => boundary.x + boundary.width),
+  );
+  const maxY = Math.max(
+    0,
+    ...[...components.values()].map((component) => component.y + component.height),
+    ...candidateBoundaries.map((boundary) => boundary.y + boundary.height),
+  );
   let width = Math.ceil(maxX + layout.margin);
   let footprint = legendFootprint(architectureLegendEntries, {
     width: Math.max(1, width - layout.margin * 2),
@@ -166,21 +175,171 @@ function autoViewBox() {
   ];
 }
 
-const viewBox = arch.meta?.viewBox || autoViewBox();
+function resolvedViewBoxWidth(candidateBoundaries) {
+  if (Array.isArray(arch.meta?.viewBox) && Number.isFinite(arch.meta.viewBox[0])) {
+    return arch.meta.viewBox[0];
+  }
+  return autoViewBoxFor(candidateBoundaries)[0];
+}
+
+function expandBoundaryForReadableTitle(boundary, minimumFontSize) {
+  if (!enforcesBoundaryTitleComposition) return boundary;
+  const requiredWidth = boundaryLabelWidth(boundary.label, minimumFontSize)
+    + layout.boundaryLabelFrameInset * 2;
+  const extra = Math.max(0, requiredWidth - boundary.width);
+  if (!extra) return boundary;
+  return {
+    ...boundary,
+    x: boundary.x - extra / 2,
+    width: boundary.width + extra,
+  };
+}
+
+function measureBoundaryTitle(boundary, minimumFontSize) {
+  const availableWidth = Math.max(0, boundary.width - layout.boundaryLabelFrameInset * 2);
+  const units = textUnits(boundary.label);
+  const fitted = units > 0
+    ? (availableWidth - 10) / (units * 0.6)
+    : layout.boundaryLabelFontPreferred;
+  const preferredFontSize = Math.max(layout.boundaryLabelFontPreferred, minimumFontSize);
+  const fontSize = Math.max(
+    minimumFontSize,
+    Math.min(preferredFontSize, fitted),
+  );
+  const desiredWidth = boundaryLabelWidth(boundary.label, fontSize);
+  const height = Math.max(layout.boundaryLabelMaskHeight, Math.ceil(fontSize + 7));
+  return {
+    x: boundary.x + layout.boundaryLabelFrameInset,
+    y: boundary.memberTop
+      - layout.boundaryLabelClearance
+      - height,
+    width: Math.min(availableWidth, desiredWidth),
+    height,
+    fontSize,
+    minimumFontSize,
+    baselineOffset: fontSize + 4,
+    availableWidth,
+    minimumWidth: boundaryLabelWidth(boundary.label, minimumFontSize),
+  };
+}
+
+function horizontalOverlap(left, right) {
+  return left.x < right.x + right.width && left.x + left.width > right.x;
+}
+
+function layoutBoundaryTitles(rawBoundaries, minimumFontSize) {
+  const placedTitles = [];
+  const measured = new Map();
+  const ordered = rawBoundaries
+    .map((boundary, index) => ({ boundary, index }))
+    .sort((left, right) => {
+      const areaDelta = left.boundary.width * left.boundary.height
+        - right.boundary.width * right.boundary.height;
+      return areaDelta || left.index - right.index;
+    });
+
+  for (const entry of ordered) {
+    const { index } = entry;
+    const boundary = expandBoundaryForReadableTitle(entry.boundary, minimumFontSize);
+    const title = measureBoundaryTitle(boundary, minimumFontSize);
+    let guard = 0;
+    while (guard < rawBoundaries.length + components.size + 1) {
+      guard += 1;
+      const blockers = [
+        ...placedTitles,
+        ...components.values(),
+      ].filter((candidate) => horizontalOverlap(title, candidate) && rectsOverlap(title, candidate));
+      if (!blockers.length) break;
+      title.y = Math.min(
+        ...blockers.map((blocker) => blocker.y - layout.boundaryLabelRailGap - title.height),
+      );
+    }
+    placedTitles.push(title);
+    measured.set(index, { boundary, title });
+  }
+
+  return rawBoundaries.map((_boundary, index) => {
+    const { boundary, title } = measured.get(index);
+    const bottom = boundary.y + boundary.height;
+    // Profile-less schema-v1 inputs keep their legacy boundary geometry. A
+    // quality profile opts into the stricter title-composition contract and
+    // may expand the frame to contain an adapted title rail.
+    const y = enforcesBoundaryTitleComposition
+      ? Math.min(boundary.y, title.y - layout.boundaryLabelFrameInset)
+      : boundary.y;
+    return {
+      ...boundary,
+      y,
+      height: bottom - y,
+      title,
+    };
+  });
+}
+
+const rawBoundaries = asArray(arch.boundaries).map(boundaryRect).filter(Boolean);
+function resolveBoundaryTitles() {
+  if (!enforcesBoundaryTitleComposition || rawBoundaries.length === 0) {
+    return {
+      boundaries: layoutBoundaryTitles(rawBoundaries, layout.boundaryLabelFontMinimum),
+      readabilityProblem: null,
+    };
+  }
+
+  const maximumIterations = 32;
+  let candidateBoundaries = rawBoundaries;
+  for (let iteration = 0; iteration < maximumIterations; iteration += 1) {
+    const budgetViewBoxWidth = resolvedViewBoxWidth(candidateBoundaries);
+    const minimumFontSize = Math.max(
+      layout.boundaryLabelFontMinimum,
+      minimumReadableSourceTextPx(budgetViewBoxWidth) + 1e-6,
+    );
+    const nextBoundaries = layoutBoundaryTitles(rawBoundaries, minimumFontSize);
+    const finalViewBoxWidth = resolvedViewBoxWidth(nextBoundaries);
+    const finalMinimumFontSize = Math.max(
+      layout.boundaryLabelFontMinimum,
+      minimumReadableSourceTextPx(finalViewBoxWidth),
+    );
+    if (minimumFontSize >= finalMinimumFontSize) {
+      return { boundaries: nextBoundaries, readabilityProblem: null };
+    }
+    candidateBoundaries = nextBoundaries;
+  }
+
+  const finalViewBoxWidth = resolvedViewBoxWidth(candidateBoundaries);
+  return {
+    boundaries: candidateBoundaries,
+    readabilityProblem: `[composition/desktop-readability] Boundary title layout did not converge after ${maximumIterations} iterations for the final ${finalViewBoxWidth}px viewBox — shorten boundary labels, provide a wider authored viewBox, or move wrapped components closer to the left edge.`,
+  };
+}
+
+const resolvedBoundaryTitles = resolveBoundaryTitles();
+const boundaries = resolvedBoundaryTitles.boundaries;
+const compositionFrames = boundaries.map((boundary, index) => ({
+  ...boundary,
+  id: boundary.id || index,
+  kind: boundary.kind || 'boundary',
+  radius: boundary.kind === 'security-group' ? 8 : 12,
+}));
+
+function componentContext(component) {
+  const scopes = boundaries
+    .filter((boundary) => asArray(boundary.wraps).includes(component.id))
+    .sort((a, b) => (b.width * b.height) - (a.width * a.height))
+    .map((boundary) => boundary.label);
+  return scopes.length ? scopes.join(' › ') : i18nText(arch.meta.locale, 'node.context.architecture');
+}
+
+// ---- Auto viewBox: fit all geometry + the measured resolved legend ----------
+const viewBox = arch.meta?.viewBox || autoViewBoxFor(boundaries);
 const legendY = () => viewBox[1] - 16;
 
 // ---- Validation: mechanical correctness, never layout taste -----------------
 function validateArchitecture() {
   const problems = [];
-  if (arch.schema_version !== 1) problems.push('Architecture files must set "schema_version": 1.');
-  if (arch.diagram_type !== 'architecture') problems.push('Architecture files must set "diagram_type": "architecture".');
-  if (!arch.meta?.title) problems.push('Architecture files must include meta.title.');
-  if (!Array.isArray(arch.components) || arch.components.length < 1) {
-    problems.push('Architecture diagrams need at least one component.');
+  if (resolvedBoundaryTitles.readabilityProblem) {
+    problems.push(resolvedBoundaryTitles.readabilityProblem);
   }
-  if (arch.connections !== undefined && !Array.isArray(arch.connections)) problems.push('Architecture "connections" must be an array.');
-  if (arch.boundaries !== undefined && !Array.isArray(arch.boundaries)) problems.push('Architecture "boundaries" must be an array.');
-  if (arch.cards !== undefined && !Array.isArray(arch.cards)) problems.push('Architecture "cards" must be an array.');
+  const requiresNestedBoundaryMembership = arch.meta?.engineering_profile === 'deployment-ownership';
   if (components.size !== asArray(arch.components).length) problems.push('Component ids must be unique.');
   if (grid) {
     validateGridPlacement(arch, grid, problems);
@@ -208,6 +367,8 @@ function validateArchitecture() {
     if (estLabelW > c.width + 8) {
       problems.push(`Label "${c.label}" (~${Math.round(estLabelW)}px) is wider than component "${c.id}" (${c.width}px) — shorten the label or widen size.`);
     }
+    const brandRailProblem = brandTopRailProblem(c, c.width, 8, 'Component');
+    if (brandRailProblem) problems.push(brandRailProblem);
     // sublabel and tag render as single unwrapped <text> elements; shrink-to-fit
     // handles the ordinary case, this rejects what it cannot rescue.
     const availableTextW = availableNodeTextWidth(c.width);
@@ -239,6 +400,95 @@ function validateArchitecture() {
       if (!components.has(id)) problems.push(`Boundary "${boundary.label}" wraps unknown component "${id}".`);
     }
   }
+  const viewBoxRect = { x: 0, y: 0, width: viewBox[0], height: viewBox[1] };
+  for (const boundary of boundaries) {
+    if (!enforcesBoundaryTitleComposition) continue;
+    if (boundary.title.minimumWidth > boundary.title.availableWidth) {
+      problems.push(
+        `Boundary label "${boundary.label}" needs ~${Math.ceil(boundary.title.minimumWidth)}px to fit at the `
+        + `${Number(boundary.title.minimumFontSize.toFixed(2))}px desktop-readable source minimum, but its frame provides ${Math.floor(boundary.title.availableWidth)}px — `
+        + 'shorten the boundary label, increase pad, or widen the wrapped component layout.',
+      );
+    }
+    if (!rectContains(boundary, boundary.title)) {
+      problems.push(
+        `Boundary label "${boundary.label}" extends outside its final frame — shorten the label or increase boundary pad.`,
+      );
+    }
+    if (!rectContains(viewBoxRect, boundary.title)) {
+      problems.push(
+        `Boundary label "${boundary.label}" extends outside the viewBox — move wrapped components away from the canvas edge, shorten the label, or increase the viewBox.`,
+      );
+    }
+    for (const component of components.values()) {
+      if (!rectsOverlap(boundary.title, component)) continue;
+      problems.push(
+        `Boundary label "${boundary.label}" overlaps component "${component.id}" — move the component, increase boundary title space, or shorten the label.`,
+      );
+    }
+  }
+  for (let leftIndex = 0; leftIndex < boundaries.length; leftIndex += 1) {
+    const left = boundaries[leftIndex];
+    const leftMembers = new Set(asArray(left.wraps));
+    for (let rightIndex = leftIndex + 1; rightIndex < boundaries.length; rightIndex += 1) {
+      const right = boundaries[rightIndex];
+      if (enforcesBoundaryTitleComposition && rectsOverlap(left.title, right.title)) {
+        problems.push(
+          `Boundary labels "${left.label}" and "${right.label}" overlap — shorten a label or increase boundary title space.`,
+        );
+      }
+      // Ordinary architecture boundaries are sets, not an implied ownership
+      // tree: orthogonal scopes such as runtime and compliance may share some
+      // components while each contains others. The opt-in deployment profile
+      // does promise hierarchical region/private-scope membership, so only it
+      // receives the stricter membership-to-frame containment contract.
+      if (!requiresNestedBoundaryMembership) continue;
+      const rightMembers = new Set(asArray(right.wraps));
+      const shared = [...leftMembers].filter((id) => rightMembers.has(id));
+      const leftNested = [...leftMembers].every((id) => rightMembers.has(id));
+      const rightNested = [...rightMembers].every((id) => leftMembers.has(id));
+      if (shared.length && !leftNested && !rightNested) {
+        const leftOnly = [...leftMembers].filter((id) => !rightMembers.has(id));
+        const rightOnly = [...rightMembers].filter((id) => !leftMembers.has(id));
+        problems.push(
+          `Boundary "${left.label}" crosses boundary "${right.label}" because their memberships partially overlap `
+          + `(shared: ${shared.map((id) => `"${id}"`).join(', ')}; `
+          + `only in "${left.label}": ${leftOnly.map((id) => `"${id}"`).join(', ')}; `
+          + `only in "${right.label}": ${rightOnly.map((id) => `"${id}"`).join(', ')}) — `
+          + 'keep one boundary fully nested by removing outside members, or split the boundary.',
+        );
+        continue;
+      }
+
+      if (!rectsOverlap(left, right)) continue;
+      const leftContainsRight = rectContains(left, right);
+      const rightContainsLeft = rectContains(right, left);
+      if (!leftContainsRight && !rightContainsLeft) {
+        problems.push(
+          `Boundary "${left.label}" and boundary "${right.label}" final frames partially overlap — `
+          + 'adjust wraps, pad, or component positions so the frames are disjoint or one fully contains the other.',
+        );
+        continue;
+      }
+
+      if (!shared.length) {
+        problems.push(
+          `Boundary "${left.label}" and boundary "${right.label}" final frames overlap even though their memberships are disjoint — `
+          + 'adjust pad or component positions so the frames are disjoint, or make wraps express the intended nesting.',
+        );
+        continue;
+      }
+
+      const containmentMatchesMembership = (leftNested && rightContainsLeft)
+        || (rightNested && leftContainsRight);
+      if (!containmentMatchesMembership) {
+        problems.push(
+          `Boundary "${left.label}" and boundary "${right.label}" final frame containment contradicts their wraps membership — `
+          + 'reduce the inner boundary pad, move its components, or correct wraps so geometry and nesting agree.',
+        );
+      }
+    }
+  }
   for (const b of boundaries) {
     if (b.x < 0 || b.y < 0 || b.x + b.width > viewBox[0] || b.y + b.height > viewBox[1]) {
       problems.push(`Boundary "${b.label}" extends outside the viewBox — its members sit too close to the canvas edge; add margin or enlarge meta.viewBox.`);
@@ -262,19 +512,17 @@ function validateArchitecture() {
     pathFor,
     diagramType: 'architecture',
     relationCollection: 'connections',
-    fromSideFor: (conn) => inferredAutoSide(conn, 'source'),
-    toSideFor: (conn) => inferredAutoSide(conn, 'target'),
+    fromSideFor: (conn) => connectionEndpointSide(conn, 'source'),
+    toSideFor: (conn) => connectionEndpointSide(conn, 'target'),
     routeHint: 'keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments',
   }));
   problems.push(...cleanFlowProblems({
     relations: arch.connections,
-    endpointIds: new Set(components.keys()),
     obstacles: components.values(),
     pathFor,
     diagramType: 'architecture',
     relationCollection: 'connections',
     obstacleKind: 'component',
-    profile: arch.meta?.quality_profile,
     routeHint: 'adjust fromSide/toSide, set route/via, or move the component'
   }));
   problems.push(...cleanCrossingProblems({
@@ -327,6 +575,14 @@ function validateArchitecture() {
     for (const c of components.values()) {
       if (rectsOverlap(rect, c, -2)) {
         problems.push(`Label "${rect.label}" overlaps component "${c.id}" — adjust labelDx/labelDy/labelSegment or set labelAt.\n${suggestLabelObstacleFix(rect, rect.lx, rect.ly, c)}`);
+      }
+    }
+    if (enforcesBoundaryTitleComposition) {
+      for (const boundary of boundaries) {
+        if (!rectsOverlap(boundary.title, rect)) continue;
+        problems.push(
+          `Boundary label "${boundary.label}" overlaps connection label "${rect.label}" — move the boundary title rail by adjusting wrapped component positions, or move the connection label with labelAt/labelDx/labelDy/labelSegment.`,
+        );
       }
     }
   }
@@ -476,6 +732,82 @@ function sideAwareBridgeCandidates(start, end, fromSide, toSide) {
     .map((points) => points.slice(1, -1));
 }
 
+const AUTOMATIC_PORT_CORNER_GUTTER = 16;
+const AUTOMATIC_PORT_ALIGNMENT_DELTA = 16;
+
+function portHasCornerClearance(rect, side, point) {
+  if (side === 'left' || side === 'right') {
+    const inset = Math.min(AUTOMATIC_PORT_CORNER_GUTTER, rect.height / 2);
+    return point[1] >= rect.y + inset && point[1] <= rect.y + rect.height - inset;
+  }
+  if (side === 'top' || side === 'bottom') {
+    const inset = Math.min(AUTOMATIC_PORT_CORNER_GUTTER, rect.width / 2);
+    return point[0] >= rect.x + inset && point[0] <= rect.x + rect.width - inset;
+  }
+  return false;
+}
+
+function alignFacingPorts(conn, from, to, start, end, fromSide, toSide, ports) {
+  const hasExplicitGeometry = (
+    conn.via
+    || (conn.route && conn.route !== 'auto')
+    || conn.channelX !== undefined
+    || conn.channelY !== undefined
+    || conn.labelAt
+  );
+  const horizontallyFacing = (
+    (fromSide === 'right' && toSide === 'left')
+    || (fromSide === 'left' && toSide === 'right')
+  );
+  const verticallyFacing = (
+    (fromSide === 'bottom' && toSide === 'top')
+    || (fromSide === 'top' && toSide === 'bottom')
+  );
+  if (hasExplicitGeometry || (!horizontallyFacing && !verticallyFacing)) return { start, end };
+
+  const fromSpread = Boolean(ports?.from);
+  const toSpread = Boolean(ports?.to);
+  if (fromSpread && toSpread) return { start, end };
+  const hasExplicitSides = (
+    (conn.fromSide && conn.fromSide !== 'auto')
+    || (conn.toSide && conn.toSide !== 'auto')
+  );
+  if (!fromSpread && !toSpread && hasExplicitSides) return { start, end };
+
+  const alignmentDelta = horizontallyFacing
+    ? Math.abs(start[1] - end[1])
+    : Math.abs(start[0] - end[0]);
+  if (alignmentDelta >= AUTOMATIC_PORT_ALIGNMENT_DELTA) return { start, end };
+
+  // Keep the shared endpoint's distinct spread slot and move only the
+  // relationship's unshared endpoint onto that axis. With no spread endpoint,
+  // retain the existing least-movement choice between the two facing sides.
+  // If both endpoints are shared, preserve the outside bridge so no competing
+  // port is silently collapsed.
+  const alignEndToStart = horizontallyFacing
+    ? { start, end: [end[0], start[1]] }
+    : { start, end: [start[0], end[1]] };
+  const alignStartToEnd = horizontallyFacing
+    ? { start: [start[0], end[1]], end }
+    : { start: [end[0], start[1]], end };
+  const candidates = fromSpread
+    ? [alignEndToStart]
+    : toSpread
+      ? [alignStartToEnd]
+      : [alignEndToStart, alignStartToEnd];
+  for (const candidate of candidates) {
+    const points = [candidate.start, candidate.end];
+    if (portHasCornerClearance(from, fromSide, candidate.start)
+        && portHasCornerClearance(to, toSide, candidate.end)
+        && routeHonorsEndpointSides(points, fromSide, toSide)
+        && routeClearsEndpointComponents(points, from, to)
+        && routeClearsComponents(conn, points)) {
+      return candidate;
+    }
+  }
+  return { start, end };
+}
+
 function routeVia(conn, from, to, start, end, fromSide, toSide) {
   if (conn.via) return conn.via;
   switch (conn.route || 'auto') {
@@ -584,10 +916,9 @@ function connectionSides(conn) {
   };
 }
 
-function inferredAutoSide(conn, endpoint) {
+function connectionEndpointSide(conn, endpoint) {
   const field = endpoint === 'source' ? 'fromSide' : 'toSide';
   if (conn[field] && conn[field] !== 'auto') return conn[field];
-  if (conn.via || (conn.route && conn.route !== 'auto')) return null;
   return connectionSides(conn)[field];
 }
 
@@ -597,8 +928,18 @@ function pathFor(conn) {
   const to = components.get(conn.to);
   const ports = automaticPorts.get(conn);
   const { fromSide, toSide } = connectionSides(conn);
-  const start = ports?.from || anchor(from, fromSide);
-  const end = ports?.to || anchor(to, toSide);
+  const baseStart = ports?.from || anchor(from, fromSide);
+  const baseEnd = ports?.to || anchor(to, toSide);
+  const { start, end } = alignFacingPorts(
+    conn,
+    from,
+    to,
+    baseStart,
+    baseEnd,
+    fromSide,
+    toSide,
+    ports,
+  );
   const points = [start, ...routeVia(conn, from, to, start, end, fromSide, toSide), end];
   const routed = { d: roundedPath(points, 8), points };
   pathCache.set(conn, routed);
@@ -606,12 +947,18 @@ function pathFor(conn) {
 }
 
 // ---- Rendering ---------------------------------------------------------------
-function renderBoundary(b, index) {
+function renderBoundaryFrame(b, index) {
   const cls = b.kind === 'security-group' ? 'c-security-group' : 'c-region';
-  const labelCls = b.kind === 'security-group' ? 't-security' : 't-cloud';
   const rx = b.kind === 'security-group' ? 8 : 12;
-  return `        <rect data-graph-role="structural-frame" data-composition-frame-kind="${esc(b.kind || 'boundary')}" data-composition-frame-id="${index}" x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" rx="${rx}" class="${cls}" stroke-width="1"/>
-        <text x="${b.x + 8}" y="${b.y + 18}" class="${labelCls}" font-size="9" font-weight="600">${esc(b.label)}</text>`;
+  return `        <rect data-graph-role="structural-frame" data-composition-frame-kind="${esc(b.kind || 'boundary')}" data-composition-frame-id="${index}" data-composition-frame-label="${esc(b.label)}" x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" rx="${rx}" class="${cls}" stroke-width="1"/>`;
+}
+
+function renderBoundaryLabel(b, index) {
+  const labelCls = b.kind === 'security-group' ? 't-security' : 't-cloud';
+  return `        <g data-graph-role="structural-frame-label" data-composition-frame-id="${index}" data-composition-frame-kind="${esc(b.kind || 'boundary')}" data-composition-frame-label="${esc(b.label)}">
+          <rect data-graph-role="structural-frame-label-mask" x="${b.title.x}" y="${b.title.y}" width="${b.title.width}" height="${b.title.height}" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="${b.title.x + 4}" y="${b.title.y + b.title.baselineOffset}" class="${labelCls}" font-size="${b.title.fontSize}" font-weight="600">${esc(b.label)}</text>
+        </g>`;
 }
 
 function renderConnectionPath(conn, index) {
@@ -643,13 +990,15 @@ function renderComponent(c) {
   const tag = c.tag
     ? `\n        <text data-detail="fine" x="${cx}" y="${c.y + c.height - 8}" class="${accent}" font-size="${fittedNodeFontSize(c.tag, c.width, componentTextFit.tagPreferred, componentTextFit.tagMinimum)}" text-anchor="middle">${esc(c.tag)}</text>`
     : '';
-  const passport = { kind: c.type, sublabel: c.sublabel, tag: c.tag, context: componentContext(c) };
-  return `        <g ${focusNodeAttrs(c.id, c.label, passport)}>
+  const brand = renderBrandMark(c, { x: c.x + c.width - 22, y: c.y + 6 });
+  const labelFontSize = fittedNodeFontSize(c.label, brandLabelFitWidth(c, c.width), 11, 8);
+  const passport = { kind: c.type, sublabel: c.sublabel, tag: c.tag, context: componentContext(c), ...brandMetadataFor(c) };
+  return `        <g ${focusNodeAttrs(c.id, c.label, passport, arch.meta.locale)}>
           ${focusNodeTitle(c.label, passport)}
           <rect x="${c.x}" y="${c.y}" width="${c.width}" height="${c.height}" rx="6" class="c-mask"/>
           <rect x="${c.x}" y="${c.y}" width="${c.width}" height="${c.height}" rx="6" class="${fill}"${animateAttr(arch.meta, 'node', componentSteps.get(c.id))} stroke-width="1.5"/>
-          ${renderSemanticSigil(c.type, { x: c.x + 6, y: c.y + 6 })}
-          <text${hasSub ? ' data-detail-anchor' : ''} x="${cx}" y="${labelY}" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">${esc(c.label)}</text>${sub}${tag}
+          ${renderSemanticSigil(c.type, { x: c.x + 6, y: c.y + 6 })}${brand ? `\n          ${brand}` : ''}
+          <text data-node-label=""${hasSub ? ' data-detail-anchor=""' : ''} x="${cx}" y="${labelY}" class="t-primary" font-size="${labelFontSize}" font-weight="600" text-anchor="middle">${esc(c.label)}</text>${sub}${tag}
         </g>`;
 }
 
@@ -671,6 +1020,7 @@ function renderLegend() {
   );
   return renderResolvedLegend({
     entries,
+    locale: arch.meta.locale,
     layout: {
       x: layout.margin,
       baselineY: legendY(),
@@ -680,20 +1030,20 @@ function renderLegend() {
       unfit: arch.meta?.legend === undefined ? 'hide' : 'error',
       diagramType: 'architecture',
     },
-    renderSwatch: (entry) => `<rect x="${entry.x}" y="${entry.baseline - 8}" width="14" height="9" rx="2" class="${componentFill[entry.kind] || 'c-external'}" stroke-width="1"/>`,
+    renderSwatch: (entry) => `<rect x="${entry.x}" y="${entry.baseline - 9}" width="16" height="10" rx="2.5" class="${componentFill[entry.kind] || 'c-external'}" stroke-width="1"/>`,
   });
 }
 
 function renderSvg() {
-  return `      <svg viewBox="0 0 ${viewBox[0]} ${viewBox[1]}" ${svgRootAttrs(arch.meta, 'architecture diagram')}>
-${svgAccessibleText(arch.meta, 'architecture diagram')}
+  return `      <svg viewBox="0 0 ${viewBox[0]} ${viewBox[1]}" ${svgRootAttrs(arch.meta)}>
+${svgAccessibleText(arch.meta, 'architecture')}
 ${renderDefinitions()}
 
         <!-- Background Grid -->
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Boundaries (behind everything) -->
-${boundaries.map(renderBoundary).join('\n\n')}
+${boundaries.map(renderBoundaryFrame).join('\n\n')}
 
         <!-- Connection paths (before components for correct z-order) -->
 ${asArray(arch.connections).map(renderConnectionPath).join('\n')}
@@ -703,6 +1053,9 @@ ${[...components.values()].map(renderComponent).join('\n\n')}
 
         <!-- Connection labels -->
 ${asArray(arch.connections).map(renderConnectionLabel).join('\n')}
+
+        <!-- Boundary labels (foreground masks keep routes out of titles) -->
+${boundaries.map(renderBoundaryLabel).join('\n\n')}
 
         <!-- Legend -->
 ${renderLegend()}
@@ -719,7 +1072,6 @@ writeDiagram({
   template,
   diagramType: 'architecture',
   meta: arch.meta,
-  footerLabel: 'Architecture diagram',
   svg: renderSvg(),
   cards: arch.cards,
   sourceEvidence,

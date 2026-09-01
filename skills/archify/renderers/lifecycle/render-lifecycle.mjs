@@ -1,22 +1,17 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { esc, renderDefinitions, renderSemanticSigil, textUnits } from '../shared/utils.mjs';
-import { availableNodeTextWidth, fittedNodeFontSize, minimumNodeTextWidth } from '../shared/text-fit.mjs';
-
-// Font sizes for this renderer's state text; the fitting geometry is shared.
-const stateTextFit = {
-  sublabelPreferred: 7,
-  sublabelMinimum: 6,
-  tagPreferred: 7,
-  tagMinimum: 6,
-};
-import { animateAttr, focusEdgeAttrs, focusNodeAttrs, focusNodeTitle, loadDiagram, writeDiagram, svgAccessibleText, svgRootAttrs } from '../shared/cli.mjs';
+import { animateAttr, focusEdgeAttrs, focusNodeAttrs, focusNodeTitle, loadDiagramWithBrandMarks, writeDiagram, svgAccessibleText, svgRootAttrs } from '../shared/cli.mjs';
 import { throwDiagnosticProblems } from '../shared/diagnostics.mjs';
 import { resolveLegend, renderLegend as renderResolvedLegend } from '../shared/legend.mjs';
+import { availableNodeTextWidth, fittedNodeFontSize, minimumNodeTextWidth } from '../shared/text-fit.mjs';
+import { brandLabelFitWidth, brandMarkFor, brandMetadataFor, brandTopRailProblem, renderBrandMark } from '../shared/brand-marks.mjs';
+import { translateMessage as i18nText } from '../shared/i18n.mjs';
 import {
   asArray,
   isFinitePoint,
   rectsOverlap,
+  cleanEndpointSideProblems,
   cleanFlowProblems,
   cleanCrossingProblems,
   cleanAmbiguousCorridorProblems,
@@ -37,8 +32,15 @@ import {
   variantAccent
 } from '../shared/geometry.mjs';
 
+const stateTextFit = {
+  sublabelPreferred: 7,
+  sublabelMinimum: 6,
+  tagPreferred: 7,
+  tagMinimum: 6,
+};
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { diagram: lifecycle, template, outPath } = loadDiagram({
+const { diagram: lifecycle, template, outPath } = await loadDiagramWithBrandMarks({
   rendererDir: __dirname,
   diagramType: 'lifecycle',
   defaultExample: 'agent-run.lifecycle.json'
@@ -138,13 +140,6 @@ for (const [index, state] of asArray(lifecycle.states).entries()) {
 
 function validateLifecycle() {
   const problems = [];
-  if (lifecycle.schema_version !== 1) problems.push('Lifecycle files must set "schema_version": 1.');
-  if (lifecycle.diagram_type !== 'lifecycle') problems.push('Lifecycle files must set "diagram_type": "lifecycle".');
-  if (!lifecycle.meta?.title) problems.push('Lifecycle files must include meta.title.');
-  if (!Array.isArray(lifecycle.lanes) || lifecycle.lanes.length < 1) problems.push('Lifecycle diagrams need at least one lane.');
-  if (!Array.isArray(lifecycle.states) || lifecycle.states.length < 2) problems.push('Lifecycle diagrams need at least two states.');
-  if (!Array.isArray(lifecycle.transitions)) problems.push('Lifecycle diagrams must include a transitions array.');
-  if (lifecycle.cards !== undefined && !Array.isArray(lifecycle.cards)) problems.push('Lifecycle "cards" must be an array.');
   if (states.size !== asArray(lifecycle.states).length) problems.push('State ids must be unique.');
 
   // The three bands are fixed at y=112/264/436. Preserve the original
@@ -188,6 +183,8 @@ function validateLifecycle() {
     if (estLabelW > state.width + 6) {
       problems.push(`Label "${state.label}" (~${Math.round(estLabelW)}px) is wider than state "${state.id}" (${state.width}px) — shorten the label or increase state.width.`);
     }
+    const brandRailProblem = brandTopRailProblem(state, state.width, 8, 'State');
+    if (brandRailProblem) problems.push(brandRailProblem);
     // sublabel and tag render as single unwrapped <text> elements; shrink-to-fit
     // handles the ordinary case, this rejects what it cannot rescue.
     const availableTextW = availableNodeTextWidth(state.width);
@@ -225,15 +222,28 @@ function validateLifecycle() {
     }
   }
 
-  problems.push(...cleanFlowProblems({
+  // Authored via points are authoritative in schema v1, including under a
+  // quality profile. Preserve and render them exactly: applying the endpoint
+  // gate would either reject an existing typed input or require silently
+  // falsifying its geometry. Automatic routes still receive the side gate.
+  problems.push(...cleanEndpointSideProblems({
     relations: lifecycle.transitions,
     endpointIds: new Set(states.keys()),
+    pathFor,
+    diagramType: 'lifecycle',
+    relationCollection: 'transitions',
+    fromSideFor: (transition) => transitionSides(transition).fromSide,
+    toSideFor: (transition) => transitionSides(transition).toSide,
+    shouldCheckRelation: (transition) => !Array.isArray(transition.via),
+    routeHint: 'keep automatic routing, or choose fromSide/toSide and via points whose first and final segments cross state borders perpendicularly',
+  }));
+  problems.push(...cleanFlowProblems({
+    relations: lifecycle.transitions,
     obstacles: states.values(),
     pathFor,
     diagramType: 'lifecycle',
     relationCollection: 'transitions',
     obstacleKind: 'state',
-    profile: lifecycle.meta?.quality_profile,
     routeHint: 'adjust fromSide/toSide, set route/via or channelX/channelY, or move the state with col/yOffset'
   }));
   problems.push(...cleanCrossingProblems({
@@ -316,7 +326,7 @@ function validateLifecycle() {
   }
 }
 
-function routeVia(transition, from, to, start, end) {
+function routeVia(transition, from, to, start, end, fromSide, toSide) {
   if (transition.via) return transition.via;
   switch (transition.route || 'auto') {
     case 'straight':
@@ -343,24 +353,46 @@ function routeVia(transition, from, to, start, end) {
     }
     case 'auto':
     default: {
-      if (from.lane === to.lane) return [];
-      const y = transition.channelY ?? (start[1] + end[1]) / 2;
-      return [[start[0], y], [end[0], y]];
+      if (start[0] === end[0] || start[1] === end[1]) return [];
+      const fromVertical = fromSide === 'top' || fromSide === 'bottom';
+      const toVertical = toSide === 'top' || toSide === 'bottom';
+      if (fromVertical !== toVertical) {
+        return [fromVertical ? [start[0], end[1]] : [end[0], start[1]]];
+      }
+      if (fromVertical) {
+        const y = transition.channelY ?? (start[1] + end[1]) / 2;
+        return [[start[0], y], [end[0], y]];
+      }
+      const x = transition.channelX ?? (start[0] + end[0]) / 2;
+      return [[x, start[1]], [x, end[1]]];
     }
   }
 }
 
 const pathCache = new Map();
-const automaticPorts = automaticPortSpread(lifecycle.transitions, states);
+
+function transitionSides(transition) {
+  const from = states.get(transition.from);
+  const to = states.get(transition.to);
+  return {
+    fromSide: chosenSide(transition.fromSide, defaultFromSide(from, to)),
+    toSide: chosenSide(transition.toSide, defaultToSide(from, to)),
+  };
+}
+
+const automaticPorts = automaticPortSpread(lifecycle.transitions, states, {
+  sideFor: (transition, endpoint) => transitionSides(transition)[endpoint === 'source' ? 'fromSide' : 'toSide'],
+});
 
 function pathFor(transition) {
   if (pathCache.has(transition)) return pathCache.get(transition);
   const from = states.get(transition.from);
   const to = states.get(transition.to);
   const ports = automaticPorts.get(transition);
-  const start = ports?.from || anchor(from, chosenSide(transition.fromSide, defaultFromSide(from, to)));
-  const end = ports?.to || anchor(to, chosenSide(transition.toSide, defaultToSide(from, to)));
-  let via = routeVia(transition, from, to, start, end);
+  const { fromSide, toSide } = transitionSides(transition);
+  const start = ports?.from || anchor(from, fromSide);
+  const end = ports?.to || anchor(to, toSide);
+  let via = routeVia(transition, from, to, start, end, fromSide, toSide);
   if (ports && !via.length && Math.abs(start[0] - end[0]) >= 4 && Math.abs(start[1] - end[1]) >= 4) {
     const midX = (start[0] + end[0]) / 2;
     via = [[midX, start[1]], [midX, end[1]]];
@@ -407,16 +439,25 @@ function renderState(state) {
   const tag = state.tag
     ? `\n        <text data-detail="fine" x="${state.cx}" y="${state.y + state.height - 11}" class="${accent}" font-size="${fittedNodeFontSize(state.tag, state.width, stateTextFit.tagPreferred, stateTextFit.tagMinimum)}" text-anchor="middle">${esc(state.tag)}</text>`
     : '';
+  const hasBrand = Boolean(brandMarkFor(state));
   const step = state.step
-    ? `\n        <text data-detail="fine" x="${state.x + 10}" y="${state.y + 14}" class="${accent}" font-size="7" font-weight="700">${esc(state.step)}</text>`
+    ? `\n        <text data-detail="fine" x="${state.x + (hasBrand ? 23 : 10)}" y="${state.y + 14}" class="${accent}" font-size="7" font-weight="700">${esc(state.step)}</text>`
     : '';
-  const passport = { kind: state.type, sublabel: state.sublabel, tag: state.tag, context: laneLabels.get(state.lane) || 'Lifecycle state' };
-  return `        <g ${focusNodeAttrs(state.id, state.label, passport)}>
+  const brand = renderBrandMark(state, { x: state.x + state.width - 22, y: state.y + 6 });
+  const labelFontSize = fittedNodeFontSize(state.label, brandLabelFitWidth(state, state.width), 10, 8);
+  const passport = {
+    kind: state.type,
+    sublabel: state.sublabel,
+    tag: state.tag,
+    context: laneLabels.get(state.lane) || i18nText(lifecycle.meta.locale, 'node.context.lifecycle'),
+    ...brandMetadataFor(state),
+  };
+  return `        <g ${focusNodeAttrs(state.id, state.label, passport, lifecycle.meta.locale)}>
           ${focusNodeTitle(state.label, passport)}
           <rect x="${state.x}" y="${state.y}" width="${state.width}" height="${state.height}" rx="7" class="c-mask"/>
           <rect x="${state.x}" y="${state.y}" width="${state.width}" height="${state.height}" rx="7" class="${fill}"${animateAttr(lifecycle.meta, 'node', stateSteps.get(state.id))} stroke-width="1.5"/>
-          ${renderSemanticSigil(state.type, { x: state.x + state.width - 17, y: state.y + 6 })}${step}
-          <text${hasSub ? ' data-detail-anchor' : ''} x="${state.cx}" y="${state.y + 21}" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">${esc(state.label)}</text>${sub}${tag}
+          ${renderSemanticSigil(state.type, { x: hasBrand ? state.x + 6 : state.x + state.width - 17, y: state.y + 6 })}${brand ? `\n          ${brand}` : ''}${step}
+          <text data-node-label=""${hasSub ? ' data-detail-anchor=""' : ''} x="${state.cx}" y="${state.y + 21}" class="t-primary" font-size="${labelFontSize}" font-weight="600" text-anchor="middle">${esc(state.label)}</text>${sub}${tag}
         </g>`;
 }
 
@@ -444,21 +485,22 @@ function renderTransitionLabel(transition, index) {
 }
 
 const LEGEND_CATALOG = [
-  ['start', 'start'],
-  ['active', 'active state'],
-  ['waiting', 'waiting'],
-  ['decision', 'decision'],
-  ['success', 'terminal success'],
-  ['failure', 'failure / exit'],
-  ['neutral', 'neutral'],
-  ['external', 'external'],
-].map(([kind, label]) => ({ kind, label }));
+  'start',
+  'active',
+  'waiting',
+  'decision',
+  'success',
+  'failure',
+  'neutral',
+  'external',
+].map((kind) => ({ kind, label: i18nText(lifecycle.meta.locale, `legend.lifecycle.${kind}`) }));
 
 function renderLegend() {
   const presentKinds = new Set([...states.values()].map((state) => state.type));
   const entries = resolveLegend(lifecycle.meta?.legend, LEGEND_CATALOG, presentKinds);
   return renderResolvedLegend({
     entries,
+    locale: lifecycle.meta.locale,
     layout: {
       x: 40,
       baselineY: legendY(),
@@ -481,8 +523,8 @@ function renderLifecycleRail() {
 }
 
 function renderSvg() {
-  return `      <svg viewBox="0 0 ${viewBox[0]} ${viewBox[1]}" ${svgRootAttrs(lifecycle.meta, 'lifecycle diagram')}>
-${svgAccessibleText(lifecycle.meta, 'lifecycle diagram')}
+  return `      <svg viewBox="0 0 ${viewBox[0]} ${viewBox[1]}" ${svgRootAttrs(lifecycle.meta)}>
+${svgAccessibleText(lifecycle.meta, 'lifecycle')}
 ${renderDefinitions()}
 
         <!-- Background Grid -->
@@ -514,7 +556,6 @@ writeDiagram({
   template,
   diagramType: 'lifecycle',
   meta: lifecycle.meta,
-  footerLabel: 'Lifecycle diagram',
   svg: renderSvg(),
   cards: lifecycle.cards,
 });

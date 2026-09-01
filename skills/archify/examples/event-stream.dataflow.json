@@ -3,7 +3,6 @@
   "diagram_type": "dataflow",
   "meta": {
     "title": "Order Event-stream Topology",
-    "subtitle": "Named events, ordered topics, processors, consumer groups, state, replay, and dead letters",
     "output": "examples/event-stream.html",
     "viewBox": [1080, 780],
     "animation": "trace",

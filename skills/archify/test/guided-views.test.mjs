@@ -80,7 +80,7 @@ for (const [mode, config] of Object.entries(CASES)) {
     assert.match(guided.html, /data-share-playback="true"\] \.diagram-container \{\s*padding-top: 4\.25rem/);
     assert.match(guided.html, /function renderShareCue\(\)/);
     assert.match(guided.html, /function shareCueBeatCopy\(state, view, stops\)/);
-    assert.match(guided.html, /Step ' \+ \(storyBeatIndex \+ 1 < 10/);
+    assert.match(guided.html, /viewerText\('viewer\.guided\.share\.step'/);
     assert.match(guided.html, /shareCue\.setAttribute\('aria-live', state === 'playing' \? 'off' : 'polite'\)/);
     assert.match(guided.html, /function scheduleStoryPlayback\(\)/);
     assert.match(guided.html, /storyBeatTimer = setTimeout/);
@@ -96,7 +96,8 @@ for (const [mode, config] of Object.entries(CASES)) {
     assert.match(guided.html, /container\.addEventListener\('scroll', onScroll, \{ passive: true \}\)/);
     assert.match(guided.html, /--archify-scroll-x/);
     assert.match(guided.html, /focus: function \(\) \{ return activeIndex < 0 \? \[\] : views\[activeIndex\]\.focus\.slice\(\); \}/);
-    assert.match(guided.html, /<kbd>P<\/kbd> play story/);
+    assert.doesNotMatch(guided.html, /<p class="footer">/);
+    assert.doesNotMatch(guided.html, /<kbd>P<\/kbd> play story/);
     assert.doesNotMatch(plain.html, /<kbd>P<\/kbd> play story/);
     assert.match(guided.html, /\\u003c\/script\\u003e\\u003cscript\\u003e/);
     assert.doesNotMatch(guided.html, /A safe note with <\/script><script>/);

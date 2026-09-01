@@ -3,7 +3,6 @@
   "diagram_type": "workflow",
   "meta": {
     "title": "Release Delivery Workflow",
-    "subtitle": "Commit, blocking checks, approval, production verification, and rollback",
     "output": "examples/release-delivery.html",
     "animation": "trace",
     "quality_profile": "showcase",

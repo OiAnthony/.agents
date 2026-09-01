@@ -111,9 +111,6 @@
     break-after: page;
   }
   .cover-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8pt;
     font-family: var(--sans);
     font-size: 10pt;
     color: var(--brand);
@@ -121,14 +118,6 @@
     text-transform: uppercase;
     font-weight: 500;
     margin-bottom: 18pt;
-  }
-  .cover-eyebrow::before {
-    content: "";
-    width: 9pt;
-    height: 1.5pt;
-    border-radius: 0.75pt;
-    background: var(--brand);
-    flex-shrink: 0;
   }
   .cover-title {
     font-size: 36pt;
@@ -163,9 +152,6 @@
     font-size: 22pt;
     font-weight: 500;
     margin-bottom: var(--rhythm-module);
-    border-left: 2.5pt solid var(--brand);
-    border-radius: 1.5pt;
-    padding-left: 8pt;
   }
   .toc-item {
     display: flex;
@@ -203,9 +189,6 @@
     font-weight: 500;
     line-height: 1.2;
     margin: 0 0 10pt 0;
-    border-left: 2.5pt solid var(--brand);
-    border-radius: 1.5pt;
-    padding-left: 8pt;
     color: var(--near-black);
     break-after: avoid;
     string-set: section-title content();
@@ -270,9 +253,8 @@
 
   /* ========== QUOTE ========== */
   blockquote, .quote {
-    border-left: 2pt solid var(--brand);
-    margin: 12pt 0;
-    padding: 4pt 0 4pt 16pt;
+    margin: 12pt 16pt;
+    padding: 4pt 0;
     color: var(--olive);
     line-height: 1.55;
     break-inside: avoid;
@@ -324,16 +306,16 @@
     font-weight: 500;
     color: var(--dark-warm);
     padding: 6pt 8pt;
-    border-bottom: 1pt solid var(--border);
+    border-bottom: 0.6pt solid var(--border);
     background: transparent;
   }
   table td, .kami-table td {
     padding: 5pt 8pt;
-    border-bottom: 0.3pt solid var(--border-soft);
+    border-bottom: 0.25pt solid var(--border);
     vertical-align: top;
   }
   table.compact th, .kami-table.compact th { padding: 3pt 6pt; font-size: 8pt; }
-  table.compact td, .kami-table.compact td { padding: 2pt 6pt; font-size: 8pt; line-height: 1.4; }
+  table.compact td, .kami-table.compact td { padding: 2.5pt 6pt; font-size: 8pt; line-height: 1.4; }
   table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
     text-align: right; font-variant-numeric: tabular-nums;
   }
@@ -342,13 +324,12 @@
     background: var(--ivory);
   }
   table .total td, .kami-table .total td {
-    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+    font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
 
   /* ========== CALLOUT ========== */
   .callout {
     background: var(--ivory);
-    border-left: 2pt solid var(--brand);
     padding: 10pt 14pt;
     border-radius: 3pt;
     margin: 12pt 0;
@@ -357,8 +338,6 @@
   }
   .callout blockquote,
   .callout .quote {
-    border-left: none;
-    padding-left: 0;
     margin: 6pt 0;
     color: var(--olive);
   }
@@ -416,7 +395,6 @@
   /* ========== EXECUTIVE SUMMARY ========== */
   .exec-summary {
     background: var(--ivory);
-    border-left: 1.4pt solid var(--brand);
     border-radius: 6pt;
     padding: 16pt 20pt;
     margin: 14pt 0;

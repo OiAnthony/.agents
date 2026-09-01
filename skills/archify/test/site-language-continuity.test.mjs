@@ -9,6 +9,7 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 import { ChromeVisualBrowser, findChrome } from '../bin/visual-check.mjs';
+import { DIAGRAM_TYPES, DIAGRAM_TYPE_LABELS } from '../../scripts/site-copy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -300,6 +301,78 @@ test('all site pages consume one language runtime and one navigation contract', 
   assert.match(navigation, /@media \(max-width: 640px\)/);
 });
 
+test('site page identity paths localize with the selected language', () => {
+  const pages = [
+    { paths: ['scripts/guide-template.html', 'docs/guide.html'], en: '/ guide', zh: '/ 场景指南' },
+    { paths: ['scripts/gallery-template.html', 'docs/gallery.html'], en: '/ proof lab', zh: '/ 验证作品集' },
+    { paths: ['scripts/start-template.html', 'docs/start.html'], en: '/ start', zh: '/ 快速上手' },
+  ];
+
+  for (const page of pages) {
+    for (const relative of page.paths) {
+      const html = fs.readFileSync(path.join(repoRoot, relative), 'utf8');
+      assert.ok(
+        html.includes(`<span class="nav-logo-path" data-en="${page.en}" data-zh="${page.zh}">${page.en}</span>`),
+        `${relative}: page identity path must expose matching English and Chinese copy`,
+      );
+      assert.match(
+        html,
+        /querySelectorAll\('\[data-en\]\[data-zh\]'\)/,
+        `${relative}: language changes must update bilingual page identity copy`,
+      );
+    }
+  }
+});
+
+test('proof gallery type filters localize with the selected language', () => {
+  const filters = DIAGRAM_TYPES.map((type) => ({
+    type,
+    en: DIAGRAM_TYPE_LABELS.en[type],
+    zh: DIAGRAM_TYPE_LABELS.zh[type],
+  }));
+
+  const template = fs.readFileSync(path.join(repoRoot, 'scripts/gallery-template.html'), 'utf8');
+  for (const filter of filters) {
+    const placeholder = filter.type.toUpperCase();
+    assert.ok(
+      template.includes(`data-filter="${filter.type}" aria-pressed="false" data-en="[[DIAGRAM_TYPE_${placeholder}_EN]]" data-zh="[[DIAGRAM_TYPE_${placeholder}_ZH]]"`),
+      `gallery template: ${filter.type} filter must consume the shared copy source`,
+    );
+  }
+
+  for (const relative of ['docs/gallery.html']) {
+    const html = fs.readFileSync(path.join(repoRoot, relative), 'utf8');
+    assert.match(
+      html,
+      /<button(?=[^>]*data-filter="all")(?=[^>]*data-en="All \/ [^"]+")(?=[^>]*data-zh="全部配方 \/ [^"]+")[^>]*>All \/ [^<]+<\/button>/,
+      `${relative}: all filter must expose English and Chinese copy`,
+    );
+    for (const filter of filters) {
+      const bilingualFilter = new RegExp(
+        `<button(?=[^>]*data-filter="${filter.type}")(?=[^>]*data-en="${filter.en}")(?=[^>]*data-zh="${filter.zh}")[^>]*>${filter.en}<\\/button>`,
+      );
+      assert.match(html, bilingualFilter, `${relative}: ${filter.type} filter must expose English and Chinese copy`);
+    }
+    assert.match(
+      html,
+      /querySelectorAll\('\[data-en\]\[data-zh\]'\)/,
+      `${relative}: language changes must update bilingual gallery filters`,
+    );
+  }
+});
+
+test('scenario guide type filters use consistent Chinese diagram names', () => {
+  const template = fs.readFileSync(path.join(repoRoot, 'scripts/guide-template.html'), 'utf8');
+  assert.match(template, /var types = \[\[DIAGRAM_TYPES_JSON\]\];/);
+  assert.match(template, /var labels = \[\[DIAGRAM_TYPE_LABELS_JSON\]\];/);
+
+  const html = fs.readFileSync(path.join(repoRoot, 'docs/guide.html'), 'utf8');
+  assert.ok(
+    html.includes(`var labels = ${JSON.stringify(DIAGRAM_TYPE_LABELS)};`),
+    'docs/guide.html: Guide filters must use the shared Chinese diagram names',
+  );
+});
+
 test('real Chrome preserves language through entry, navigation, selection, refresh, and consistent navigation chrome', {
   skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real site regression.',
   timeout: 60000,
@@ -346,10 +419,42 @@ test('real Chrome preserves language through entry, navigation, selection, refre
 
     await clickAndNavigate(browser, sessionId, '.site-nav a[href="gallery.html"]');
     assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'zh-CN');
-    await evaluate(browser, sessionId, 'document.getElementById("language").click()');
-    assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en');
+    assert.equal(await evaluate(browser, sessionId, 'document.querySelector(".nav-logo-path").textContent'), '/ 验证作品集');
+    assert.deepEqual(await evaluate(browser, sessionId, `Array.from(document.querySelectorAll('[data-filter]')).map(function (button) {
+      return button.textContent;
+    })`), ['全部配方 / 11', '架构图', '工作流', '时序图', '数据流', '生命周期']);
+
+    await evaluate(browser, sessionId, 'document.querySelector(\'[data-filter="architecture"]\').click()');
+    state = await evaluate(browser, sessionId, `({
+      language: document.documentElement.lang,
+      selected: document.querySelector('[data-filter="architecture"]').getAttribute('aria-pressed'),
+      typeQuery: new URL(location.href).searchParams.get('type'),
+      visibleCount: document.querySelectorAll('.showcase-card:not([hidden])').length,
+      onlyArchitecture: Array.from(document.querySelectorAll('.showcase-card:not([hidden])')).every(function (card) {
+        return card.getAttribute('data-type') === 'architecture';
+      })
+    })`);
+    assert.deepEqual(state, {
+      language: 'zh-CN', selected: 'true', typeQuery: 'architecture', visibleCount: 2, onlyArchitecture: true,
+    });
 
     let loaded = browser.cdp.waitFor('Page.loadEventFired', sessionId);
+    await browser.cdp.send('Page.reload', {}, sessionId);
+    await loaded;
+    assert.deepEqual(await evaluate(browser, sessionId, `({
+      language: document.documentElement.lang,
+      selected: document.querySelector('[data-filter="architecture"]').getAttribute('aria-pressed'),
+      visibleCount: document.querySelectorAll('.showcase-card:not([hidden])').length
+    })`), { language: 'zh-CN', selected: 'true', visibleCount: 2 });
+
+    await evaluate(browser, sessionId, 'document.getElementById("language").click()');
+    assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en');
+    assert.equal(await evaluate(browser, sessionId, 'document.querySelector(".nav-logo-path").textContent'), '/ proof lab');
+    assert.deepEqual(await evaluate(browser, sessionId, `Array.from(document.querySelectorAll('[data-filter]')).map(function (button) {
+      return button.textContent;
+    })`), ['All / 11', 'Architecture', 'Workflow', 'Sequence', 'Data flow', 'Lifecycle']);
+
+    loaded = browser.cdp.waitFor('Page.loadEventFired', sessionId);
     await browser.cdp.send('Page.reload', {}, sessionId);
     await loaded;
     assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en');
@@ -364,10 +469,35 @@ test('real Chrome preserves language through entry, navigation, selection, refre
       hash: location.hash
     })`);
     assert.deepEqual(state, { language: 'zh-CN', stored: 'zh', langQuery: null, hash: '#recipes' });
+    assert.equal(await evaluate(browser, sessionId, 'document.querySelector(".nav-logo-path").textContent'), '/ 场景指南');
+    assert.deepEqual(await evaluate(browser, sessionId, `Array.from(document.querySelectorAll('#filters [data-filter]')).map(function (button) {
+      return button.textContent;
+    })`), ['全部配方', '架构图', '工作流', '时序图', '数据流', '生命周期']);
+
+    await evaluate(browser, sessionId, 'document.querySelector(\'#filters [data-filter="sequence"]\').click()');
+    state = await evaluate(browser, sessionId, `({
+      language: document.documentElement.lang,
+      selected: document.querySelector('#filters [data-filter="sequence"]').classList.contains('active'),
+      visibleCount: document.querySelectorAll('#cards .card').length,
+      onlySequence: Array.from(document.querySelectorAll('#cards .card .card-type')).every(function (label) {
+        return label.textContent === 'sequence';
+      }),
+      labels: Array.from(document.querySelectorAll('#filters [data-filter]')).map(function (button) {
+        return button.textContent;
+      })
+    })`);
+    assert.deepEqual(state, {
+      language: 'zh-CN',
+      selected: true,
+      visibleCount: 2,
+      onlySequence: true,
+      labels: ['全部配方', '架构图', '工作流', '时序图', '数据流', '生命周期'],
+    });
 
     await clickAndNavigate(browser, sessionId, '.site-nav a[href="start.html"]');
     assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'zh-CN');
     assert.equal(await evaluate(browser, sessionId, 'new URL(location.href).searchParams.has("lang")'), false);
+    assert.equal(await evaluate(browser, sessionId, 'document.querySelector(".nav-logo-path").textContent'), '/ 快速上手');
 
     const pages = ['index.html', 'gallery.html', 'guide.html', 'start.html'];
     const desktopReceipts = [];

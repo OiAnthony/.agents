@@ -3,7 +3,6 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Checkout Platform — Baseline",
-    "subtitle": "Before fraud screening moved into the payment path",
     "visual_preset": "signal-flow"
   },
   "components": [

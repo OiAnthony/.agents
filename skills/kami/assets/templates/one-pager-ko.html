@@ -87,23 +87,12 @@
     flex: 1;
   }
   .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 7pt;
     font-size: 9pt;
     color: var(--brand);
     letter-spacing: 1.5pt;
     text-transform: uppercase;
     margin-bottom: 7pt;
     font-weight: 500;
-  }
-  .eyebrow::before {
-    content: "";
-    width: 8pt;
-    height: 1.5pt;
-    border-radius: 0.75pt;
-    background: var(--brand);
-    flex-shrink: 0;
   }
   /* KO locale tuning: Source Han Serif K hangul glyphs have a smaller optical body
      than TsangerJinKai. H1 starts at the CN baseline (24pt / line-height 1.15);
@@ -278,11 +267,10 @@
   }
 
   /* ========== Callout / highlight block ========== */
-  /* Same shape as the long-doc / equity-report .callout: ivory fill plus a single
-     left brand bar. One form across templates; padding tightens per density. */
+  /* Same shape as the long-doc / equity-report .callout: ivory fill and type
+     carry the emphasis; padding tightens per density. */
   .callout {
     background: var(--ivory);
-    border-left: 2pt solid var(--brand);
     border-radius: 3pt;
     padding: 8pt 12pt;
     margin: 10pt 0;
@@ -305,17 +293,17 @@
     text-align: left;
     font-weight: 500;
     color: var(--dark-warm);
-    padding: 4pt 6pt;
-    border-bottom: 1pt solid var(--border);
+    padding: 5pt 6pt;
+    border-bottom: 0.6pt solid var(--border);
     background: transparent;
   }
   table td, .kami-table td {
-    padding: 3pt 6pt;
-    border-bottom: 0.3pt solid var(--border-soft);
+    padding: 4pt 6pt;
+    border-bottom: 0.25pt solid var(--border);
     vertical-align: top;
   }
-  table.compact th, .kami-table.compact th { padding: 2pt 5pt; font-size: 8pt; }
-  table.compact td, .kami-table.compact td { padding: 1pt 5pt; font-size: 8pt; line-height: 1.4; }
+  table.compact th, .kami-table.compact th { padding: 3pt 5pt; font-size: 8pt; }
+  table.compact td, .kami-table.compact td { padding: 2.5pt 5pt; font-size: 8pt; line-height: 1.4; }
   table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
     text-align: right; font-variant-numeric: tabular-nums;
   }
@@ -324,7 +312,7 @@
     background: var(--ivory);
   }
   table .total td, .kami-table .total td {
-    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+    font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
 
   /* ========== FOOTER ========== */

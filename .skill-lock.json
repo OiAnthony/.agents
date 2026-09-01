@@ -160,9 +160,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "b18d75416dcad40f8da55db01ff940660d53910f",
+      "skillFolderHash": "2a75812b2ff9adc48323067c3c944c4339f83365",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-08-14T15:46:23.260Z"
+      "updatedAt": "2026-09-01T14:57:15.346Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -187,27 +187,27 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/OiAnthony/lark-cli-progressive-skill.git",
       "skillPath": "skills/lark/SKILL.md",
-      "skillFolderHash": "beb0094ed04b6cfcae52704f815bbe234734bbd8",
+      "skillFolderHash": "c6c85f060993c0fc56cfed2b3b910ece2ce445c4",
       "installedAt": "2026-07-13T07:06:39.696Z",
-      "updatedAt": "2026-08-11T07:35:44.746Z"
+      "updatedAt": "2026-09-01T14:57:32.848Z"
     },
     "herdr": {
       "source": "herdrdev/herdr",
       "sourceType": "github",
       "sourceUrl": "https://github.com/herdrdev/herdr.git",
       "skillPath": "skills/herdr/SKILL.md",
-      "skillFolderHash": "4821f1d39ccae24b9b274b03184edaaf198a3994",
+      "skillFolderHash": "f8bb649bb92ddc99e6af463ab9a635da98c7b129",
       "installedAt": "2026-08-02T10:19:31.736Z",
-      "updatedAt": "2026-08-02T10:19:31.736Z"
+      "updatedAt": "2026-09-01T14:57:37.243Z"
     },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "1db35965bc62735f36d00db5ffa56bd620f02548",
+      "skillFolderHash": "07dd20ea08660308a7ed980ecf9d277e07848c13",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-08-11T07:36:28.636Z"
+      "updatedAt": "2026-09-01T14:57:44.611Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",

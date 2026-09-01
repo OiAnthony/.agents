@@ -1,11 +1,12 @@
 import { throwDiagnosticError } from './diagnostics.mjs';
 import { rectsOverlap, segmentIntersectsRect } from './geometry.mjs';
 import { esc, textUnits } from './utils.mjs';
+import { translateMessage } from './i18n.mjs';
 
 const DEFAULT_FONT_SIZE = 8;
 const DEFAULT_ITEM_GAP = 22;
 const DEFAULT_LINE_GAP = 22;
-const DEFAULT_SWATCH_GAP = 7;
+const DEFAULT_SWATCH_GAP = 8;
 const TEXT_ADVANCE_EM = 0.62;
 const INTERACTIVE_BADGE_ALLOWANCE = 21;
 
@@ -155,13 +156,13 @@ export function measureLegend(entries, {
   });
 
   const legendRects = [
-    { kind: 'title', x, y: legendTopY, width: 42, height: 13 },
+    { kind: 'title', x, y: legendTopY, width: 48, height: 14 },
     ...positioned.map((entry) => ({
       kind: entry.kind,
       x: entry.x,
-      y: entry.baseline - 9,
+      y: entry.baseline - 10,
       width: entry.width,
-      height: 12,
+      height: 14,
     })),
   ];
   const collision = legendRects.find((legendRect) => obstacles.some((obstacle) => (
@@ -190,15 +191,16 @@ export function measureLegend(entries, {
   };
 }
 
-export function renderLegend({ entries, layout, renderSwatch }) {
+export function renderLegend({ entries, layout, renderSwatch, locale }) {
   if (!entries.length) return '';
   const measured = measureLegend(entries, layout);
   if (!measured) return '';
   const hasInteractiveEntries = measured.entries.some((entry) => entry.interactive);
-  const rootAttributes = hasInteractiveEntries ? ' data-legend data-legend-bridge' : ' data-legend';
+  const renderedFontSize = measured.fontSize < 8 ? measured.fontSize + 0.5 : measured.fontSize + 2;
+  const rootAttributes = hasInteractiveEntries ? ' data-legend="" data-legend-bridge=""' : ' data-legend=""';
   const parts = [
     `        <g${rootAttributes}>`,
-    `          <text x="${layout.x}" y="${measured.titleY}" class="t-primary" font-size="10" font-weight="600">Legend</text>`,
+    `          <text x="${layout.x}" y="${measured.titleY}" class="t-primary" font-size="12" font-weight="650">${esc(translateMessage(locale, 'legend.title'))}</text>`,
   ];
 
   for (const entry of measured.entries) {
@@ -207,7 +209,7 @@ export function renderLegend({ entries, layout, renderSwatch }) {
       : '';
     parts.push(`          <g data-legend-semantic-kind="${esc(entry.kind)}"${interactive} data-legend-x="${entry.x}" data-legend-baseline="${entry.baseline}" data-legend-width="${entry.width}">`);
     parts.push(`            ${renderSwatch(entry)}`);
-    parts.push(`            <text x="${entry.x + (entry.swatchWidth ?? 14) + (entry.swatchGap ?? DEFAULT_SWATCH_GAP)}" y="${entry.baseline}" class="t-muted" font-size="${measured.fontSize}">${esc(entry.label)}</text>`);
+    parts.push(`            <text x="${entry.x + (entry.swatchWidth ?? 14) + (entry.swatchGap ?? DEFAULT_SWATCH_GAP)}" y="${entry.baseline}" class="t-muted" font-size="${renderedFontSize}" font-weight="500">${esc(entry.label)}</text>`);
     parts.push('          </g>');
   }
   parts.push('        </g>');

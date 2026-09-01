@@ -41,7 +41,7 @@ test('all typed renderers ship the same presentation stage contract', () => {
     assert.match(html, /exit: function \(\) \{ return setActive\(false\); \}/, mode);
     assert.match(html, /html\[data-present="true"\]:not\(\[data-embed="true"\]\) \.diagram-container/, mode);
     assert.match(html, /height: 100dvh/, mode);
-    assert.match(html, /\.cards,[\s\S]+\.footer \{ display: none; \}/, mode);
+    assert.match(html, /\.cards \{ display: none; \}/, mode);
     assert.doesNotMatch(html.match(/<html[^>]*>/)?.[0] || '', /data-present=/, mode);
     assert.doesNotMatch(svg(html), /data-present|btn-present|Presentation Stage/, mode);
   }

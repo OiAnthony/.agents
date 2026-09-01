@@ -18,11 +18,18 @@ const CASES = {
   lifecycle: 'agent-run.lifecycle.json',
 };
 
-function render(mode) {
+function render(mode, mutate) {
   const output = path.join(tmp, `${mode}.html`);
+  let input = path.join(skillRoot, 'examples', CASES[mode]);
+  if (mutate) {
+    const document = JSON.parse(fs.readFileSync(input, 'utf8'));
+    mutate(document);
+    input = path.join(tmp, `${mode}.json`);
+    fs.writeFileSync(input, JSON.stringify(document));
+  }
   execFileSync(process.execPath, [
     path.join(skillRoot, `renderers/${mode}/render-${mode}.mjs`),
-    path.join(skillRoot, 'examples', CASES[mode]),
+    input,
     output,
   ]);
   return fs.readFileSync(output, 'utf8');
@@ -41,9 +48,18 @@ test('only legends with an exact node-kind meaning publish bridge entries', () =
   const architecture = canonicalSvg(render('architecture'));
   const architectureKinds = new Set(values(architecture, 'data-node-kind'));
   assert.deepEqual(new Set(values(architecture, 'data-legend-kind')), architectureKinds);
-  assert.equal((architecture.match(/data-legend-bridge(?:\s|>)/g) || []).length, 1);
+  assert.equal((architecture.match(/data-legend-bridge=""/g) || []).length, 1);
 
-  const workflow = canonicalSvg(render('workflow'));
+  const workflow = canonicalSvg(render('workflow', (document) => {
+    // The production fixture intentionally fills its legend band with authored
+    // routes, so legacy implicit-auto correctly hides that legend. Keep this
+    // semantic bridge contract focused by rendering the same typed nodes with
+    // an explicit full legend and no relationship geometry in the band.
+    document.meta.legend = { mode: 'all' };
+    delete document.meta.viewBox;
+    document.edges = [];
+    delete document.mainPath;
+  }));
   assert.deepEqual(values(workflow, 'data-legend-kind'), [
     'frontend', 'backend', 'security', 'messagebus', 'database', 'cloud', 'external',
   ]);
@@ -65,7 +81,7 @@ test('only legends with an exact node-kind meaning publish bridge entries', () =
     'emphasis', 'security', 'dashed', 'database', 'default',
   ]);
   assert.deepEqual(values(dataflow, 'data-legend-kind'), ['database']);
-  assert.equal((dataflow.match(/data-legend-bridge(?:\s|>)/g) || []).length, 1);
+  assert.equal((dataflow.match(/data-legend-bridge=""/g) || []).length, 1);
   assert.ok(values(dataflow, 'data-node-kind').includes('database'));
   assert.match(dataflow, />Legend</);
 });
@@ -80,7 +96,7 @@ test('runtime decoration derives counts from compiled node facts and stays viewe
   assert.match(html, /entry\.setAttribute\('role', 'button'\)/);
   assert.match(html, /legendBridge\.setAttribute\('role', legendEntries\.length >= 3 \? 'toolbar' : 'group'\)/);
   assert.match(html, /var visibleLabel = entry\.getAttribute\('data-legend-label'\) \|\| fact\.label/);
-  assert.match(html, /entry\.setAttribute\('aria-label', 'Inspect ' \+ visibleLabel/);
+  assert.match(html, /entry\.setAttribute\('aria-label', viewerCount\('viewer\.lens\.legend\.inspect', count/);
   assert.match(html, /if \(!legendBridge \|\| html\.getAttribute\('data-embed'\) === 'true'\) return false/);
   assert.doesNotMatch(svg, /data-legend-bridge-runtime|data-legend-count=|role="toolbar"/);
   assert.doesNotMatch(svg, /data-legend-kind="[^"]+"[^>]+(?:role=|aria-pressed=)/);

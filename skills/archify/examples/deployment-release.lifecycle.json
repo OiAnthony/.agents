@@ -3,7 +3,6 @@
   "diagram_type": "lifecycle",
   "meta": {
     "title": "Deployment Release Lifecycle",
-    "subtitle": "Queued, building, verifying, approval, promotion, health regression, rollback, and terminal outcomes",
     "output": "examples/deployment-release.html",
     "viewBox": [980, 680],
     "animation": "trace",

@@ -17,6 +17,7 @@
           "breaking": {
             "$comment": "Each entry names the change and the migration path.",
             "type": "array",
+            "minItems": 1,
             "maxItems": 4,
             "items": {
               "type": "object",
@@ -29,11 +30,13 @@
           },
           "features": {
             "type": "array",
+            "minItems": 1,
             "maxItems": 8,
             "items": { "type": "string", "minLength": 6, "maxLength": 200 }
           },
           "fixes": {
             "type": "array",
+            "minItems": 1,
             "maxItems": 8,
             "items": { "type": "string", "minLength": 6, "maxLength": 200 }
           }

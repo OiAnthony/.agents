@@ -86,23 +86,12 @@
     flex: 1;
   }
   .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 7pt;
     font-size: 9pt;
     color: var(--brand);
     letter-spacing: 1.5pt;
     text-transform: uppercase;
     margin-bottom: 7pt;
     font-weight: 500;
-  }
-  .eyebrow::before {
-    content: "";
-    width: 8pt;
-    height: 1.5pt;
-    border-radius: 0.75pt;
-    background: var(--brand);
-    flex-shrink: 0;
   }
   /* CN locale tuning: TsangerJinKai glyphs are wider per character, so H1 sits
      slightly smaller (24pt vs EN 26pt) with looser leading (1.15 vs EN 1.12)
@@ -284,11 +273,10 @@
   }
 
   /* ========== Callout / 高亮块 ========== */
-  /* 和 long-doc / equity-report 的 .callout 同形：ivory 填充 + 单左侧 brand 竖条。
-     形态跨模板统一，只有 padding 按各自密度收紧。 */
+  /* 和 long-doc / equity-report 的 .callout 同形：ivory 填充与文字承担强调，
+     只有 padding 按各自密度收紧。 */
   .callout {
     background: var(--ivory);
-    border-left: 2pt solid var(--brand);
     border-radius: 3pt;
     padding: 8pt 12pt;
     margin: 10pt 0;
@@ -311,17 +299,17 @@
     text-align: left;
     font-weight: 500;
     color: var(--dark-warm);
-    padding: 4pt 6pt;
-    border-bottom: 1pt solid var(--border);
+    padding: 5pt 6pt;
+    border-bottom: 0.6pt solid var(--border);
     background: transparent;
   }
   table td, .kami-table td {
-    padding: 3pt 6pt;
-    border-bottom: 0.3pt solid var(--border-soft);
+    padding: 4pt 6pt;
+    border-bottom: 0.25pt solid var(--border);
     vertical-align: top;
   }
-  table.compact th, .kami-table.compact th { padding: 2pt 5pt; font-size: 8pt; }
-  table.compact td, .kami-table.compact td { padding: 1pt 5pt; font-size: 8pt; line-height: 1.4; }
+  table.compact th, .kami-table.compact th { padding: 3pt 5pt; font-size: 8pt; }
+  table.compact td, .kami-table.compact td { padding: 2.5pt 5pt; font-size: 8pt; line-height: 1.4; }
   table.financial td:not(:first-child), .kami-table.financial td:not(:first-child) {
     text-align: right; font-variant-numeric: tabular-nums;
   }
@@ -330,7 +318,7 @@
     background: var(--ivory);
   }
   table .total td, .kami-table .total td {
-    font-weight: 500; border-top: 1pt solid var(--brand); border-bottom: none; color: var(--near-black);
+    font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
 
   /* ========== FOOTER ========== */

@@ -80,13 +80,6 @@ def add_text(slide, text, left, top, width, height,
     return tb
 
 
-def add_line(slide, left, top, width, color=BRAND, weight_pt=1):
-    line = slide.shapes.add_connector(1, left, top, left + width, top)
-    line.line.color.rgb = color
-    line.line.width = Pt(weight_pt)
-    return line
-
-
 def add_card(slide, left, top, width, height,
              fill=IVORY, border=BORDER, border_weight=0.5):
     card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
@@ -109,7 +102,6 @@ def cover_slide(prs, title, subtitle, author, date):
              Inches(1), Inches(2.5), Inches(11.33), Inches(1.5),
              font=SERIF, size=48, color=NEAR_BLACK,
              align=PP_ALIGN.CENTER)
-    add_line(s, Inches(6.17), Inches(4.3), Inches(1), weight_pt=1.5)
     add_text(s, subtitle,
              Inches(1), Inches(4.6), Inches(11.33), Inches(0.8),
              font=SANS, size=18, color=OLIVE,
@@ -126,7 +118,6 @@ def toc_slide(prs, items):
     add_text(s, "Contents",
              Inches(1.2), Inches(0.8), Inches(10), Inches(0.8),
              font=SERIF, size=34, color=NEAR_BLACK)
-    add_line(s, Inches(1.2), Inches(1.8), Inches(11), weight_pt=1)
 
     for i, item in enumerate(items):
         y = Inches(2.4 + i * 0.9)
@@ -178,7 +169,6 @@ def metrics_slide(prs, title, metrics):
              Inches(1.2), Inches(0.8), Inches(11), Inches(1),
              font=SERIF, size=30, color=NEAR_BLACK,
              align=PP_ALIGN.CENTER)
-    add_line(s, Inches(6.17), Inches(2), Inches(1))
 
     n = len(metrics)
     card_w = Inches(2.8)
@@ -214,23 +204,17 @@ def quote_slide(prs, quote, source):
 
 
 def comparison_slide(prs, eyebrow, left_title, left_items, right_title, right_items, page_num=None):
-    """Before/After two-column layout. Divider is warm gray. Left column is muted, right is full-weight."""
+    """Before/After two-column layout. Whitespace separates muted and full-weight columns."""
     s = blank_slide(prs)
     add_text(s, eyebrow.upper(),
              Inches(1.2), Inches(0.6), Inches(10), Inches(0.4),
              font=SANS, size=11, color=STONE)
-    divider = s.shapes.add_connector(1,
-        Inches(6.67), Inches(1.0),
-        Inches(6.67), Inches(6.8))
-    divider.line.color.rgb = BORDER
-    divider.line.width = Pt(1)
     add_text(s, left_title,
              Inches(1.2), Inches(1.2), Inches(5), Inches(0.8),
              font=SERIF, size=22, color=OLIVE)
     add_text(s, right_title,
              Inches(7.0), Inches(1.2), Inches(5), Inches(0.8),
              font=SERIF, size=22, color=NEAR_BLACK)
-    add_line(s, Inches(1.2), Inches(2.2), Inches(11.5), weight_pt=0.5)
     for i, item in enumerate(left_items[:4]):
         add_text(s, item,
                  Inches(1.2), Inches(2.6 + i * 0.9), Inches(4.9), Inches(0.7),
@@ -258,7 +242,6 @@ def pipeline_slide(prs, eyebrow, title, steps, page_num=None):
     add_text(s, title,
              Inches(1.2), Inches(1.1), Inches(11), Inches(0.9),
              font=SERIF, size=32, color=NEAR_BLACK)
-    add_line(s, Inches(1.2), Inches(2.15), Inches(11), weight_pt=0.5)
 
     n = len(steps[:4])
     step_w = Inches(11.5 / n)
@@ -287,7 +270,6 @@ def ending_slide(prs, message, contact):
              Inches(1), Inches(3), Inches(11.33), Inches(1.2),
              font=SERIF, size=44, color=NEAR_BLACK,
              align=PP_ALIGN.CENTER)
-    add_line(s, Inches(6.17), Inches(4.5), Inches(1), weight_pt=1.5)
     add_text(s, contact,
              Inches(1), Inches(4.8), Inches(11.33), Inches(0.6),
              font=SANS, size=16, color=OLIVE,

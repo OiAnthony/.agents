@@ -3,7 +3,6 @@
   "diagram_type": "lifecycle",
   "meta": {
     "title": "Agent Run Lifecycle",
-    "subtitle": "State machine for planning, tool execution, human approval, retries, and terminal outcomes",
     "output": "examples/lifecycle-agent-run.html",
     "viewBox": [980, 660],
     "animation": "trace",

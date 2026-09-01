@@ -18,12 +18,14 @@ const CASES = {
   lifecycle: 'agent-run.lifecycle.json',
 };
 
-function render(mode, preset = 'classic') {
+function render(mode, preset) {
   const source = JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples', CASES[mode]), 'utf8'));
-  source.meta.visual_preset = preset;
+  if (preset === undefined) delete source.meta.visual_preset;
+  else source.meta.visual_preset = preset;
   source.meta.animation = 'none';
-  const input = path.join(tmp, `${mode}-${preset}.json`);
-  const output = path.join(tmp, `${mode}-${preset}.html`);
+  const fixtureName = preset || 'default';
+  const input = path.join(tmp, `${mode}-${fixtureName}.json`);
+  const output = path.join(tmp, `${mode}-${fixtureName}.html`);
   fs.writeFileSync(input, JSON.stringify(source));
   execFileSync(process.execPath, [path.join(skillRoot, `renderers/${mode}/render-${mode}.mjs`), input, output]);
   return fs.readFileSync(output, 'utf8');
@@ -61,6 +63,15 @@ test('style selection synchronizes page, picker, and canonical SVG without touch
   assert.match(runtime, /data-preset-option/);
   assert.match(runtime, /option\.setAttribute\('aria-checked', String\(selected\)\)/);
   assert.match(runtime, /return \{ cycle: cycle, apply: apply, current: current, authored: authored, open: open, close: close, isOpen: isOpen \}/);
+});
+
+test('omitted visual preset opens as Classic and theme switching cannot change it', () => {
+  const html = render('architecture');
+  const themeRuntime = html.match(/Archify\.theme = \(function \(\) \{[\s\S]*?\n    \}\)\(\);/)?.[0] || '';
+  assert.match(html, /<html lang="en" data-theme="dark" data-preset="classic">/);
+  assert.match(svgBlock(html), /<svg\b[^>]* data-preset="classic"/);
+  assert.match(themeRuntime, /html\.setAttribute\('data-theme', theme\)/);
+  assert.doesNotMatch(themeRuntime, /data-preset|Archify\.preset/);
 });
 
 test('style picker follows the accessible menu-button interaction contract', () => {

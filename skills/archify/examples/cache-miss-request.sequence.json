@@ -3,7 +3,6 @@
   "diagram_type": "sequence",
   "meta": {
     "title": "Cache Miss Request Sequence",
-    "subtitle": "Frontend request path with auth, cache fallback, persistence, and async trace",
     "output": "examples/sequence-cache-miss-request.html",
     "viewBox": [820, 760],
     "animation": "trace",

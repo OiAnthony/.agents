@@ -3,7 +3,6 @@
   "diagram_type": "dataflow",
   "meta": {
     "title": "Product Analytics Data Flow",
-    "subtitle": "Events, consent, PII isolation, warehouse sync, and downstream analytics",
     "output": "examples/dataflow-product-analytics.html",
     "viewBox": [1080, 760],
     "animation": "trace",

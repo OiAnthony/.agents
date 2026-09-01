@@ -28,9 +28,9 @@ lark-cli slides +replace-slide --as user \
 
 # 大 --parts 走文件或 stdin（auto-gen 命令不支持 @file，但 shortcut 支持）
 lark-cli slides +replace-slide --as user \
-  --presentation $PID --slide-id $SID --parts @parts.json
+  --presentation $PRES_ID --slide-id $SID --parts @parts.json
 cat parts.json | lark-cli slides +replace-slide --as user \
-  --presentation $PID --slide-id $SID --parts -
+  --presentation $PRES_ID --slide-id $SID --parts -
 
 # wiki URL 直接传（CLI 自动 get_node → 拿真实 xml_presentation_id）
 lark-cli slides +replace-slide --as user \
@@ -39,7 +39,7 @@ lark-cli slides +replace-slide --as user \
 
 # 预览（不实际调用）
 lark-cli slides +replace-slide --as user \
-  --presentation $PID --slide-id $SID --parts "$PARTS" --dry-run
+  --presentation $PRES_ID --slide-id $SID --parts "$PARTS" --dry-run
 ```
 
 ## 参数
@@ -180,16 +180,16 @@ lark-cli slides +replace-slide --as user \
 ### 给已有页加图（典型场景）
 
 ```bash
-PID=xxx
+PRES_ID=xxx
 SID=yyy
 
 # 1) 上传图片
 TOKEN=$(lark-cli slides +media-upload --as user \
-  --file ./pic.png --presentation "$PID" | jq -r '.data.file_token')
+  --file ./pic.png --presentation "$PRES_ID" --jq '.data.file_token')
 
 # 2) block_insert 到页末
 lark-cli slides +replace-slide --as user \
-  --presentation "$PID" --slide-id "$SID" \
+  --presentation "$PRES_ID" --slide-id "$SID" \
   --parts "$(jq -n --arg token "$TOKEN" \
     '[{action:"block_insert",insertion:("<img src=\""+$token+"\" topLeftX=\"500\" topLeftY=\"100\" width=\"200\" height=\"150\"/>")}]')"
 ```
@@ -199,11 +199,11 @@ lark-cli slides +replace-slide --as user \
 ```bash
 # 先拿原页 XML，从里面找到标题块的 3 位 short id（如 bUn）
 lark-cli slides xml_presentation.slide get --as user \
-  --params "{\"xml_presentation_id\":\"$PID\",\"slide_id\":\"$SID\"}"
+  --params "{\"xml_presentation_id\":\"$PRES_ID\",\"slide_id\":\"$SID\"}"
 
 # block_replace 换掉整个标题块（id 自动注入）
 lark-cli slides +replace-slide --as user \
-  --presentation "$PID" --slide-id "$SID" \
+  --presentation "$PRES_ID" --slide-id "$SID" \
   --parts '[{"action":"block_replace","block_id":"bUn","replacement":"<shape type=\"text\" topLeftX=\"80\" topLeftY=\"80\" width=\"800\" height=\"120\"><content textType=\"title\"><p>新标题</p></content></shape>"}]'
 ```
 
@@ -213,7 +213,7 @@ lark-cli slides +replace-slide --as user \
 
 ```bash
 lark-cli slides +replace-slide --as user \
-  --presentation "$PID" --slide-id "$SID" \
+  --presentation "$PRES_ID" --slide-id "$SID" \
   --parts '[
     {"action":"block_replace","block_id":"bab","replacement":"<shape type=\"text\" topLeftX=\"80\" topLeftY=\"80\" width=\"800\" height=\"120\"><content textType=\"title\"><p>新标题</p></content></shape>"},
     {"action":"block_insert","insertion":"<img src=\"<file_token>\" topLeftX=\"700\" topLeftY=\"400\" width=\"180\" height=\"100\"/>"}
@@ -225,12 +225,12 @@ lark-cli slides +replace-slide --as user \
 ```bash
 # 读时记录 revision_id
 REV=$(lark-cli slides xml_presentation.slide get --as user \
-  --params "{\"xml_presentation_id\":\"$PID\",\"slide_id\":\"$SID\"}" \
-  | jq '.data.revision_id')
+  --params "{\"xml_presentation_id\":\"$PRES_ID\",\"slide_id\":\"$SID\"}" \
+  --jq '.data.revision_id')
 
 # 写时传 --revision-id；传不存在的版本号（超过当前 revision）返回 3350002
 lark-cli slides +replace-slide --as user \
-  --presentation "$PID" --slide-id "$SID" --revision-id "$REV" \
+  --presentation "$PRES_ID" --slide-id "$SID" --revision-id "$REV" \
   --parts "$PARTS"
 ```
 
@@ -242,7 +242,7 @@ lark-cli slides +replace-slide --as user \
 | 3350002 not found | `--revision-id` 传了不存在的版本号（超过当前 revision） | 用 `-1` 或用 `slide.get` 拿到的有效 `revision_id` |
 | `--parts invalid JSON` | JSON 本身不完整，或被 shell 引号/转义破坏 | 将数组写入 `parts.json` 后传 `--parts @parts.json`，或通过 stdin 传给 `--parts -` |
 | `--parts[i] action "str_replace" is not supported` | CLI 不暴露 `str_replace` | 把替换需求改写成 `block_replace` / `block_insert` |
-| `--parts[i] action "page_replace" / "slide_replace" means whole-page replacement` | 把整页更新意图传给了块级 shortcut | 改用 [`slides +update-slide`](../lark-slides-update-slide.md) 整页原地写回 |
+| `--parts[i] action "page_replace" / "slide_replace" means whole-page replacement` | 把整页更新意图传给了块级 shortcut | 改用 [`slides +update-slide`](lark-slides-update-slide.md) 整页原地写回 |
 | `--parts contains N items, exceeds maximum of 200` | 一次提交 parts 太多 | 拆多次调用 |
 | `--parts[i] unknown field "xml"; did you mean "replacement"?` | XML 塞进了未支持的字段名（如 `xml` / `new_xml` / `data`） | 使用标准字段：`block_replace` 用 `replacement`，`block_insert` 用 `insertion` |
 | `--parts[i] unknown field "insertion"; it belongs to block_insert` | 字段和 `action` 不配对 | 按 action 取字段：`block_replace` = `block_id` + `replacement`；`block_insert` = `insertion` (+ `insert_before_block_id`) |
@@ -256,4 +256,4 @@ lark-cli slides +replace-slide --as user \
 - [xml_presentation.slide get](lark-slides-xml-presentation-slide-get.md) — 读原页拿 `block_id` / `revision_id`
 - [xml_presentation.slide replace](lark-slides-xml-presentation-slide-replace.md) — 底层 replace API 参考
 - [+media-upload](lark-slides-media-upload.md) — 上传图片拿 `file_token`
-- [lark-slides-edit-workflows.md](../workflow/slides_editing.md) — 读-改-写闭环 + 决策树
+- [slides-editing.md](../workflow/slides-editing.md) — 读-改-写闭环 + 决策树

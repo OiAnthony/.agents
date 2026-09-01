@@ -454,7 +454,6 @@ test('the shared renderer rechecks its guarded output immediately before writing
       template: loaded.template,
       diagramType: 'workflow',
       meta: loaded.diagram.meta,
-      footerLabel: 'Workflow',
       svg: '<svg role="img"></svg>',
       cards: [],
     }),
