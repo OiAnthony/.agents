@@ -20,4 +20,4 @@ When turning prior chats, durable memory, or cross-project notes into reusable W
 
 If an example is necessary, use neutral placeholders such as `ExampleCLI`, `ExampleApp`, `<issue>`, `<release>`, or `<command>`. Do not copy a private answer, maintainer reply, screenshot observation, or project-specific incident as a durable rule.
 
-Each skill adds its own paragraph below this reference for skill-specific overrides and constraints.
+The skill-specific overrides and constraints live in each `SKILL.md`, in the paragraph that follows its link to this file.

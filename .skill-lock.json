@@ -70,9 +70,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "90258860e2317dca532f24da39dbb7750b3466b4",
+      "skillFolderHash": "65c3ebc96bdaf4b1d9f7f5992e3a4348add1de32",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-08-30T01:04:17.158Z"
+      "updatedAt": "2026-09-03T01:40:41.983Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -106,9 +106,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "c656fe90516cdc0b6167c900ef7101bc103ae524",
+      "skillFolderHash": "dbae7d8c24968da85f93b12f2ac610589995e58d",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-08-27T02:31:55.882Z"
+      "updatedAt": "2026-09-03T05:11:57.025Z"
     },
     "hunt": {
       "source": "tw93/Waza",

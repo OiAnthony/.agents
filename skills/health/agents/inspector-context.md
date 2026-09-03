@@ -5,7 +5,7 @@ Input bundle: CLAUDE.md (global), CLAUDE.md (local), NESTED CLAUDE.md, rules/, s
 ## Part A: Context Layer
 
 CLAUDE.md checks:
-- Prefer stable, behavioral constraints that cannot be recovered cheaply from code or manifests. Do not require a project map, a fixed section name, or a maximum length.
+- Prefer stable, behavioral constraints that cannot be recovered cheaply from code or manifests. Do not require a project map, a fixed section name, a maximum length, or a skill count.
 - Compare global vs local rules. Exact aliases are one surface; conflicting or independently maintained copies are findings.
 - Flag stale implementation maps and generic advice only when they are misleading, contradictory, or displace task-critical context.
 - Route conditional domain guidance to a path-scoped rule or skill when the runtime supports it and unrelated tasks otherwise pay the cost.
@@ -19,7 +19,7 @@ Permission checks:
 - A `CLAUDE.md` symlink or inode alias to `AGENTS.md` is one instruction surface, not drift or undelegated duplication.
 
 Skill checks:
-- Do not prescribe a skill count. Skills earn their place by providing a distinct, triggerable workflow or context that cannot be discovered cheaply at task time.
+- Skills earn their place by providing a distinct, triggerable workflow or context that cannot be discovered cheaply at task time.
 - If skills exist, descriptions should be concise, triggerable, include `Use when`, include `Not for`, and avoid same-runtime trigger overlap.
 - Low-frequency skills may use `disable-model-invocation: true`, but Claude Code plugin skills should not rely on it until upstream invocation bugs are fixed.
 - Use `SKILL ROUTING DUPLICATES` to distinguish same-runtime collisions from cross-runtime installs. Exact copies or name collisions inside one runtime are structural duplication. The same skill name under separate Claude, Agents, and Codex roots is informational unless the descriptions or behavior conflict.

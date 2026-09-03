@@ -28,9 +28,9 @@ Two lanes share one report:
 
 **Output language:** Check in order: (1) project agent instructions (`AGENTS.md` before runtime-specific files); (2) global agent instructions; (3) user's recent language; (4) English.
 
-**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. File counts, contributor counts, skill counts, and large files are inventory signals only; none automatically trigger a deeper audit or a finding. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
+**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Inventory counts never trigger escalation on their own. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
-**Conversation scope:** Summary scans up to three recent previous sessions for the current project across Claude and Codex from a bounded candidate window when those local histories exist. Deep streams every previous current-project session across both runtimes for signals while printing only bounded extracts and a coverage receipt. Other projects remain out of scope by default. Only when the user explicitly asks for all conversations or cross-project capability distillation, invoke the bundled conversation audit with `--all-projects` against the supported local history roots discovered for that runtime (or hand off to an installed full-history retrospective workflow such as `ai-retro`). The explicit global mode excludes files modified in the last five minutes as potentially live and redacts emitted text. Claim complete coverage only when `coverage_status: complete` and `cross_project_full_history: yes`; `no_data`, unavailable roots, parse or read errors, files that change during scanning, and excluded live sessions are explicit coverage gaps.
+**Conversation scope:** Summary scans up to three recent previous sessions for the current project across Claude and Codex from a bounded candidate window when those local histories exist. Deep streams every previous current-project session across both runtimes for signals while printing only bounded extracts and a coverage receipt. Other projects remain out of scope by default. Only when the user explicitly asks for all conversations or cross-project capability distillation, run the bundled audit in its explicit global mode, or hand off to a cross-project retro if one is installed: `python3 <skill-base-dir>/scripts/conversation_audit.py <claude-projects-root> deep --all-projects --codex-root <codex-sessions-root>`, where the first argument is the Claude projects directory that holds every per-project log folder (the per-project folder is what Step 1 scans). `--all-projects` is deep-mode only, requires `--codex-root`, and cannot be combined with `--project-root`; the parser rejects any other combination. That mode excludes files modified in the last five minutes as potentially live and redacts emitted text. Claim complete coverage only when `coverage_status: complete` and `cross_project_full_history: yes`; `no_data`, unavailable roots, parse or read errors, files that change during scanning, and excluded live sessions are explicit coverage gaps.
 
 ## Durable Context Preflight
 
@@ -45,7 +45,7 @@ For `/health`: current config, command output, and live probes override memory. 
 
 ## Step 0: Establish the evidence basis
 
-Do not grade a repository by file count, contributor count, skill count, the presence of a project map, or the length of its largest file. Record four evidence classes instead:
+Record four evidence classes:
 
 | Evidence | Question |
 |---|---|
@@ -93,15 +93,15 @@ BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT"
 
 Sections may show `(unavailable)` when tools are missing:
 
-- trusted `python3` missing → conversation, MCP/hooks/allowedTools, and skill-security sections unavailable
-- `settings.local.json` absent → hooks/MCP may be unavailable (normal for global-only setups)
+- trusted `python3` missing: conversation, MCP/hooks/allowedTools, and skill-security sections unavailable
+- `settings.local.json` absent: hooks/MCP may be unavailable (normal for global-only setups)
 
 Treat `(unavailable)` as insufficient data, not a finding. Do not flag those areas.
 
 The collector includes both runtime-specific and agent-agnostic surfaces:
 
-- `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files.
-- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links.
+- `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files; its sections start at `=== AGENT INSTRUCTION SURFACE ===`.
+- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links; its sections start at `=== PROJECT SHAPE ===`.
 
 ## Step 1b: MCP Live Check
 
@@ -145,7 +145,17 @@ Analyze locally from the summary output by default. If the user asks for a deep/
 
 Before reporting a deep audit as complete, wait for every launched inspector and reconcile its assigned scope. If one remains pending or fails without a local replacement pass, list that scope as unreviewed instead of issuing a whole-scope clean bill.
 
-## Step 3: Report
+## Gotchas
+
+| What happened | Rule |
+|---|---|
+| Missed the local override | Always read `settings.local.json` too; it shadows the committed file |
+| Subagent timeout reported as MCP failure | MCP failures come from the live probe, not data collection |
+| Flagged intentionally noisy hook as broken | Ask before calling a hook "broken" |
+| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order is not visual order. Before re-editing the hook config: (a) confirm with `--debug` or by piping output, (b) check whether a diff dialog, permission prompt, or other UI element rendered on top and pushed the hook output offscreen, (c) only then suspect the hook itself. |
+| Treated missing specs/docs as a failure | Decision artifacts are optional by default. Escalate missing docs/specs only when active handoff risk, failure evidence, or the user request makes them necessary. |
+
+## Output
 
 **Health Report: {project} ({summary|deep}, evidence-based)**
 
@@ -181,7 +191,7 @@ Agent instructions in the wrong layer, missing hooks, oversized descriptions, ve
 
 **Codex/Claude/Pi instruction drift.** Use `AGENT CONFIG SUMMARY` first. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when Codex `config.toml` lacks trust for the current project, when Pi settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
 
-Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1:
+Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1 (standalone output has no `AGENT CONFIG SUMMARY` wrapper):
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" agent-context . summary
@@ -199,27 +209,6 @@ BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-agent-context.sh" . summa
 
 Outdated items, global vs local placement, context hygiene, stale allowedTools entries.
 
----
-
 If no issues: `All relevant checks passed. Nothing to fix.`
 
-## Non-goals
-
-- Never auto-apply fixes without confirmation.
-- Never turn repository size, file length, contributor count, skill count, or missing descriptive inventory into a finding without behavioral evidence.
-- Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.
-
-## Gotchas
-
-| What happened | Rule |
-|---|---|
-| Missed the local override | Always read `settings.local.json` too; it shadows the committed file |
-| Subagent timeout reported as MCP failure | MCP failures come from the live probe, not data collection |
-| Reported issues in wrong language | Honor CLAUDE.md Communication rule first |
-| Flagged intentionally noisy hook as broken | Ask before calling a hook "broken" |
-| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order is not visual order. Before re-editing the hook config: (a) confirm with `--debug` or by piping output, (b) check whether a diff dialog, permission prompt, or other UI element rendered on top and pushed the hook output offscreen, (c) only then suspect the hook itself. |
-| `/health` burned too much quota on first run | Stay in summary mode first. Full conversation extracts and inspector subagents are deep-audit tools, not the default path. |
-| Treated missing specs/docs as a failure | Decision artifacts are optional by default. Escalate missing docs/specs only when active handoff risk, failure evidence, or the user request makes them necessary. |
-| Treated a large file or absent project map as a finding | These are discovery signals only. Require a demonstrated risk, unreachable non-obvious constraint, recurring failure, or verifier gap before reporting them. |
-| Treated an ignored AGENTS/CLAUDE file as durable project truth | Report whether the rule is tracked and distributed. Local overlays can inform the audit, but durable fixes belong in public repo docs or shipped skill/rule files. |
-| Treated a review scorecard as maintainability documentation | Scorecards are snapshots. Extract the invariant and verification path, then remove or archive the report instead of calling the score itself a durable rule. |
+The report never auto-applies fixes without confirmation, and never acts as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.

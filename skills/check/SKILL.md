@@ -18,8 +18,15 @@ Read the diff and find the problems. Review, audit, triage, and readiness reques
 - Outcome: a review, release decision, or maintainer action grounded in the current diff, project context, and live evidence.
 - Done when: findings, fixes, shipped state, or blockers are stated with the commands, artifacts, or remote state that prove them.
 - Evidence: worktree status, diff, public project docs, manifests, CI, package contents, release or registry state, and current command output.
-- Output: concise findings first, then verification and shipped-state summary when applicable. Multi-step or ship-action runs close with a completion ledger (done / not applicable / remaining), never a narrative that leaves the user asking "is everything done".
+- Output: concise findings first, then verification and shipped-state summary when applicable. Multi-step or ship-action runs, and any request with several items or screenshots, close with a numbered completion ledger (done / not applicable / remaining), never a narrative that leaves the user asking "is everything done".
 - Authorization: read-only intent may inspect the worktree and remote state but may not edit files, apply autofixes, commit, push, publish, comment, close, merge, or change branches. Each write or public action needs current-turn authorization, except when the user explicitly authorizes a named batch that contains it.
+
+## Durable Context Preflight
+
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
+
+For `/check`: the current diff, CI, and remote state override memory. Durable memory can explain user intent and preferred follow-through, but public project rules still come from README files, manifests, CI workflows, release docs, and explicit instructions in the current thread. Never cite private memory as a public project requirement.
+
 
 ## Worktree Safety Preflight
 
@@ -41,7 +48,7 @@ For PR inspection, prefer commands that do not switch the current working tree: 
 
 ## Mode Picker
 
-Pick the mode that matches the user's intent, then read it in full before acting. Modes layer on top of the shared review surface (Scope, Hard Stops, Autofix, Specialist Review, Verification, Sign-off) further down, which applies in every mode. Load a mode file only when its row matches; the default review path needs none of them.
+Pick the mode that matches the user's intent, then read it in full before acting. Modes layer on top of the shared review surface (Scope, Hard Rules, Hard Stops, Autofix, Specialist Review, Verification, Sign-off) further down, which applies in every mode. Load a mode file only when its row matches; the default review path needs none of them.
 
 | User intent | Mode |
 |---|---|
@@ -70,12 +77,6 @@ Before reviewing, extract project constraints from repository context:
 For the context shape, see `references/project-context.md`.
 
 For release or maintainer work, also fill the Release Gate 2.0 matrix from `references/project-context.md`. It covers review base, dirty/staged/untracked state, latest tag, origin sync, version fields, generated artifacts, package/archive contents, release assets, registry/appcast/CI, and public issue/PR state. Missing matrix evidence is a blocker for a "ready to release" claim.
-
-## Durable Context Preflight
-
-See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
-
-For `/check`: the current diff, CI, and remote state override memory. Durable memory can explain user intent and preferred follow-through, but public project rules still come from README files, manifests, CI workflows, release docs, and explicit instructions in the current thread. Never cite private memory as a public project requirement.
 
 ## Plan Execution Mode
 
@@ -139,13 +140,13 @@ Drift signals (examples, not exhaustive -- any one is enough to label drift):
 
 ## Pattern-Fix Completeness
 
-When the diff fixes one instance of a class-of-bug (a missing validation, a wrong selector, an off-by-one, a missing lock), the same shape often lives elsewhere. Extract the pattern signature, `grep -rn` it across the repo (exclude generated dirs), and confirm sibling instances were also handled. List any unswept sibling: flag it as a hard stop when it carries the same risk, advisory when lower-risk. For a deeper sweep playbook, see hunt's Scope Blast Mode.
+When the diff fixes one instance of a class-of-bug, run the sibling sweep from hunt's Scope Blast Mode (anti-pattern 19) and confirm the other instances were handled. List any unswept sibling: a hard stop when it carries the same risk, advisory when lower-risk.
 
-When the diff contains a recurring or hard-to-observe bug, output-string branching, guessed waits, consolidation or dead-code deletion, history-sensitive restoration, broad destructive matchers, duplicated derivations, test-only seams, never-shipped migrations, or unknown identifiers, load the matching section of `references/review-patterns.md`. Do not load that catalog for unrelated diffs.
+When the diff contains a recurring or hard-to-observe bug, captured output or asynchronous completion, simplification or deletion, history-sensitive normalization, non-atomic replacement of user files, broad destructive matchers, duplicated derivations, test-surface fidelity, never-shipped migrations, or unknown identifiers, load the matching section of `references/review-patterns.md`. Do not load that catalog for unrelated diffs.
 
 ## CLI Command Surface
 
-When a diff touches a CLI entrypoint, installer, completion, config/env handling, package wrapper, or a mutating command such as cleanup, update, uninstall, migration, or cache removal, load `references/release-surfaces.md` (CLI Command Surface) and work its checklist, then fill the CLI Command Surface template from `references/project-context.md` before sign-off. The core stance: verify command contract and installed-runtime behavior, not just library tests, and treat every mutating command as a safety sink.
+When a diff touches a CLI entrypoint, installer, completion, config/env handling, package wrapper, or a mutating command such as cleanup, update, uninstall, migration, or cache removal, load `references/release-surfaces.md` (CLI Command Surface) and work its checklist, then fill the `CLI Command Surface` block of the Recommended Context Shape in `references/project-context.md` before sign-off. The core stance: verify command contract and installed-runtime behavior, not just library tests, and treat every mutating command as a safety sink.
 
 Terminal output is a rendered surface. After changing CLI-facing text, spacing, or layout, re-run the command and read the real output before claiming done; editing the string is not seeing the screen.
 
@@ -153,12 +154,16 @@ Terminal output is a rendered surface. After changing CLI-facing text, spacing, 
 
 When a diff touches a skill, plugin, marketplace entry, installer, package allowlist, package manifest, generated mirror, or published archive, load `references/release-surfaces.md` (Packaged Install Surface) and verify the installed runtime contract through its five steps: real user install path, rebuilt package contents, isolated install smoke, noise filtering, and explicit gaps when the smoke cannot run. Manifest JSON, source tests, or a successful local import never substitute for installed-runtime proof.
 
+## Hard Rules
+
+- **No unverified claims.** Do not write "I verified X", "I ran Y", "tests pass", or "this fixes Z" unless the shell output is in this turn's transcript. If you reason about behavior without running, say "based on reading the code" instead of "I verified". Every verification claim in the sign-off must point to a command that actually ran in this session.
+- **Re-read source-of-truth facts.** Refresh line numbers, worktree state, fallback behavior, locale coverage, artifact state, and the identity of any issue, PR, or thread in the current turn before citing or posting to it. Earlier context and reviewer notes are leads, not evidence.
+- **Public replies follow `references/public-reply.md`**: short natural paragraphs, one thanks, no bullet structure, in the reporter's language.
+
 ## Hard Stops (fix before merging)
 
 Examples, not exhaustive -- flag any diff that could cause irreversible harm if merged unreviewed.
 
-- **No unverified claims.** Do not write "I verified X", "I ran Y", "tests pass", or "this fixes Z" unless the shell output is in this turn's transcript. If you reason about behavior without running, say "based on reading the code" instead of "I verified". Every verification claim in the sign-off must point to a command that actually ran in this session.
-- **Re-read source-of-truth facts.** Refresh line numbers, worktree state, fallback behavior, locale coverage, and artifact state in the current turn before citing them. Earlier context and reviewer notes are leads, not evidence.
 - **Destructive auto-execution**: any task marked "safe" or "auto-run" that modifies user-visible state (history files, config, preferences, installed software) must require explicit confirmation.
 - **Source and distribution out of sync**: everything the source change implies downstream must be regenerated, tracked, uploaded, and version-consistent before declaring done: generated or bundled outputs rebuilt and included, every artifact named in release notes or workflows actually uploaded, every new helper module, reference file, or script present in the built archive, and version fields synchronized across manifests, package metadata, changelogs, tags, and lockfiles.
 - **Verifier failure layer unclear**: if a verifier fails before assertions or due to missing optional dependencies, bootstrap noise, transient build-service crashes, unavailable simulators, or tool setup, classify setup versus product failure. Retry only with new evidence or a narrower environment. Do not call the repo broken until the intended test body or artifact check actually ran. The inverse is the same stop: a verifier that passes without running the real path -- a skipped optional-dependency job that still prints OK, a function that early-returns leaving output empty so a true-on-empty assertion passes, a render reported fixed but never opened -- is a hollow green. A pass counts only when at least one non-skipped, non-empty case exercised the path and the assertions fail on emptiness.
@@ -195,10 +200,10 @@ Cannot supply all three? Downgrade to MEDIUM, or drop. "This *might* break under
 
 After reviewing the diff, check whether it introduces invariants not yet captured in project docs:
 
-- New safety gate or path-guard rule → AGENTS.md
-- New UI constraint (layout rule, animation, overlay registration) → `.claude/rules/*.md`
-- New deploy/release step or artifact → AGENTS.md or `docs/`
-- New cross-file sync requirement (enum ↔ HTML anchors, Swift keys ↔ xcstrings) → AGENTS.md
+- New safety gate or path-guard rule goes to AGENTS.md
+- New UI constraint (layout rule, animation, overlay registration) goes to `.claude/rules/*.md`
+- New deploy/release step or artifact goes to AGENTS.md or `docs/`
+- New cross-file sync requirement (enum and HTML anchors, Swift keys and xcstrings) goes to AGENTS.md
 - One-off review reports or diagnostic snapshots should not become durable docs as-is; extract the stable rule into AGENTS/CLAUDE/rules/references and drop the stale report from the commit.
 
 ### Snapshot Report Routing
@@ -248,30 +253,26 @@ Poll CI as structured state, not streamed text: `gh run view <id> --json status,
 
 Run `bash <skill-base-dir>/scripts/run-tests.sh` from the target project root (`<skill-base-dir>` is this skill's base directory; the script auto-detects the project's test command from the current working directory), or the project's known verification command. Paste the full output.
 
-If the script exits non-zero or prints `(no test command detected)`: halt. Do not claim done. Ask the user for the verification command before proceeding. If the user also cannot provide one, document this explicitly in the sign-off as `verification: none -- no command available` and flag it as a structural gap, not a pass.
+If the script exits non-zero or prints a line starting with `(no test command detected`: halt. Do not claim done. Ask the user for the verification command before proceeding. If the user also cannot provide one, document this explicitly in the sign-off as `verification: none -- no command available` and flag it as a structural gap, not a pass.
 
 For bug fixes: a regression test that fails on the old code must exist before the fix is done.
 
 In a dirty or multi-agent checkout, a passing local build or test run is not proof your change is sound: unrelated WIP already in the tree can supply missing symbols, mask a break, or fail for reasons unrelated to you. Verify in isolation -- `git worktree add --detach <known-good-commit>`, `git apply` only the diff of the files you own, then build/test there. The clean isolated pass is the real signal; the contaminated local pass is not.
 
-## Gotchas
-
-| What happened | Rule |
-|---------------|------|
-| Posted a public reply to the wrong issue or PR thread | Re-read the target with `gh issue view N` or `gh pr view N` and confirm title, author, and current state before acting |
-| PR comment sounded like a report | 1-2 sentences, natural, like a colleague. Not structured, not AI-sounding. |
-| PR comment used bullet points | Write as short paragraphs, one thought per paragraph; thank the contributor first |
-| New file name duplicated a locale, platform, or suffix convention | Check the target directory's existing naming convention before creating or renaming files |
-| Deployed without provider runtime or env checks | Follow the project's public deployment docs and compare provider config with local required env and runtime settings |
-| Push failed from auth mismatch | Check `git remote -v`, current branch, and auth identity before the first push in a new project |
-
 ## Document Review
 
 For document, PDF, white paper, or prose review, route to `/write` (Document Review Mode). `/check` handles code diffs and release artifacts only.
 
+## Gotchas
+
+| What happened | Rule |
+|---|---|
+| New file name duplicated a locale, platform, or suffix convention | Check the target directory's existing naming convention before creating or renaming files |
+| Deployed without provider runtime or env checks | Follow the project's public deployment docs and compare provider config with local required env and runtime settings |
+
 ## Sign-off
 
-Open the final message with the `status` line as plain prose before any table or detail: exactly where the work stands now, with the hash, tag, or blocker. A verdict buried under verification tables reads as unfinished and makes the user re-ask "都提交了吗"; the tables support the verdict, they do not replace it.
+Open the final message with the `status` line as plain prose before any table or detail: exactly where the work stands now, with the hash, tag, or blocker. A verdict buried under verification tables reads as unfinished; the tables support the verdict, they do not replace it.
 
 ```
 status:           [committed and pushed as <hash> / staged, not committed / released vX.Y.Z / blocked on <what>]
@@ -291,3 +292,5 @@ verification:     [command] -> pass / fail
 `public actions` lists every outward-facing step the task implied (issue replies, closures, release reactions) with its done or pending state; an external action the user has to ask about was not finished.
 
 For a whole-scope or post-fix verdict, `scope` is backed by the frozen baseline and current inventory, not by the last patch viewed. For a ship action, the status line is incomplete until every currently authorized ledger item is `done`, `not applicable`, or `blocked` with evidence.
+
+A turn that wrote files ends with the actual output of `git status --short --branch` and, when it pushed, the `status,conclusion` of the CI run for that sha; if either command was not run, the first line says which.
