@@ -70,9 +70,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "65c3ebc96bdaf4b1d9f7f5992e3a4348add1de32",
+      "skillFolderHash": "023e26f0f7bb8ff12ddfcab1f3c574a54bf6421f",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-09-03T01:40:41.983Z"
+      "updatedAt": "2026-09-04T01:36:24.721Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -106,9 +106,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "dbae7d8c24968da85f93b12f2ac610589995e58d",
+      "skillFolderHash": "64382d926f2f47de2b491f1bd93580d191e83b3c",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-09-03T05:11:57.025Z"
+      "updatedAt": "2026-09-05T01:37:56.535Z"
     },
     "hunt": {
       "source": "tw93/Waza",
@@ -217,6 +217,15 @@
       "skillFolderHash": "5759199df17aea8a392e8cf14ac1bf9ef018999d",
       "installedAt": "2026-08-05T02:16:35.298Z",
       "updatedAt": "2026-08-05T02:16:35.298Z"
+    },
+    "show-me": {
+      "source": "humanlayer/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/humanlayer/skills.git",
+      "skillPath": "plugins/show-me/skills/show-me/SKILL.md",
+      "skillFolderHash": "0bdb821a21e793a4f6f82a7078c052154447e5cc",
+      "installedAt": "2026-09-04T01:49:29.736Z",
+      "updatedAt": "2026-09-04T01:49:29.736Z"
     }
   },
   "dismissed": {

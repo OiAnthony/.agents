@@ -69,9 +69,14 @@ SECRET_RE = re.compile(
     r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})\b"
 )
 SECRET_ASSIGNMENT_RE = re.compile(
-    r"(?P<name>\b(?:authorization|password|passwd|pwd|token|secret|api[_-]?key)\b)"
+    r"(?<![A-Za-z0-9_-])"
+    r"(?P<name>-{0,2}(?P<quote>[\x22\x27]?)(?:[A-Za-z0-9]+[_-])*"
+    r"(?:secret[_-]access[_-]key|private[_-]?key|api[_-]?key|"
+    r"authorization|password|passwd|pwd|token|secret)(?P=quote))"
+    r"(?![A-Za-z0-9_-])"
     r"(?P<separator>\s*[:=]\s*)"
-    r"(?:Bearer\s+|Basic\s+)?(?:\"[^\"\r\n]*(?:\"|(?=\r?\n|\Z))|'[^'\r\n]*(?:'|(?=\r?\n|\Z))|[^\s,;]+)",
+    r"(?:Bearer\s+|Basic\s+)?(?:\"(?:\\[^\r\n]|[^\"\\\r\n])*(?:\"|\\?(?=\r?\n|\Z))|"
+    r"\x27(?:\\[^\r\n]|[^\x27\\\r\n])*(?:\x27|\\?(?=\r?\n|\Z))|[^\s,;]+)",
     re.IGNORECASE,
 )
 ABS_PATH_RE = re.compile(

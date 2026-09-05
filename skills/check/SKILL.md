@@ -138,6 +138,12 @@ Drift signals (examples, not exhaustive -- any one is enough to label drift):
 - A new abstraction or helper was introduced that is not required by the goal
 - A maintainability, review, or cleanup change quietly adds user-visible UI, default config, workflow permissions, or release behavior
 
+## Question the Approach, Not Just the Diff
+
+Scope drift checks the diff against the stated goal; this checks the goal against the approach. Skip when the user declares the route settled or the repo's design docs record the decision -- do not re-litigate deliberate trade-offs.
+
+When findings cluster on one root cause -- the same bug class patched repeatedly, permission or state problems that follow from the architecture itself, a simple problem made complex -- stop listing patches and state the route verdict first: keep / adjust / replace / insufficient information. Compare a real alternative only when it eliminates the problem class at an acceptable migration cost; never manufacture one to fill the report. No patch list before the verdict.
+
 ## Pattern-Fix Completeness
 
 When the diff fixes one instance of a class-of-bug, run the sibling sweep from hunt's Scope Blast Mode (anti-pattern 19) and confirm the other instances were handled. List any unswept sibling: a hard stop when it carries the same risk, advisory when lower-risk.
