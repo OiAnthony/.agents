@@ -20,7 +20,9 @@ from shared import (
     DIAGRAM_TEMPLATES,
     GENERIC_AGENT_INSTALL_COMMAND,
     PUBLIC_DOCUMENT_TEMPLATE_KINDS,
+    REPO_ROOT,
     ROOT,
+    SITE_ROOT,
     kami_version,
     public_document_template_count,
     public_document_template_kinds,
@@ -102,6 +104,15 @@ def _contains_diagram_count(text: str, expected: int) -> bool:
     return any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
 
 
+def public_path(rel: str) -> Path:
+    """Where a public fact file lives: README at the repo root, pages under site/."""
+    if SITE_ROOT is None:
+        return ROOT / rel
+    if rel == "README.md":
+        return REPO_ROOT / rel
+    return SITE_ROOT / rel
+
+
 def _file_texts(files: Mapping[str, str] | None) -> tuple[dict[str, str], list[str]]:
     if files is not None:
         return dict(files), []
@@ -109,10 +120,10 @@ def _file_texts(files: Mapping[str, str] | None) -> tuple[dict[str, str], list[s
     texts: dict[str, str] = {}
     issues: list[str] = []
     site_files = (*FULL_PUBLIC_FACT_FILES, REDIRECT_SITE_FILE)
-    if not any((ROOT / rel).exists() for rel in site_files):
+    if not any(public_path(rel).exists() for rel in site_files):
         return {SITE_SURFACE_ABSENT: ""}, []
     for rel in site_files:
-        path = ROOT / rel
+        path = public_path(rel)
         if not path.exists():
             issues.append(f"{rel}: missing public fact file")
             continue
@@ -294,7 +305,7 @@ def site_recipe_issues(files: Mapping[str, str] | None = None) -> list[str]:
 
 
 def check_site_facts(verbose: bool = False) -> int:
-    if not any((ROOT / rel).exists() for rel in (*FULL_PUBLIC_FACT_FILES, REDIRECT_SITE_FILE)):
+    if not any(public_path(rel).exists() for rel in (*FULL_PUBLIC_FACT_FILES, REDIRECT_SITE_FILE)):
         print("OK: public site facts skipped (site files absent)")
         return 0
 

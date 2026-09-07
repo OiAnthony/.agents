@@ -333,7 +333,7 @@ def verify_target(name: str, source: str, max_pages: int, src_dir: Path) -> list
     if missing_fonts:
         for mf in missing_fonts:
             print(f"  [FONT MISS] {name}: {mf} not found")
-        print(f"  [FONT MISS] Repo fix: git checkout -- assets/fonts (commercial TTFs are tracked)")
+        print(f"  [FONT MISS] Repo checkout fix: bash scripts/ensure-fonts.sh (copies the tracked fonts from the repository root into assets/fonts)")
         print(f"  [FONT MISS] Skill recovery (downloads to the user font dir, not the skill): bash scripts/ensure-fonts.sh")
         print(f"  [FONT MISS] Fallback: brew install --cask font-source-han-serif-sc")
 

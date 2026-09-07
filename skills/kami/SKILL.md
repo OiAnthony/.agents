@@ -61,7 +61,7 @@ Before creating or modifying an output, lock the contract: language, template, o
 
 Use the nearest existing template and verification path. Do not add a new template, shared CSS layer, dependency, script flag, or optional mode unless the current request cannot be satisfied without it.
 
-If a change touches `SKILL.md`, templates, scripts, references, or package inputs, decide whether `dist/kami.zip` must be refreshed before handoff. Shipped behavior is not ready until the package contains the changed files.
+A change to `SKILL.md`, templates, scripts, or references reaches `npx skills add` and plugin installs on the next push to `main`; Claude Desktop users get it only when the next release rebuilds `kami.zip`. Name the channel that carries the change before calling it shipped.
 
 ### Work mode
 
@@ -114,7 +114,7 @@ Ask only when two cells genuinely both fit.
 
 | Signal | Document |
 |---|---|
-| Length target unknown | Ask "how many pages" before classifying |
+| Length target unknown | Infer from the content and document type; ask only if the choice materially changes the deliverable, within the question budget |
 | ≤ 1 page + investor / recruiter / exec summary audience | one-pager |
 | ≤ 1 page + formal correspondence (sales, hiring, resignation, memo) | letter |
 | 1.5-2 pages + career narrative + project bullets | resume |
@@ -252,7 +252,7 @@ Values longer than 80 characters are treated as prose you may rephrase; short at
 
 Slides only. Every other doc type skips to Step 2.7.
 
-Load `references/deck-preflight.md` and work it before drafting: path selection (WeasyPrint HTML by default), page size, the six pre-flight questions to ask in one batch, and the slide content rules.
+Load `references/deck-preflight.md` before drafting for path selection (WeasyPrint HTML by default), page size, unresolved delivery choices, and slide content rules. Its intake follows the shared question budget.
 
 ## Step 2.7 · Layout note (transparent, non-blocking)
 
@@ -400,12 +400,12 @@ Do not ask the user which format to export. Decide from context:
 | Signal | Output | Why |
 |---|---|---|
 | Any document request | HTML + PDF | PDF is the default deliverable, HTML is the source |
-| Slides / PPT / deck | HTML + PDF + PPTX | Presentations need a projectable format |
+| Slides / PPT / deck | HTML + PDF; add PPTX only when explicitly requested as editable output | PDF is the default presentation format |
 | "分享" / "发朋友圈" / "share" / "post" / "preview" | + PNG | Social platforms and messaging need images |
 | "嵌入" / "插图" / "embed in another doc" | PNG only | Used as material inside other documents |
 | User explicitly says a format | Follow the user | Explicit request overrides auto-selection |
 
-PDF always ships for document templates. Landing pages ship as a ready-to-serve static HTML file. PPTX follows slides. PNG follows sharing context.
+PDF is the default for document templates; an explicit format request takes precedence. Landing pages ship as a ready-to-serve static HTML file. Add PPTX only when the user explicitly needs an editable deck. PNG follows sharing context.
 
 ## Step 5 · Build & verify
 
@@ -429,7 +429,6 @@ python3 scripts/build.py --check-density              # repo sweep (skips cover 
 python3 scripts/build.py --check-rhythm slides slides-en   # warn on monotonous slide sequences
 python3 scripts/build.py --doctor         # installed render/check/font capability report
 python3 scripts/build.py --check            # lint + token/theme + public-site fact checks
-python3 scripts/build_metadata.py --check   # Claude/Codex plugin mirror + marketplace drift check
 ```
 
 > **Strict LaTeX mathematics**: Use only `\( inline \)` / `\[ display \]` as formula source. The delivered HTML/PDF must contain MathJax SVG, not Unicode pseudo-formulas, raw TeX, or formula screenshots. Run `ensure_mathjax.sh`, `math_render.py --in-place`, and `math_render.py --check` before render/hand-off.

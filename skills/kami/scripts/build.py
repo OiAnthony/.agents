@@ -9,6 +9,7 @@ Thin CLI shell. Implementation lives in:
   - verify.py  (verify_all, show_fonts, font checks)
   - checks.py  (check_placeholders, check_markdown_residue, check_orphans, check_density, check_resume_balance, check_rhythm)
   - content.py (check_content)
+  - html_visibility.py (shared HTML/CSS evidence for content and residue checks)
   - visual.py  (check_visual)
 
 Usage:

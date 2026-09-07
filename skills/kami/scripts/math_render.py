@@ -76,9 +76,8 @@ class _TextRangeParser(HTMLParser):
         self.legacy_placeholders = 0
         self._active_start: int | None = None
         self._ignored_stack: list[str] = []
-        self._line_offsets = [0]
-        for line in raw.splitlines(keepends=True):
-            self._line_offsets.append(self._line_offsets[-1] + len(line))
+        # HTMLParser advances its line number only on LF, not Unicode separators.
+        self._line_offsets = [0] + [match.end() for match in re.finditer("\n", raw)]
 
     def _offset(self) -> int:
         line, column = self.getpos()

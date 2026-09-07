@@ -5,7 +5,8 @@ set -euo pipefail
 # Avoids `declare -A` so the script runs on a fresh macOS without `brew install bash`.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_FONT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/assets/fonts"
+SKILL_FONT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/assets/fonts"
+REPO_FONT_DIR="$SKILL_FONT_DIR"
 
 # Download target lives OUTSIDE the skill directory on purpose.
 #
@@ -24,7 +25,9 @@ FONT_DIR="${KAMI_FONT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fonts/kami}"
 # two concurrent runs must not fight over one temp path: temp files carry this
 # run's PID and are swept on exit.
 TMP_SUFFIX="tmp.$$"
-cleanup_tmp() { rm -f "$FONT_DIR"/*."$TMP_SUFFIX" 2>/dev/null || true; }
+cleanup_tmp() {
+  rm -f "$FONT_DIR"/*."$TMP_SUFFIX" "$SKILL_FONT_DIR"/*."$TMP_SUFFIX" 2>/dev/null || true
+}
 trap cleanup_tmp EXIT
 
 MIN_SIZE_CN=10000000  # 10MB for TsangerJinKai (large CJK glyph set)
@@ -56,6 +59,26 @@ check_size() {
   size=$(wc -c < "$file" | tr -d ' ')
   [[ "$size" -ge "$min_size" ]]
 }
+
+# Restore missing or truncated local copies from complete repository fonts.
+# Validate before replacement so a failed copy cannot damage the existing file.
+if [ -d "$SCRIPT_DIR/../../../assets/fonts" ]; then
+  ROOT_FONT_DIR="$(cd "$SCRIPT_DIR/../../../assets/fonts" && pwd)"
+  mkdir -p "$SKILL_FONT_DIR"
+  for name in "${CN_LOCAL_NAMES[@]}" "${KO_NAMES[@]}"; do
+    case "$name" in
+      Tsanger*) min_size="$MIN_SIZE_CN" ;;
+      *) min_size="$MIN_SIZE_KO" ;;
+    esac
+    target="$SKILL_FONT_DIR/$name"
+    if ! check_size "$target" "$min_size" && check_size "$ROOT_FONT_DIR/$name" "$min_size"; then
+      cp "$ROOT_FONT_DIR/$name" "$target.$TMP_SUFFIX"
+      check_size "$target.$TMP_SUFFIX" "$min_size"
+      mv "$target.$TMP_SUFFIX" "$target"
+      echo "OK: copied $name from the repository root into $SKILL_FONT_DIR"
+    fi
+  done
+fi
 
 cn_present_in() {
   local dir="$1" name

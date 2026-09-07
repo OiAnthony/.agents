@@ -18,6 +18,16 @@ class TemplateSpec(NamedTuple):
     build_max_pages: int
 
 ROOT = Path(__file__).resolve().parent.parent
+# In a repository checkout the skill lives at <repo>/skills/kami and the
+# website at <repo>/site; an installed skill has neither. Use repository tooling
+# as the marker so a missing site cannot silently disable repository checks.
+REPO_ROOT = (
+    ROOT.parent.parent
+    if ROOT.parent.name == "skills"
+    and (ROOT.parent.parent / "scripts" / "package-skill.sh").is_file()
+    else None
+)
+SITE_ROOT = REPO_ROOT / "site" if REPO_ROOT else None
 TEMPLATES = ROOT / "assets" / "templates"
 DIAGRAMS = ROOT / "assets" / "diagrams"
 EXAMPLES = ROOT / "assets" / "examples"
@@ -35,7 +45,7 @@ CODEX_PLUGIN_INSTALL_COMMANDS = (
     f"codex plugin marketplace add {PUBLIC_REPO}",
     "codex plugin add kami@kami",
 )
-GENERIC_AGENT_INSTALL_COMMAND = f"npx skills add {PUBLIC_REPO}/plugins/kami -a universal -g -y"
+GENERIC_AGENT_INSTALL_COMMAND = f"npx skills add {PUBLIC_REPO} -a claude-code codex cursor -g -y"
 CLAUDE_DESKTOP_PACKAGE_URL = "https://github.com/tw93/kami/releases/latest/download/kami.zip"
 
 # Canonical parchment background color, kept here so build/density

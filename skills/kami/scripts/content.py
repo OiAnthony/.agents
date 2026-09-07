@@ -22,7 +22,7 @@ import re
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
 
-from checks import (
+from html_visibility import (
     _HtmlVisibilityParser,
     _css_hidden_filters,
     _document_custom_properties,

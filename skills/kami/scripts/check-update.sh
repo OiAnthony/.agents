@@ -9,7 +9,7 @@ set -u
 
 SKILL="kami"
 REPO="tw93/Kami"
-DEFAULT_UPDATE_CMD="npx skills add tw93/kami/plugins/kami -a universal -g -y"
+DEFAULT_UPDATE_CMD="npx skills add tw93/kami -a claude-code codex cursor -g -y"
 # KAMI_UPDATE_URL overrides the source with a plain version file (used by tests).
 LATEST_RELEASE_URL="https://github.com/${REPO}/releases/latest"
 

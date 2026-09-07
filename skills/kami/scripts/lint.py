@@ -21,6 +21,7 @@ from shared import (
     COOL_GRAY_BLOCKLIST,
     HTML_TEMPLATES,
     ROOT,
+    SITE_ROOT,
     SCREEN_TEMPLATES,
     TEMPLATES,
     TOKENS_FILE,
@@ -370,17 +371,20 @@ def check_off_palette(verbose: bool = False) -> int:
             print(f"scanned {p.relative_to(ROOT)}: {len(file_findings)} off-palette finding(s)")
 
     # Demo HTML inherits template CSS by copy, so a token change leaves stale
-    # hexes behind in assets/demos with no guard: that is exactly how demos
+    # hexes behind in site/assets/demos with no guard: that is exactly how demos
     # kept shipping old colors after palette edits. Scan property values only
     # (demos carry local :root copies on purpose). Pure white is sanctioned:
     # deliberate white-paper print variants document it in their header.
     demo_allowed = allowed | {"#ffffff", "#fff"}
-    demo_targets = sorted((ROOT / "assets" / "demos").glob("*.html"))
+    demo_targets = sorted((SITE_ROOT / "assets" / "demos").glob("*.html")) if SITE_ROOT else []
+    if SITE_ROOT is not None and not demo_targets:
+        print("ERROR: no demo HTML found under site/assets/demos (incomplete repository scan)")
+        return 2
     for p in demo_targets:
         file_findings = _off_palette_findings(p, demo_allowed)
         findings.extend(file_findings)
         if verbose:
-            print(f"scanned {p.relative_to(ROOT)}: {len(file_findings)} off-palette finding(s)")
+            print(f"scanned {p.relative_to(SITE_ROOT.parent)}: {len(file_findings)} off-palette finding(s)")
 
     if not findings:
         print(f"OK: no off-palette colors across {len(targets)} template(s) "
@@ -389,7 +393,8 @@ def check_off_palette(verbose: bool = False) -> int:
 
     print(f"\nERROR: [off-palette] {len(findings)}")
     for f in findings:
-        print(f"  {f.file.relative_to(ROOT)}:{f.line}  {f.excerpt}")
+        base = SITE_ROOT.parent if SITE_ROOT and f.file.is_relative_to(SITE_ROOT) else ROOT
+        print(f"  {f.file.relative_to(base)}:{f.line}  {f.excerpt}")
     return 1
 
 

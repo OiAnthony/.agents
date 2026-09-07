@@ -26,7 +26,7 @@ Default is `280mm 158mm`. Ask only if the user has mentioned length or density c
 
 ## Content pre-flight
 
-Before drafting any slide, confirm these points with the user. Ask all at once, skip any already answered:
+Resolve these points from the request and source material before drafting. Treat the table as an internal checklist, not a questionnaire. Ask only about unresolved choices that materially change the deliverable, within `SKILL.md`'s shared question budget; infer the rest from the defaults above.
 
 | # | Question |
 |---|---|

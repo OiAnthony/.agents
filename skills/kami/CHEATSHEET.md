@@ -365,7 +365,7 @@ Resume visual rule: header and section titles carry the only structural rules. T
 | Figure SVG          | `width: 100%; height: auto; max-height: <safe>`. Never `max-height` alone (starves width on wide viewBoxes; production.md #17). |
 | Metric labels (4-col) | Soft cap 14-18 chars at 9pt Charter; trim context, don't wrap (production.md #18). |
 | Multi-column body   | Hold lengths within ±10 chars across parallel columns (production.md #19). |
-| Image references    | Always inside `assets/demos/images/` or `assets/illustrations/`; never `../../sibling-project/...` (production.md #20). |
+| Image references    | Always inside the demo's own `images/` folder (`site/assets/demos/images/` in this repository) or `site/assets/illustrations/`; never `../../sibling-project/...` (production.md #20). |
 | Metric row layout   | Vertical stack (`flex-direction: column`); horizontal baseline-align breaks when any label wraps (production.md #21). |
 | Slide bullets       | Numerals `1. 2. 3.` or `•`; en-dash `–` reads informal at slide scale (production.md #22). Print docs keep en-dash. |
 
