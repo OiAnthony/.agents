@@ -1,6 +1,6 @@
 # IME / Unicode Debugging Reference
 
-Recurring patterns in Tauri and native macOS apps. Check these before forming a hypothesis.
+Recurring patterns in webview-hosted and native macOS apps. Check these before forming a hypothesis.
 
 ## IME State Desync
 
@@ -46,7 +46,7 @@ Recurring patterns in Tauri and native macOS apps. Check these before forming a 
 
 **Symptom**: Undo (`Cmd+Z`) reverts individual IME preedit characters instead of committed words, or system text shortcuts (Cmd+Shift+Left for word selection) behave differently inside vs outside the webview.
 
-**Cause**: WKWebView has its own text system that partially overlaps with NSTextView conventions. Tauri's `preventDefaultFor` config can suppress system shortcuts; check `tauri.conf.json` (v1) or `app.json` (v2) for any `preventDefault` rules that may be too broad.
+**Cause**: WKWebView has its own text system that partially overlaps with NSTextView conventions. The webview host's key-handling config can suppress system shortcuts (Tauri's `preventDefaultFor` in `tauri.conf.json` or `app.json`, or the equivalent in other hosts); check it for `preventDefault` rules that are too broad.
 
 ## Quick Checklist
 

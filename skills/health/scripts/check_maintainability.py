@@ -919,13 +919,22 @@ def main() -> int:
         hollow_verifiers,
         missing_references,
         make_targets,
-        _package_scripts,
+        package_scripts,
     ) = verification_surface(root, instruction_files, files)
     stable_make_targets = sorted(make_targets & {"check", "test", "verify"})
+    stable_package_commands = {
+        f"npm run {name}" for name in package_scripts & {"check", "test", "verify"}
+    } & set(verifier_evidence)
     wrapper_warnings: list[str] = []
-    if len(commands) >= 2 and is_repo_file(root / "Makefile", root) and not stable_make_targets:
+    if (
+        len(commands) >= 2
+        and is_repo_file(root / "Makefile", root)
+        and not stable_make_targets
+        and not stable_package_commands
+    ):
         wrapper_warnings.append(
-            "multiple verification commands discovered but Makefile lacks check/test/verify wrapper"
+            "multiple verification commands discovered without a recognized make/npm default; "
+            "check documented or native entrypoints before recommending a wrapper"
         )
 
     decision_artifacts = {

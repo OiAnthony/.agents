@@ -34,11 +34,10 @@ AGENTS.md checks:
 - When nested files exist, confirm their scope and precedence are discoverable without duplicating their full contents in the root.
 
 MCP token cost:
-- Count MCP servers and estimate token overhead, ~200 tokens/tool and ~25 tools/server
-- If estimated MCP tokens >10% of 200K context, flag context pressure
-- Server count alone is not a finding; use the measured tool/token estimate and observed task use.
+- Server counts and the collector's fixed-cost estimate are inventory only, not measured token use or severity evidence. Check actual loaded tool schemas, lazy discovery, the runtime's context window, and task use before attributing pressure to MCP.
+- Report avoidable MCP overhead only when actual load is tied to compression, missed instructions, or task failures; use the Startup context budget criteria below.
 - Flag too-narrow filesystem allowlists when `~/.claude/projects/.../tool-results` denials indicate breakage
-- Flag idle/rarely-used servers to disconnect and reclaim context
+- Recommend disconnecting an idle server only when usage coverage and avoidable loaded cost support it; a newly installed or lazily loaded server is not waste merely because it has no observed calls.
 
 MCP live status:
 - Check the "MCP Live Status" table from Step 1b (pasted alongside this prompt)
@@ -110,7 +109,7 @@ Check `CONVERSATION SIGNALS` for compression signals: messages containing "conve
 
 ### Redundant Context (structural, no conversation needed)
 
-- Hook-covered rules: for each hook in the settings, check if its matcher and command already enforce a rule also stated in CLAUDE.md prose. If so, the CLAUDE.md statement is redundant. Flag [-] with estimated tokens reclaimable.
+- Hook-covered rules: compare the hook's actual coverage with the prose's decision semantics, authorization boundaries, and uncovered paths. Flag redundant wording only if removing it loses none of those constraints; keep concise intent even when a hook enforces the action boundary.
 - Overlapping skill descriptions: compare all skill description fields pairwise. If two descriptions share >50% of their non-trivial keywords, flag [~] with the overlapping pair; duplicate triggers cause misfired invocations.
 - Cross-file duplication: if a CLAUDE.md section restates content already present in a rules/ file, or if global and local CLAUDE.md repeat the same rule, flag [-] with "remove from {location} to reclaim ~N tokens."
 

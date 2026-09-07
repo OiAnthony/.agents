@@ -170,7 +170,7 @@ Checks:
 Signals: a metric is right for some subjects and wrong for others, and the split follows ownership: your own processes/files are correct, root-owned or other-user ones read zero, stale, or absent. No error is logged because the API answered.
 
 Checks:
-- Measure the boundary instead of reading the docs: run the call across owned and non-owned subjects and count how many succeed. "33 of 33 own, 0 of 5 root's" is the evidence; a guess is not.
+- Measure the boundary instead of reading the docs: run the call across owned and non-owned subjects and count how many succeed in each group. Those two counts are the evidence; a guess is not.
 - Check whether the fallback for a denied read carries the same meaning as the primary source. Two different meanings in one column is the bug, even when each value is individually defensible.
 - Prefer a source that answers uniformly for every subject (a tool that reports all processes regardless of owner) over a precise one that silently degrades for some.
 

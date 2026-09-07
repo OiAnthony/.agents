@@ -23,7 +23,7 @@ Scope by load surface, not just by layer. A rule kept in the project still pays 
 
 **Non-obvious constraint reachability and risk-backed hotspot ownership.** File size and module shape do not create documentation requirements. When real failures or high-consequence paths concentrate in an area and expose a stable boundary that cannot be recovered cheaply from code, verify that the relevant task can reach a concise ownership rule and the executable check that locks it. Report the unreachable constraint or missing verifier, not an absent blanket "hotspot map".
 
-**Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests but `Makefile` has no `check`, `test`, or `verify` target, report a Structural `WARN`. This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
+**Missing stable verifier entrypoint.** Treat `wrapper_findings` as discovery leads. Check the documented default and its executable coverage across package scripts, native build tools, task runners, scripts, and CI; a Makefile is not required. Report a Structural `WARN` only when fragmented checks cause required verification to be missed and no usable default covers it. A named target that only prints success does not supply verification.
 
 Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1. Run standalone, it prints the same sections without the `AI MAINTAINABILITY SUMMARY` wrapper, so its first line is `=== PROJECT SHAPE ===`:
 

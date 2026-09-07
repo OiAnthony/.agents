@@ -177,7 +177,7 @@ A finding refuted in the same breath (a TODO count that turns out to be vendored
 
 ### [!] Critical -- fix now
 
-Rules violated, dangerous allowedTools, MCP overhead >12.5%, security findings, leaked credentials.
+Confirmed dangerous permissions, consequential rule violations, security findings, and leaked credentials. Server counts and estimated context percentages never establish Critical severity.
 
 Example:
 
