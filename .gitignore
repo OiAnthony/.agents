@@ -27,6 +27,7 @@ skills/.system/
 skills/ccloud*/
 skills/develop-pi-tui-extension
 skills/rewrite-doc
+skills/chat2db-cli
 
 # NowledgeMem managed skills
 .nowledge-mem
