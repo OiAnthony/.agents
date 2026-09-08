@@ -176,7 +176,7 @@ Examples, not exhaustive -- flag any diff that could cause irreversible harm if 
 - **Publishing over your own open findings**: when the same run produced review findings and then reaches a ship action, every finding must be fixed, or restated as "known, shipping anyway" with its user impact and confirmed, before the release proceeds. A standing release authorization does not cover problems discovered after it was given.
 - **Injection and validation**: SQL, command, path injection at system entry points. Credentials hardcoded, logged, committed, or copied into public docs.
 - **Dependency changes**: unexpected additions or version bumps in package.json, Cargo.toml, go.mod, requirements.txt. Flag any new dependency not obviously required by the diff. The inverse is a finding too: a declared dependency or linked SDK with zero imports across the repo gets flagged to the maintainer, not silently removed (it may be staged for an upcoming feature, and unused analytics/telemetry SDKs still drag app review and privacy manifests). Removal needs the maintainer's go-ahead in the current turn, a grep proving zero references first, and a full build after.
-  - **Verify a lockfile by regenerating it, not by reading it.** For any PR that edits a lockfile, run the package manager's own update command for that one package in a clean worktree off the PR's base (`pnpm update <pkg> --lockfile-only`, `cargo update -p <pkg> --precise <v>`, `npm install <pkg>@<v> --package-lock-only`) and diff your result against theirs. Byte-identical means a real tool produced it; any divergence means it was hand-edited or resolved elsewhere, and the manifest and lockfile may now disagree in ways `--frozen-lockfile` / `--locked` will reject at release time. This cuts both ways: it is the only cheap way to clear a suspicious-looking hunk you would otherwise reject, and it catches contradictions that reading the diff cannot, such as a bumped dependency whose override still pins the old range.
+  - **Verify lockfile consistency in the project's declared environment.** Check the full manifest, overrides, resolver configuration, and dependency diff, then run the project's frozen/locked verification. Regenerate in an isolated checkout only to investigate a concrete discrepancy, using the complete proposed inputs and declared toolchain. Equal bytes do not prove provenance; differences require explanation, not an assumption of hand-editing. Confirm that the resolved dependency graph implements the requested change.
   - Automated security PRs get two extra checks their scanner does not do. First, whole-file reserialization: bots that rewrite a manifest can silently escape non-ASCII (emoji, CJK) or reorder keys, so diff the manifest against base in full rather than only the version line. Second, reachability: confirm the package is actually built into the shipped artifact (`cargo tree -i <pkg> --target all`, or the equivalent import/feature check) before repeating the advisory's severity, since an inert lockfile entry is not a live vulnerability in this project.
   - When a version pin exists, find out why before moving anything near it: `git log -S'<pinned-name>' -- <manifest>` usually names the bug it was added for. A bump that satisfies the advisory but leaves a companion pin at its old version can be worse than not bumping at all.
 - **Safety sinks**: destructive file operations, shell or AppleScript construction, cwd/path/symlink traversal, approval or sandbox boundary changes, signing/appcast flows, and auth prompts need explicit review of validation, rollback, and user-confirmation behavior.
@@ -237,11 +237,11 @@ Before a whole-scope verdict, reconcile a completion ledger for every delegated 
 | Class | Definition | Action |
 |-------|------------|--------|
 | `safe_auto` | Unambiguous, risk-free: typos, missing imports, style inconsistencies | Apply only after explicit write authorization; otherwise report it |
-| `gated_auto` | Likely correct but changes behavior: null checks, error handling additions | Batch into one user confirmation block |
-| `manual` | Requires judgment: architecture, behavior changes, security tradeoffs | Present in sign-off |
+| `gated_auto` | Behavior fixes with a clear intended result: null checks, error handling additions | Apply within explicit repair authorization; ask only for scope expansion or an unresolved user choice |
+| `manual` | Architecture or security tradeoffs with no settled intended result | Resolve from project context; present any remaining user decision |
 | `advisory` | Informational only | Note in sign-off |
 
-After explicit write authorization, apply `safe_auto` fixes before surfacing the `gated_auto` confirmation block. In report-only mode, do not modify the worktree.
+Write authorization covers necessary fixes within its scope, including behavior changes needed for the requested result. A routing class does not create another approval step. In report-only mode, do not modify the worktree.
 
 Any fix made during review invalidates the pre-fix verdict. Re-freeze the baseline, re-run the check that exposed the finding, refresh the sibling sweep, and complete the final adversarial pass required by the review depth before declaring ready.
 
@@ -257,9 +257,9 @@ Poll CI as structured state, not streamed text: `gh run view <id> --json status,
 
 ## Verification
 
-Run `bash <skill-base-dir>/scripts/run-tests.sh` from the target project root (`<skill-base-dir>` is this skill's base directory; the script auto-detects the project's test command from the current working directory), or the project's known verification command. Paste the full output.
+Use the project's known verification command appropriate to the changed surface. Otherwise, `bash <skill-base-dir>/scripts/run-tests.sh` from the target project root can discover a candidate command. Report the exit status and summary, with relevant failure output rather than full passing logs.
 
-If the script exits non-zero or prints a line starting with `(no test command detected`: halt. Do not claim done. Ask the user for the verification command before proceeding. If the user also cannot provide one, document this explicitly in the sign-off as `verification: none -- no command available` and flag it as a structural gap, not a pass.
+A failed check needs diagnosis; no detected command is a discovery gap, not proof of failure or of no verification surface. Inspect project docs, manifests, and CI for an appropriate check. Complete a read-only review with explicit evidence limits when no check is available. Block a fix or readiness claim only when required evidence is missing or failing, and ask for a command only if it cannot be recovered from project context.
 
 For bug fixes: a regression test that fails on the old code must exist before the fix is done.
 
