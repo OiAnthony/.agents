@@ -38,7 +38,7 @@ For `/hunt`: durable context is hypothesis fuel only, and current code, logs, an
 
 ## Fix Scope Discipline
 
-If the bug genuinely needs a refactor first (e.g. the cause cannot be addressed without changing a shared interface), pause, name the refactor explicitly, and ask. Do not silently bundle it. A bug fix that grew into a refactor is a separate PR.
+If the bug needs a prerequisite refactor (e.g. a shared interface must change), state why it is necessary and check the authorized scope. Continue if that work is covered; ask before expanding the scope or choosing an unresolved behavior tradeoff. Keep unrelated refactors separate.
 
 ## Bisect Mode
 
@@ -84,23 +84,7 @@ For recurring classes of failures, load `references/failure-patterns.md` before 
 
 ## Native App Freeze Mode
 
-Activate when a desktop or mobile native app reports beachball, not responding, tab-switch freeze, first-open lag, idle wake stall, overlay lockup, or a screenshot shows a frozen app.
-
-Evidence to collect before changing code:
-
-1. Exact user path and version: first launch versus warm launch, the tab or window transition, idle duration, permissions, display count, and any setting that makes the freeze disappear.
-2. Runtime capture while frozen: `sample <process>`, recent app logs, CPU and memory footprint, thread count, and whether the main thread is blocked, spinning, or allocating.
-3. First-frame surface: view body work, first `.task`, synchronous icon or metadata lookup, filesystem scans, URL parent walks, notification callbacks, and app/window wake handlers.
-4. Blast search after the fix: grep the same API shape across the repo, especially path parent walks, synchronous icon loading, metadata reads in render paths, and callbacks that run on the main thread.
-
-Common native freeze traps:
-
-- Launch, terminate, permission, audio, display, or workspace notifications doing path walks, icon lookup, filesystem scans, or process enumeration on the main thread.
-- First paint hydrating a full app list, directory tree, media thumbnail set, or system status table before showing an interactive shell.
-- An input-lock or full-screen overlay without a guaranteed teardown path for Escape, app deactivation, permission denial, process termination, and window close.
-- Timer or sampler work that survives hidden windows, long idle periods, sleep/wake, or app reactivation.
-
-Compile-only and source-only checks are insufficient for this mode. The outcome must include the runtime capture, the root-cause frame or state transition, the focused regression guard, and any sibling matches that were fixed or explicitly left safe.
+For beachballs, not responding, tab-switch freezes, first-open lag, idle wake stalls, overlay lockups, or frozen-app screenshots, load `references/logging-techniques.md` (Native App Freeze Mode) before changing code.
 
 ## Targeted Logging
 
@@ -124,7 +108,7 @@ For input method, character rendering, or text encoding bugs (IME state, cursor 
 - **Behavioral / lifecycle / async bugs: instrument while forming the hypothesis.** Window lifecycle, event delivery, navigation, focus, timer, state-machine, and async-ordering bugs almost never yield to static reading alone. The moment the hypothesis involves "this callback fires before/after that one", "this state should be X when Y runs", or "this object should still be alive here", add the log before writing any fix (anti-pattern 28); two guesses in a row is the hard-stop signal. Compositor behavior needs DevTools, not logs; pure-logic bugs (wrong formula, off-by-one) need only static analysis.
 - **Tuning magic numbers past round three: stop, unify.** When a spacing / sizing / threshold value has been adjusted three times and still looks wrong, the bug is structural, not numeric. Replace the N independent values with one named token (`Spacing.s4`, `--gap-content`, etc.) and verify the asymmetry was hiding a missing constraint. Asymmetry that survives tuning is structural; more tuning will not converge.
 - **Performance complaints need numbers.** For "slow", "laggy", or memory-growth reports outside Native App Freeze Mode, measure the baseline first (wall-clock time, profile sample, memory footprint), fix, then re-measure and report before/after numbers. "Feels faster" is not evidence.
-- **Fix the cause, not the symptom.** If the fix touches more than 5 files, pause and confirm scope with the user.
+- **Fix the cause, not the symptom.** Continue necessary fixes within the user's authorized scope. Ask only when the fix expands that scope or requires a user decision; file count alone is not an approval boundary.
 
 ## Gotchas
 
