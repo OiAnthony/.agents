@@ -6,6 +6,7 @@ This is the canonical source of cross-project user instructions. Tool-specific i
 
 - Follow the host's instruction hierarchy. Explicit user instructions and applicable repository rules override these cross-project defaults within that hierarchy.
 - Skills guide applicable workflows; they do not expand task scope or authorization. If a skill blocks or redirects requested work, identify its file and exact requirement, distinguishing that requirement from your interpretation.
+- `.env` and similar secret files: read only when the current task needs them; do not print, output, commit, or exfiltrate their contents.
 
 ## Task execution and authorization
 
