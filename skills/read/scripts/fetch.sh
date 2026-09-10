@@ -80,7 +80,7 @@ if OUT=$(python3 "$SCRIPT_DIR/fetch_local.py" "$URL" 2>"$LOCAL_ERR"); then
 fi
 cat "$LOCAL_ERR" >&2 2>/dev/null || true
 
-# Without --use-proxy, stop here. URL never leaves the machine.
+# Without --use-proxy, stop here. No third-party extraction service is used.
 if [ "$USE_PROXY" -eq 0 ]; then
   echo "[fetch] status=fail reason=\"local extractor failed; rerun with --use-proxy to try defuddle.md and r.jina.ai (URL will be sent to those services)\"" >&2
   exit 1
