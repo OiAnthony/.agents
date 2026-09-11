@@ -30,7 +30,7 @@ Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claud
 
 ## Lightweight Mode
 
-Activate when the user wants to fix something rather than build something, the problem is already defined, and the only open question is "how to fix it."
+Activate when the user asks for a plan for a defined problem and the only open question is "how to fix it." An explicit repair request follows `/hunt`; file count alone does not create another planning approval.
 
 Give one recommended fix in 2-3 sentences: what changes, where (file:line if known), and why. Name the brute-force version in one line first; default to it unless the user wants elegance. List involved files, flag explicitly if more than 5. State one risk. Wait for approval before implementing.
 
@@ -38,49 +38,11 @@ Upgrade to full mode if you find 3 or more genuinely different approaches with m
 
 ## Evaluation Mode
 
-Activate when the user wants to judge whether something should exist, be kept, exposed, or removed. Typical triggers: "判断一下", "有没有必要", "值不值得", "should we keep this", "is this worth it", "我不想做", "商业前景", "有没有必要继续".
-
-State the evaluation target and what kind of judgment is needed (value, risk, or tradeoff). Take a current-state snapshot: what it does, who uses it, what depends on it; grep and read before opining.
-
-Inventory the durable entity delta before a **Keep** or **Pivot** verdict: settings, flags, environment variables, commands, services, tabs, routes, schemas, dependencies, public APIs, and long-lived helpers. Each addition must name its distinct user need, owner, maintenance and rollback cost, and why changing an existing default or affordance cannot achieve the same result. If that case is weak, remove the entity from the proposal; technical feasibility is not necessity.
-
-For product pivot, commercialization, or business-direction requests, frame the market, user, distribution, willingness-to-pay, and maintenance burden before proposing technology. Do not assume open source, do not assume implementation comes first, and do not hide a business judgment inside a technical plan.
-
-**Commercial readiness gate.** When the judgment is whether a product, paid feature, launch, or version is chargeable, evaluate chargeability before implementation. Check delivery and update path, first-run activation/onboarding, payment/license/trial boundary, privacy and network promises, headline-feature reliability and honest degradation, support/refund triggers, competitor wedge, and solo-maintainer maintenance burden. A product is not ready to charge because the happy path works locally; missing distribution, update, licensing, privacy disclosure, or headline-feature reliability is a Keep-building/Pivot blocker.
-
-**Output format (Kill/Keep/Pivot):**
-
-Line 1: one of **Kill** / **Keep** / **Pivot** as the verdict. No preamble.
-
-Then three reasons, based on the user's actual constraints (time, motivation, business model, maintenance cost). Not generic tradeoffs.
-
-Then state `Entity delta: +N / -N` and name any added public surface. `+0` is the preferred outcome when an existing default or path can carry the value.
-
-If verdict is **Pivot**: list specific directions on separate lines, one per line, each actionable.
-
-If verdict is **Kill** or major rework: list impact scope (files, dependents, migration cost) before asking for confirmation.
-
-Do not use a build-plan template here. Do not list options. Give one verdict.
-
-Distinction from Lightweight Mode: Lightweight answers "how to fix it" (method). Evaluation answers "should it exist" (value judgment).
+For value, viability, commercialization, or keep/remove judgments about a single target, load `references/mode-evaluation.md`.
 
 ## Triage Mode
 
-Activate when the user forwards a bundle of asks: an issue with multiple requests, a batch of screenshots, a user saying "看看这几个需求", or any input containing 3+ distinct items that could each be accepted or rejected independently.
-
-Do not treat the bundle as a to-do list. Classify each item first:
-
-| Bucket | Meaning | Action |
-|--------|---------|--------|
-| **Bug** | Broken behavior with evidence | Fix |
-| **Already works** | The feature exists but the reporter missed it | Point to the existing affordance |
-| **Accepted improvement** | Genuine gap, low-risk, aligns with product direction | Implement |
-| **Cosmetic / preference** | Subjective, no functional impact | Note it, do not implement unless the maintainer agrees |
-| **Out of scope** | Conflicts with product boundary or adds unjustified complexity | Decline with one sentence |
-
-Output the classification table first. Wait for the user to confirm the accepted subset before implementing anything. "Already works" misidentified as missing is the most common waste; grep for the existing affordance before classifying an item as a gap.
-
-**Negative-user feedback is not automatic scope.** Refund, churn, and "competitor X is more intuitive" complaints often land on deliberate product differentiation, not an oversight. Before converting the complaint into a rework plan, read the project's own docs for the criticized behavior named as a deliberate choice; if it is, the verdict is **Keep**, with one sentence on why the differentiation matters and a note that the maintainer can override. Do not write a "fix the friction" plan that quietly removes the differentiator.
+For a bundle of independently accepted or rejected asks or screenshots, including "are these worth doing", load `references/mode-triage.md`; use its per-item table rather than Evaluation Mode's single verdict.
 
 ## Before Reading Any Code
 
@@ -96,6 +58,8 @@ For a hard problem, or one already tuned several times that still feels off, stu
 ## Propose Approaches
 
 Give one recommended approach with rationale. Include effort, risk, and what existing code it builds on. Mention one alternative only if the tradeoff is genuinely close (>40% chance the user would prefer it). Always include one minimal option.
+
+Anything that asks a person to install or configure something (hook, MCP server, editor plugin, config key, pricing tier, per-day limit) is a setup cost paid by every user. Default to the zero-setup form: a built-in command plus a skill, a fixed sensible default, a doc line. Offer the setup-requiring form only after naming why the zero-setup one cannot do the job.
 
 When the plan is about distilling lessons from one project into a reusable skill set or shared rules, split the plan into **promote** and **do not promote**. Promote only reusable workflow constraints. Explicitly reject project-specific commands, paths, release checklists, safety boundaries, and private local context unless the user asks to update that project itself.
 
@@ -124,6 +88,19 @@ Get approval before proceeding.
 - Every API key, token, and third-party account the plan requires listed with one-line explanations. No credential requests mid-implementation.
 - Every MCP server, external API, and third-party CLI the plan depends on verified as reachable before approval.
 
+## Simplicity Gate
+
+Skip for one-file bug fixes or when the user explicitly chose the minimal option.
+
+When the plan adds files, abstractions, error layers, config knobs, or retries the user did not ask for:
+
+- **Minimal path:** the brute-force version in one line; the chosen plan must beat it on risk, rollback, or latency, not elegance.
+- **Defensive layers:** every try/catch, retry, fallback, or flag maps to one named failure mode; delete layers that only "might" fail.
+- **Surface delta:** list new commands, env vars, flags, or services; prefer +0 unless a user split needs a knob.
+- **Compensating complexity:** if the plan is mostly workaround machinery around a misbehaving API, stop and name a route change (anti-patterns #27).
+
+If the gate fails, shrink the plan or switch to the minimal option before asking for approval.
+
 ## Implementation Handoff
 
 A finished plan must be executable by another engineer or agent without re-deciding the direction. Include:
@@ -137,7 +114,7 @@ A finished plan must be executable by another engineer or agent without re-decid
 
 When the user asks to export a handoff, or when the environment prevents further execution, make the handoff execution-ready instead of explaining the limitation. Include file targets, key constants or selectors, exact commands, runtime or visual checklist, and risk boundaries. If the work depends on a screenshot or artifact, name the artifact and the pass/fail delta.
 
-When the user later says "Implement the plan", "可以干", "直接改", "整", or equivalent, treat that as approval of the written plan. Do not re-litigate the design. State which plan is being executed, check for obvious drift in the repo, and proceed. If the environment has changed enough that the plan is unsafe, name the specific drift and stop before editing.
+When the user says "Implement the plan", "just do it", "可以干", "直接改", "整", or otherwise explicitly requests implementation, leave planning and execute the approved direction without another approval round. State which plan is being executed and check for repo drift; stop only if specific drift makes it unsafe. Approval of the design alone does not authorize implementation or public actions.
 
 ## Hard Rules
 
@@ -149,17 +126,10 @@ When the user later says "Implement the plan", "可以干", "直接改", "整", 
 
 | What happened | Rule |
 |---------------|------|
-| Moved files to `~/project`, repo was at `~/www/project` | Run `pwd` before the first filesystem operation |
-| Asked for API key after 3 implementation steps | List every dependency before handing off |
-| User said "just do it" or equivalent approval | Treat as approval of the recommended option. State which option was selected, finish the plan. Do not implement inside `/think`. |
-| Planned MCP workflow without checking if MCP was loaded | Verify tool availability before handing off, not mid-implementation |
 | Rejected design restarted from scratch | Ask what specifically failed, re-enter with narrowed constraints |
-| User said "just fix X" and skipped /think | If the fix touches 3+ files or needs a method choice, pause and run Lightweight Mode |
-| User approved a concrete plan and the agent debated the plan again | Execute the approved plan. Only stop for repo drift, missing permissions, or unsafe external state |
 | Picked a regional or locale-specific API variant without checking | List all regional or locale differences before writing integration code |
 | Introduced a second language or runtime into a single-stack project | Never add a new language or runtime without explicit approval |
 | User said "判断一下这个报错" and got Evaluation Mode | "判断一下" + error/bug context = debugging, route to `/hunt`. Evaluation Mode is for value/existence judgments only |
-| User asked to "沉淀到 Waza" after a project review | First separate transferable Waza capability from project facts. Do not import that project's commands, paths, or release rules into Waza |
 
 ## Output
 
@@ -170,14 +140,4 @@ When the user later says "Implement the plan", "可以干", "直接改", "整", 
 - **Key decisions**: 3-5 with reasoning
 - **Unknowns**: only items that are explicitly deferred with a stated reason and a clear owner. Not vague gaps. If an unknown blocks a decision, loop back before approval.
 
-After the user approves the design, stop. Implementation starts only when requested.
-
-## After Approval
-
-When the plan is approved, output this guidance:
-
-```
-Plan approved. To implement: say "implement this plan". After implementation, run `/check` to review before merging or release follow-through.
-```
-
-Keep it concise (2-3 sentences max). The user decides when to start implementation.
+If the user only approves the design, end with the plan. If implementation is requested, follow Implementation Handoff instead of asking them to repeat the request.
