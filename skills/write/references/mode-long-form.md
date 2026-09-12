@@ -1,17 +1,17 @@
 # Long-form Article Mode
 
-Loaded from `write` when the input is a long draft (roughly 10k characters or more) that needs structural work before line edits.
+Loaded from `write` when the input is a long draft that needs structural work before line edits.
 
-Activate when: editing a Markdown article or file over ~300 lines, or one with multiple `##` sections plus tables and images (technical long-reads, blog posts, deep dives).
+Activate when: a long article needs structural review. Multiple headings or images alone do not authorize restructuring.
 
-In long-form, the dominant problem is usually structural: the same checklist repeated across sections, prose that re-reads a table sitting right above it, list bloat, whole redundant sections. Sentence-level AI taste is the smaller half. A single in-place polish pass cannot see or fix the structural half, which is why a plain `/write` on a long article feels like it changed wording but left the bloat. This mode therefore overrides two Hard Rules: structural cuts and merges are in-scope, and the output is change-points for review, not a rewritten blob.
+Read the whole article to distinguish useful explanation from repeated conclusions, table re-reads and generic endings. Preserve the strongest version of a supported point. Do not assume a long article is padded or set a target fraction to delete.
 
 Workflow:
 
 1. **Map first, read-only.** Before editing anything, read the whole article and list every `##` section, table, list, and image. Flag three structural problems: cross-section repetition (same checklist / judgment list / core claim in 2+ sections), table re-reading (a section whose prose walks the rows of the table above it), and whole redundant sections or paragraphs.
-2. **Name what each paragraph stands on.** For every paragraph, say privately which material holds it up: user-supplied experience, a public source, a runnable artifact, a number, a quote. When the honest answer is "it further explains the paragraph above" or "it is a possible implication", that paragraph has no new material and is a cut candidate. Then run the compression test: drop a third of the draft and re-read. If the facts, actions, judgments, and reading experience barely change, the original was padded, and the shorter version is the draft.
-3. **Propose cuts as change-points.** Show before to after for each structural cut or merge and let the user pick the subset. Never delete a whole section or paragraph silently; confirm first, since it may hold a fact found nowhere else (see `references/write-zh.md` 删段之前先确认信息量).
-4. **Then line-level de-AI**, section by section, per `references/write-zh.md`.
-5. **Output is change-points, not a blob.** Show what changed so the user can review and keep their own hand-edits. Only return fully rewritten text when the user says 直接改 / just rewrite; when you do return a full rewrite, run the Punctuation Gate on it first.
+2. **Test the paragraph's contribution.** Experience, emotion, personal conviction, qualifications and explanations can all carry a paragraph. Lack of a new fact or source is not grounds for cutting it. Check whether an edit loses the author's stance or emotional intensity, as well as factual meaning. A shorter, more neutral draft can be a worse one.
+3. **Respect the editing scope.** Read-only requests get proposed change-points. Explicit rewrite requests authorize edits within that scope; do not ask again for routine sentence cuts. Name whole-paragraph cuts in the diff summary, and ask before deleting a section or reorganizing headings unless that structural work was requested.
+4. **Then line-level de-AI**, section by section, using the relevant language references. For mirrors, check both meaning and native rhythm.
+5. **Return the requested artifact.** For repository edits, preserve frontmatter, code, media, links and substantive explanations, run the site's build, and report the scoped diff. A pasted-text rewrite returns the prose. Run the Punctuation Gate on edited prose without changing technical examples to satisfy a style rule.
 
-Do not single-pass rewrite a 40k-character article: it silently overwrites the author's hand-tuned phrasing and cannot be reviewed as a diff. See `references/write-zh.md` 结构级重复与表格复读（长文专项）for the matching content rules.
+Do not single-pass rewrite a long article: it silently overwrites the author's hand-tuned phrasing and cannot be reviewed as a diff. See `write-zh.md` 结构级重复与表格复读（长文专项）for the matching content rules.

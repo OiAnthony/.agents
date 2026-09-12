@@ -1,5 +1,5 @@
 {
-  "$comment": "Portfolio content contract. Open every case study with the problem and its stakes, not with your role. 3-5 deep case studies beat 12 shallow ones. Every outcome quantifiable.",
+  "$comment": "Portfolio content contract. Open every case study with the problem and its stakes, not with your role. 3-5 deep case studies beat 12 shallow ones. Support outcomes with verified metrics or concrete qualitative evidence.",
   "type": "object",
   "required": ["name", "positioning", "contact", "about", "projects"],
   "properties": {

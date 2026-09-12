@@ -28,7 +28,7 @@ Check whether `/read` and `/write` skills are installed (look for their SKILL.md
 
 ## Choose Mode
 
-Ask the user to confirm the mode, using the environment's native question or approval mechanism if it has one:
+Infer the mode from the requested artifact and supplied materials. Ask only when plausible modes would change the scope or deliverable and the user's intent does not resolve the choice:
 
 | Mode | Goal | Entry | Exit |
 |------|------|-------|------|
@@ -115,9 +115,8 @@ When it reads clean from start to finish, the draft is ready for the user to pub
 
 | What happened | Rule |
 |---------------|------|
-| Collected 30 secondary explainers instead of primary sources | Phase 1 targets papers, official blogs, and repos by builders. Summaries are not sources. |
-| Used native fetch tools or `curl` on URLs while `/read` was installed | Phase 1 fetch is not optional. `/read` owns the proxy cascade, paywall detection, and platform routing. Bypassing it silently loses coverage on paywalled, JS-heavy, or Chinese-platform pages. |
-| Treated a convincing explainer as ground truth | Ask: does this appear in at least two different contexts from the same source? |
 | Phase 2 wrote summaries instead of teaching the concept | Digest means building the mental model. Summarizing is not digesting. |
-| AI offered to upload the article to a blog or social platform after the user said it was ready | Stop at confirmation. Publishing is the user's action, not yours. |
-| Turned a project review into a generic Waza rule without filtering | Promote only repeated workflow behavior. Leave project-specific commands, paths, and safety constraints in that project |
+
+## Output
+
+The artifact is the mode's exit from the table above. Report the saved path when files were written and complete the authorized handoff; publication requires an explicit request as stated in Hard Rules.

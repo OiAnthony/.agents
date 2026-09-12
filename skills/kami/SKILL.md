@@ -1,13 +1,13 @@
 ---
 name: kami
-description: 'Typeset professional documents and product landing pages: resumes, one-pagers, white papers, letters, portfolios, slide decks, landing pages. Warm parchment, ink-blue accent, serif-led hierarchy. CN uses TsangerJinKai02, EN uses Charter, JA uses YuMincho (best-effort). Triggers on "做 PDF / 排版 / 一页纸 / 白皮书 / 作品集 / 简历 / PPT / slides / Marp / markdown slides / マークダウンのスライド / 落地页 / 官网 / landing page / product page", or "build me a resume / make a one-pager / design a slide deck / turn this into a PDF / make this presentable / create a landing page".'
+description: 'Typeset professional documents and product landing pages: resumes, one-pagers, white papers, letters, portfolios, slide decks, landing pages. Templates use warm backgrounds, ink-blue accents, and serif fonts. CN uses TsangerJinKai02, EN uses Charter, JA uses YuMincho (best-effort). Triggers on "做 PDF / 排版 / 一页纸 / 白皮书 / 作品集 / 简历 / PPT / slides / Marp / markdown slides / マークダウンのスライド / 落地页 / 官网 / landing page / product page", or "build me a resume / make a one-pager / design a slide deck / turn this into a PDF / make this presentable / create a landing page".'
 ---
 
 # kami · 紙
 
-**紙 · かみ** - the paper your deliverables land on.
+**紙 · かみ** means paper in Japanese.
 
-Good content deserves good paper. One design language across documents and landing pages: warm parchment canvas, ink-blue accent, serif-led hierarchy, tight editorial rhythm.
+Good content deserves good paper. Use Kami’s templates and layout rules to create documents and landing pages with serif fonts, warm backgrounds, and ink-blue accents.
 
 Part of `Kaku · Waza · Kami` - Kaku writes code, Waza drills habits, **Kami delivers documents**.
 
@@ -260,7 +260,7 @@ Before loading specs and filling the template, write a short editor-style note s
 
 Example (CN):
 
-> 排版意图：Equity Report 中文版，2 页 A4。先立论与目标价，进入估值 (DCF 与可比公司)，落于催化剂与风险。中段嵌一张营收趋势折线和 FY26 收入桥瀑布。Logo 已就位，产品图暂缺，header 改走纯文字。输出 HTML 与 PDF。
+> 使用中文财报模板，制作 2 页 A4，输出 HTML 和 PDF。内容依次为投资判断、目标价、估值、催化剂与风险，加入营收趋势和 FY26 收入构成图，使用已有 Logo，缺少产品图的页眉采用文字。
 
 Example (EN):
 

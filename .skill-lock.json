@@ -142,27 +142,27 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/write/SKILL.md",
-      "skillFolderHash": "82b37cc574f00e86df5c767df439c46f15e3be57",
+      "skillFolderHash": "615d8f39c927c8d6b7203c1c4ffb6e52548cc33f",
       "installedAt": "2026-04-07T08:11:02.881Z",
-      "updatedAt": "2026-08-18T01:07:43.539Z"
+      "updatedAt": "2026-09-12T01:36:09.907Z"
     },
     "learn": {
       "source": "tw93/Waza",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/learn/SKILL.md",
-      "skillFolderHash": "1aade816ebcb8917ed1a258e6b766731f829c0dc",
+      "skillFolderHash": "afa0ddb1a3b917561b4aa16a7380f0b832608782",
       "installedAt": "2026-04-18T09:53:21.848Z",
-      "updatedAt": "2026-08-02T10:17:40.418Z"
+      "updatedAt": "2026-09-12T01:59:02.793Z"
     },
     "kami": {
       "source": "tw93/kami",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "65239b8ee4cc421a370a38ea891baf83ebc05630",
+      "skillFolderHash": "67ac99df4cd01038e6265e6f4c92f09bfe246f7c",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-09-07T04:52:37.203Z"
+      "updatedAt": "2026-09-12T01:59:13.285Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -178,36 +178,36 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
       "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
-      "skillFolderHash": "5cca2c41be4f7a85c3d8ff95e9bd42de9486745e",
+      "skillFolderHash": "f0415e89eeadda8933a49a3f432acae52fa542aa",
       "installedAt": "2026-05-19T08:03:23.597Z",
-      "updatedAt": "2026-08-14T01:12:33.566Z"
+      "updatedAt": "2026-09-12T01:59:19.304Z"
     },
     "lark": {
       "source": "OiAnthony/lark-cli-progressive-skill",
       "sourceType": "github",
       "sourceUrl": "https://github.com/OiAnthony/lark-cli-progressive-skill.git",
       "skillPath": "skills/lark/SKILL.md",
-      "skillFolderHash": "c6c85f060993c0fc56cfed2b3b910ece2ce445c4",
+      "skillFolderHash": "08c3317e10a52906106bd799e7afea6bea740fc9",
       "installedAt": "2026-07-13T07:06:39.696Z",
-      "updatedAt": "2026-09-01T14:57:32.848Z"
+      "updatedAt": "2026-09-12T01:59:31.896Z"
     },
     "herdr": {
       "source": "herdrdev/herdr",
       "sourceType": "github",
       "sourceUrl": "https://github.com/herdrdev/herdr.git",
       "skillPath": "skills/herdr/SKILL.md",
-      "skillFolderHash": "f8bb649bb92ddc99e6af463ab9a635da98c7b129",
+      "skillFolderHash": "b9dcfddcfa7ce43e2e4cf60e724c519be553f149",
       "installedAt": "2026-08-02T10:19:31.736Z",
-      "updatedAt": "2026-09-01T14:57:37.243Z"
+      "updatedAt": "2026-09-12T01:59:39.400Z"
     },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "07dd20ea08660308a7ed980ecf9d277e07848c13",
+      "skillFolderHash": "a1df19d2c2a579f5e7563255623e81ab1c790684",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-09-01T14:57:44.611Z"
+      "updatedAt": "2026-09-12T01:59:47.717Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",

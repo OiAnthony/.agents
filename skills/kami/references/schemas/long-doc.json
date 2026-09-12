@@ -1,5 +1,5 @@
 {
-  "$comment": "Long document content contract (6-15 pages). Every chapter opens with a claim paragraph that survives the so-what test. At least one data point per paragraph; a zero-number paragraph is an opinion paragraph and should be rare.",
+  "$comment": "Long document content contract (6-15 pages). Every chapter opens with a claim paragraph that survives the so-what test. Support factual claims with sources, examples, or verified measurements. Explanations and judgments do not need a number in every paragraph.",
   "type": "object",
   "required": ["title", "author", "date", "summary", "chapters"],
   "properties": {

@@ -1,5 +1,5 @@
 {
-  "$comment": "Resume content contract. Strict 2 A4 pages. Every bullet: Action + Scope + Measurable Result + Business Outcome. Verb-led, at least one number per bullet, ownership stated honestly.",
+  "$comment": "Resume content contract. Strict 2 A4 pages. Every bullet: action, honest scope, and a concrete result; explain the business outcome when relevant. Verb-led, with verified metrics or concrete outcomes and honest ownership.",
   "type": "object",
   "required": ["name", "contact", "summary", "metrics", "projects", "skills", "education"],
   "properties": {

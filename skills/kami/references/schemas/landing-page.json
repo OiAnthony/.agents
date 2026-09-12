@@ -24,7 +24,7 @@
       "maxLength": 40
     },
     "tagline": {
-      "$comment": "One sentence. If it needs a comma, it is too long.",
+      "$comment": "One clear sentence stating what the product does.",
       "type": "string",
       "minLength": 6,
       "maxLength": 80
@@ -61,15 +61,14 @@
       }
     },
     "gallery": {
-      "$comment": "3-6 panels, each a real screenshot of one shipped tool, workflow, or reachable state. Captions are poetic, not marketing copy.",
+      "$comment": "3-6 panels, each a real screenshot of one shipped tool, workflow, or reachable state. Captions explain what the screenshot shows or add useful context; omit redundant captions.",
       "type": "array",
       "minItems": 3,
       "maxItems": 6,
       "items": {
         "type": "object",
         "required": [
-          "image",
-          "caption"
+          "image"
         ],
         "properties": {
           "image": {
@@ -86,7 +85,7 @@
       }
     },
     "features": {
-      "$comment": "Name is the tool, subtitle is the metaphor, description answers so-what in 2-3 sentences.",
+      "$comment": "Name the feature directly. Add a subtitle only when it supplies useful context; explain the result in 2-3 sentences.",
       "type": "array",
       "minItems": 3,
       "maxItems": 8,
@@ -94,7 +93,6 @@
         "type": "object",
         "required": [
           "name",
-          "subtitle",
           "description"
         ],
         "properties": {

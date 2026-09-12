@@ -4,7 +4,7 @@ One-page quick reference. Scan before filling a template or tweaking a detail. F
 
 ## Ten invariants
 
-1. Page background `#f5f4ed` (parchment), never pure white
+1. Default page background `#f5f4ed` (parchment); the white-paper print variant is an explicit exception
 2. Single accent: ink-blue `#1B365D`
 3. All grays **warm-toned** (yellow-brown undertone), no cool blue-gray
 4. One serif font per page (headings + body). `--sans` is a CSS alias for the same family; introduce a real sans only for genuinely UI-style chrome
@@ -304,7 +304,7 @@ Full quality bars in `references/writing.md`. The single most important rule for
 
 | Document      | Core quality rule                                                                    |
 | ------------- | ------------------------------------------------------------------------------------ |
-| Resume        | Every bullet: Action + Scope + Measurable Result + Business Outcome                  |
+| Resume        | Every bullet: action, honest scope, and a concrete result; use verified numbers when available                  |
 | Portfolio     | Open with the problem and stakes, not the project name                               |
 | Slides        | Slide titles are full sentences (assertions), not topic labels                       |
 | Equity Report | Lead with variant perception: what you see that the market doesn't                   |
@@ -370,4 +370,4 @@ Resume visual rule: header and section titles carry the only structural rules. T
 | Slide bullets       | Numerals `1. 2. 3.` or `•`; en-dash `–` reads informal at slide scale (production.md #22). Print docs keep en-dash. |
 
 
-Not on the table -> first principles: **serif carries authority, sans carries utility, warm gray carries rhythm, ink-blue carries focus**.
+Not on the table -> first principles: **use type size for hierarchy, spacing for grouping, and ink-blue for emphasis**.

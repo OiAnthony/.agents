@@ -8,7 +8,7 @@ This is not a UI framework. It is a constraint system for print, designed to kee
 
 **The ten invariants** (each has a real cost, think before overriding):
 
-1. Page background parchment `#f5f4ed`, never pure white
+1. Default page background parchment `#f5f4ed`; the white-paper print variant in production.md is the explicit exception
 2. Single accent: ink-blue `#1B365D`, no second chromatic color
 3. All grays warm-toned (yellow-brown undertone), no cool blue-grays
 4. One serif family per page for headlines and body. Add a distinct sans only for genuine UI chrome
@@ -17,7 +17,7 @@ This is not a UI framework. It is a constraint system for print, designed to kee
 7. Letter-spacing: Chinese body 0.3pt for comfortable reading; English body 0; tracking only for short labels and overlines
 8. Tag backgrounds must be solid hex, never rgba (WeasyPrint renders a double rectangle)
 9. Surfaces are flat by default; whisper shadows are reserved for real floating screenshots, popovers, or overlays
-10. **No italic in print templates**. No `font-style: italic` in any PDF template or demo. Exception: landing page (screen-only) uses italic for poetic lines (gallery captions, feature subtitles, footer ethos)
+10. **No italic in print templates**. No `font-style: italic` in any PDF template or demo. Exception: landing page (screen-only) allows italic for captions, feature subtitles, and a closing tagline; these need not be poetic
 
 This system is a fusion of Anthropic's visual language and real Chinese / English resume iteration. Details below.
 
@@ -1185,7 +1185,7 @@ Below the phone breakpoint, the information diet reverses: images first, words s
 - Empty gallery: script exits cleanly; single-image gallery initializes caption/tab state without starting auto-rotate
 - Tabs: pill buttons 12px `--latin-ui`, active state uses brand-tint background
 - Click navigation: left half = previous, right half = next
-- Caption `.line`: italic serif, 14px olive. Poetic one-liners describing each screenshot
+- Caption `.line`: italic serif, 14px olive. Short captions explaining each screenshot or adding useful context
 - Rapid switching keeps caption and tab state synchronized with the visible frame; test by clicking faster than the transition duration, not just once per panel
 
 ### Links
@@ -1273,7 +1273,7 @@ For card grids whose content is written text (article listings, changelog indexe
 
 - Two-column grid: 200px name + 1fr description, 36px gap, separated by border-soft hairlines
 - Feature name: 22px brand, weight 500
-- Poetic subtitle: `<small>` below name, 13px olive, italic. One short line evoking the feature's character
+- Optional subtitle: `<small>` below name, 13px olive, italic. One short line adding useful context to the feature name
 - Description: 15px dark-warm, line-height 1.55
 - Tables stay editorial: no framed box, no tinted header bar, no vertical rules, no empty right gap. Content-sized columns, hairline row rules, a muted `--latin-ui` uppercase header. On phone, `display: block; overflow-x: auto` rather than cramming columns. A framed, tinted table adds weight without adding information.
 

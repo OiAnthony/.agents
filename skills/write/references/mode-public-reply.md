@@ -6,7 +6,7 @@ Activate when: "回复 issue", "reply to PR", "comment on #N", "回 issue", or t
 
 Hard rules for the reply body:
 
-1. **Default to one paragraph and one or two sentences.** Open with `@<reporter>` and at most one short thanks. Match the reporter's language. No exclamation mark, emoji, or stacked courtesy ending.
+1. **Default to one paragraph and one or two sentences.** Open with `@<reporter>` and at most one short thanks. Match the reporter's language. No exclamation mark or stacked courtesy ending.
 2. **State the factual boundary and the reporter's next step.** Name exactly one ship state: already shipped in v<X.Y.Z>, fixed on `main` and going out in the next release, planned for v<X.Y.Z>, not planned with one-line reason and an alternative path, or still needs specific evidence. Include root cause only when it changes what the reporter should do. Internal symbols, files, CI approval, and maintainer process stay out.
 3. **Every sentence must be currently true.** No "already shipped" without release evidence in the current turn, no "landed on main" while the change sits uncommitted, and no implied build or artifact verification that did not happen.
 4. **Two short paragraphs are the exception**, used only when a one-line command or necessary ambiguity cannot fit cleanly. No bullet lists, section headers, or code blocks except that one-line command.

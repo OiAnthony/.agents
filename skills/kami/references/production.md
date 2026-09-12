@@ -104,7 +104,7 @@ Remove the `../fonts/` prefix that templates use when fonts are in the project t
 Parchment is the default and keeps shipping. Override to white only when a single
 document is **headed for a home / office printer**: a full-page `#f5f4ed` tint
 bands unevenly and burns toner, where white paper prints clean. This is the one
-sanctioned exception to design.md invariant #1 ("never pure white"), and it is
+sanctioned print exception to design.md invariant #1, and it is
 opt-in per document, never the default render.
 
 White is not a one-line background swap. Parchment also serves as the surface that

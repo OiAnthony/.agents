@@ -11,7 +11,7 @@ How to write, not how to lay out. Good typography with bad content is just "poli
 - Avoid: "Delivered significant business growth"
 - Use: write the specific numbers and deltas
 
-Every sentence should survive the follow-up question "how much, specifically?". If you can't answer, don't write it.
+Use verified numbers for quantitative claims. Explain mechanisms and judgments with concrete facts or examples; do not add a number just to satisfy a quota.
 
 ### 2. Judgment over execution
 
@@ -25,7 +25,7 @@ Junior writes "what they did". Mid writes "how they did it". **Senior writes "wh
 - Avoid: "Embrace the AI era, pioneer digital transformation paradigms"
 - Use: say it in your own words, skip the industry vocabulary
 
-**Distinctive phrasing is memorable**. A line you invented beats a line borrowed from an earnings call. It sounds like a person thinking, not a deck regurgitating.
+Use words that fit the author and the subject. Keep an established voice; do not invent a slogan to make a paragraph seem distinctive.
 
 ### 4. Honest boundaries
 
@@ -131,7 +131,7 @@ paragraphs.
 
 **Rules**:
 - Visuals first, text supports
-- Every project's outcome must be quantifiable
+- Support each project outcome with verified metrics or concrete qualitative evidence
 - Final product screenshots / real photos > design mockups > code screenshots
 - If project images are missing, mark the gap. Do not fill the layout with unrelated imagery
 - Don't list every tech stack - a mono tag row is enough
@@ -224,10 +224,10 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Rules**:
 1. Start every bullet with a strong past-tense verb (designed, led, reduced, migrated). Never "Responsible for" or "Helped with"
-2. Every bullet needs at least one number. If no hard metric exists, use scope (team size, user count, codebase size)
+2. Use verified numbers when they explain the result or scope. If no metric is available, state the observable outcome without inventing one
 3. Connect technical work to business outcomes: revenue, cost, reliability, user retention, time-to-market
 4. Include before/after pairs when possible: "from X to Y" is more credible than "improved by Z%"
-5. Use precise numbers over round ones: "$280K" reads as measured, "$300K" reads as estimated
+5. Match the source’s precision: keep a measured value exact and label an estimate as an estimate
 6. Distinguish ownership: "owned" vs "contributed to" vs "coordinated". Inflating scope is the fastest way to lose credibility in an interview
 
 **Senior vs junior**: junior resumes show execution ("built X"). Senior resumes show judgment ("evaluated 3 approaches, chose Y because of tradeoff Z") and multiplier effect ("mentored 4 engineers, 2 promoted within 12 months")
@@ -317,7 +317,7 @@ and inline-code backticks before delivery, then run `python3 scripts/build.py
 --check-markdown path/to/filled.pdf` on the rendered PDF.
 
 **Rules**:
-1. Evidence density: at least one data point per paragraph. A paragraph with zero numbers is an opinion paragraph and should be rare
+1. Evidence density: support factual claims with sources, examples, or verified measurements. Do not add numbers to paragraphs that explain a mechanism or judgment
 2. When dense prose needs relief, use an existing attributed quote, evidence figure, descriptive subhead, or paragraph edit. Do not manufacture a callout on a fixed cadence
 3. Counter-arguments addressed before they become reader objections. If you can predict the pushback, address it proactively
 4. Source cues preserved inline: "(Gartner, 2025)" or "according to the company's 10-K" so readers can distinguish fact from inference
@@ -356,7 +356,7 @@ and inline-code backticks before delivery, then run `python3 scripts/build.py
 
 **Rules**:
 1. Breaking changes always first, with migration path ("Replace `config.old` with `config.new`; run `migrate.sh` to convert")
-2. 5-8 items per section. If more, this is probably 2 releases
+2. Group changes by user-visible outcome. Item counts do not determine release boundaries
 3. Group by user impact (Breaking / Features / Fixes), not by component or file
 4. No internal jargon. "Fix memory leak in image decoder" is clear. "Fix retain cycle in UIImageDecoderBridge" is not
 
@@ -438,9 +438,9 @@ Literal alignment is the failure mode; meaning alignment is the goal. Every time
 
 - **Read each locale straight through as a native reader**, not against the source text. Flag every sentence that carries the source language's skeleton: word order, comparison patterns, and punctuation rhythm are all allowed to diverge from the source.
 - **Rewrite, don't adjust.** A source-shaped sentence usually needs its structure rebuilt, not a word swapped. `Buying X is like buying A + B + C at once` may need to become a fresh comparison native speakers would actually say, at the cost of dropping the source's phrasing entirely.
-- **Never transplant rhetorical devices.** Number parallelism, puns, and alliteration die in translation. A benefit line that reads as a device (`One price, five tools`) becomes a plain benefit statement in the target language (`一次购买 永久更新`-style: what the buyer gets, no cleverness).
+- **Localize the expression, preserve the facts.** Rework puns and parallel phrasing only when needed for natural local speech. `One price, five tools` can become `一次购买，包含五款工具`, never `永久更新` unless lifetime updates are part of the source offer.
 - **User-adopted phrasing wins.** If the maintainer has already approved a specific line in one locale, treat it as fixed and localize around it, not over it.
-- **Report the pass.** The handoff lists rewritten-sentence counts per locale; `0 rewrites` after a large copy change is a signal the pass did not happen.
+- **Report coverage and unresolved issues.** List the locales and surfaces checked. Keep already-natural sentences; a rewrite count is not evidence of quality.
 
 ---
 
@@ -454,7 +454,7 @@ Run through before shipping every draft:
 - [ ] Are all numbers verifiable? If asked "where did this come from", can you answer?
 - [ ] Are current facts, versions, launch dates, funding, financials, and specs backed by reliable sources?
 - [ ] Does every branded document have logo, product image, or UI screenshot coverage? Are missing materials clearly marked?
-- [ ] At least one **distinctive phrase** (not industry boilerplate)?
+- [ ] Does the wording fit the author and subject, without stock phrases or forced slogans?
 - [ ] Every emphasized (brand-colored) span is either a number or a distinctive phrase? If not, remove the emphasis.
 - [ ] Paragraph lengths even? No paragraph over 5 lines?
 - [ ] Number format consistent (commas, percent signs, arrows)?
@@ -477,7 +477,7 @@ Invariant #10 bans italic in print templates. Landing pages are screen-only, so 
 ### Hero rules
 
 - **Positioning comes before feature count.** Name the real product category in the first viewport. If the product has grown beyond its old anchor, rewrite the category instead of adding more feature bullets under the old one.
-- **Tagline is one sentence, not a paragraph.** If it needs a comma, it is too long. The user decides in 3 seconds whether to scroll.
+- **Tagline is one sentence, not a paragraph.** State what the product does in words the reader uses.
 - **Tokens (key facts) are scannable proof.** Price, platform, refund policy, compatibility. No adjectives. `$9 lifetime` beats `Affordable pricing for everyone`.
 - **CTA pair: secondary (try) + primary (buy).** Ghost button for low-commitment action, filled button for revenue action. Never three buttons.
 
@@ -490,12 +490,12 @@ Invariant #10 bans italic in print templates. Landing pages are screen-only, so 
 
 - **Show, don't describe.** Real screenshots replace feature paragraphs. Each panel is one shipped tool, one workflow, or one state users can actually reach.
 - **Technical products can show the workflow itself.** A terminal transcript, command draft, or error recovery panel is a product screenshot when it shows the actual review/confirm boundary.
-- **Poetic captions, not marketing copy.** The line under each screenshot should evoke, not explain. `Rainwater clears the soil` over `Efficiently clean your system caches`.
+- **Captions add information.** Name what the screenshot shows or explain a useful detail. Omit a caption that repeats the heading; use imagery only when it helps the reader understand.
 - **3-6 panels maximum.** More than 6 and the auto-rotate becomes noise. Users remember 4.
 
 ### Features list rules
 
-- **Name is the tool, subtitle is the metaphor.** Feature name in brand color, subtitle in small muted text.
+- **Name the feature directly.** Add a subtitle only when it supplies useful context. Do not require a metaphor.
 - **Description answers "so what?"** Not what it does, but why the user should care. One paragraph, 2-3 sentences.
 - **Mechanics fold into the FAQ.** A feature block sells the outcome in a few quiet points; how the product behaves (activation, boundaries, safety rules, edge cases) belongs in FAQ answers. A standalone "behaviors" section is documentation leaking into the pitch, and it usually costs a full screen of scroll.
 
@@ -535,7 +535,7 @@ Layout lives in `references/design.md` «Testimonial wall»; these rules govern 
 
 ### Footer rules
 
-- **Brand mark + closing ethos.** The footer is the last impression. A poetic closing line beats a copyright notice.
+- **Keep the footer useful.** Include the brand and relevant links or license information. Preserve an established tagline; do not invent a poetic closing line to fill the space.
 - **Links are navigation, not decoration.** Only link to pages that exist. Dead links destroy trust faster than missing links.
 
 ---
