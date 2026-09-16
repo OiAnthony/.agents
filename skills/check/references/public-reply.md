@@ -3,7 +3,7 @@
 Reusable by both Triage Mode and Ship / Release Follow-through. Default to this shape unless `AGENTS.md` or `CLAUDE.md` in the target repo contradicts it.
 
 1. Resolve `@<login>` from `gh issue view` / `gh pr view --json author` before posting.
-2. **Language:** Match the **opener's** language when it is Chinese or English. If the opener used Japanese or Korean, use English for the maintainer reply unless project docs override.
+2. **Language:** Match the **opener's** language unless the user or project explicitly specifies another reply language.
 3. Open with `@<login>` and **at most one** short thanks (`感谢反馈`, `thank you for the report`, etc.). Do **not** add closing thanks stacks (`再次感谢`, `Thanks again`, long courtesy endings).
 4. Default to one paragraph and one or two sentences: `@reporter` + one thanks, then the factual state/boundary and the reporter's next step. Include root cause only when it changes what the reporter should do. Internal files, CI approval, and maintainer process stay out.
 5. Name the exact boundary: already released, fixed on `main` but unreleased, available in nightly/beta/preview, next release, not planned, duplicate, or still needs evidence. Every sentence must be true at the moment of posting: do not write "landed on main" while the change sits uncommitted, do not write "shipped", "released", or "verified" unless that state was checked in the current turn, and do not imply a verification step (built a branch, ran an artifact) that did not happen.
