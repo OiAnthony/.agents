@@ -5,7 +5,7 @@ Flags half-width punctuation inside CJK sentences (including across a markdown
 emphasis marker, so `**标签**:` is caught), a comma or semicolon glued to the
 next Latin letter, half-width parens hugging a Han char, missing or wrong
 spacing between CJK and Latin, and em/en dashes. Skips fenced code blocks,
-inline code, URLs, and markdown links so punctuation that belongs to code is
+inline code, URLs, and link targets so punctuation that belongs to code is
 never flagged.
 
 Run as: python3 check_punctuation.py [--lang LANG] [--fix] [FILE]
@@ -32,6 +32,9 @@ HANGUL = "가-힣"
 URL_RE = re.compile(r"https?://(?:\([^()]*\)|[A-Za-z0-9\-._~:/?#\[\]@!$&'*+,;=%])+")
 # group(1) captures only the (url) target so the [label] stays visible to checks.
 MD_LINK_RE = re.compile(r"\[[^\]]*\](\((?:[^()]|\([^()]*\))*\))")
+# A wikilink without a pipe is all target. With a pipe, group(1) is rendered
+# label text and group(2) is the target, so punctuation checks still see the label.
+WIKILINK_RE = re.compile(r"\[\[([^\[\]|]*)(?:\|([^\[\]]*))?\]\]")
 
 # Single-class matchers reused across detect_lang / fix_zh_line (compiled once).
 _HANGUL_RE = re.compile(f"[{HANGUL}]")
@@ -87,15 +90,18 @@ def _inline_code_spans(line: str):
 
 
 def exempt_mask(line: str) -> list[bool]:
-    """Per-character mask; True marks positions inside inline code, a URL, or the
-    (url) target of a markdown link -- never inspected or rewritten. The [label]
-    of a markdown link stays visible (it is rendered prose). A trailing ASCII
-    mark on a bare URL immediately followed by a CJK/kana/Hangul char is released
-    from the mask: it is a sentence separator, not part of the URL."""
+    """Per-character mask; True marks positions inside inline code, a URL, or a
+    link target -- never inspected or rewritten. Rendered markdown and wikilink
+    labels stay visible to checks. A trailing ASCII mark on a bare URL immediately
+    followed by a CJK/kana/Hangul char is released from the mask: it is a sentence
+    separator, not part of the URL."""
     mask = [False] * len(line)
     spans: list[tuple[int, int]] = []
     for m in MD_LINK_RE.finditer(line):
         spans.append((m.start(1), m.end(1)))
+    for m in WIKILINK_RE.finditer(line):
+        target_group = 2 if m.group(2) is not None else 1
+        spans.append((m.start(target_group), m.end(target_group)))
     for m in URL_RE.finditer(line):
         s, e = m.start(), m.end()
         while e > s and line[e - 1] in _HALFWIDTH and e < len(line) and _CJK_KANA_HANGUL_RE.match(line[e]):
