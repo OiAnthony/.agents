@@ -106,9 +106,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "23d47f8ceea682e04e9f3f3cb177e03800e9966b",
+      "skillFolderHash": "fa79bf16eda168ea6d3773a704d7c00609b88eb8",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-09-16T01:54:06.197Z"
+      "updatedAt": "2026-09-19T02:43:28.316Z"
     },
     "hunt": {
       "source": "tw93/Waza",
