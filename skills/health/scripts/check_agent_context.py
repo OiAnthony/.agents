@@ -275,6 +275,60 @@ def project_instruction_files(root: Path) -> list[Path]:
     return unique_physical_files(files)
 
 
+WALK_EXCLUDED_DIRS = {
+    ".git", ".hg", ".svn", "node_modules", "dist", "build", ".next",
+    "__pycache__", ".venv", "venv", "target", "coverage", ".cache",
+    ".pytest_cache", ".mypy_cache", ".ruff_cache", "Pods", "Carthage",
+    ".swiftpm", ".gradle",
+}
+
+PROJECT_INSTRUCTION_MODES = (
+    "claude-md",
+    "claude-md-or-agents-md",
+    "claude-md-and-agents-md",
+    "managed-only",
+)
+
+
+def project_instructions_mode(settings_path: Path) -> str:
+    """Which files Claude Code loads as project instructions.
+
+    The `agents-md` built-in mod decides whether an `AGENTS.md` counts. It is
+    off unless `pluginConfigs` turns it on, so the same repository is either
+    covered or invisible to Claude depending on one key, and a checker that
+    cannot read it has to guess.
+    """
+    value, _ = load_json(settings_path)
+    if not isinstance(value, dict):
+        return "claude-md"
+    configs = value.get("pluginConfigs")
+    if not isinstance(configs, dict):
+        return "claude-md"
+    entry = configs.get("agents-md@builtin")
+    if not isinstance(entry, dict):
+        return "claude-md"
+    options = entry.get("options")
+    if not isinstance(options, dict):
+        return "claude-md"
+    mode = options.get("instructionFiles")
+    return mode if mode in PROJECT_INSTRUCTION_MODES else "claude-md"
+
+
+def nested_agents_files(root: Path) -> list[Path]:
+    """`AGENTS.md` below the root, which only some runtimes walk into."""
+    resolved = resolve_audit_dir(root)
+    if resolved is None:
+        return []
+    found: list[Path] = []
+    for path in sorted(resolved.rglob("AGENTS.md")):
+        if path.parent == resolved:
+            continue
+        if any(part.startswith(".") or part in WALK_EXCLUDED_DIRS for part in path.relative_to(resolved).parts[:-1]):
+            continue
+        found.append(path)
+    return unique_physical_files(found)
+
+
 def claude_delegates_to_agents(path: Path) -> bool:
     text = read(path, 20_000)
     if not text:
@@ -359,12 +413,7 @@ def context_units(text: str) -> int:
 
 
 def project_relative_files(root: Path) -> tuple[list[str], bool]:
-    excluded = {
-        ".git", ".hg", ".svn", "node_modules", "dist", "build", ".next",
-        "__pycache__", ".venv", "venv", "target", "coverage", ".cache",
-        ".pytest_cache", ".mypy_cache", ".ruff_cache", "Pods", "Carthage",
-        ".swiftpm", ".gradle",
-    }
+    excluded = WALK_EXCLUDED_DIRS
     paths: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
         current = Path(dirpath)
@@ -1245,6 +1294,12 @@ def main() -> int:
 
     global_claude = home / ".claude" / "CLAUDE.md"
     global_claude_settings = home / ".claude" / "settings.json"
+    instructions_mode = project_instructions_mode(global_claude_settings)
+    agents_fallback_on = instructions_mode in (
+        "claude-md-or-agents-md",
+        "claude-md-and-agents-md",
+    )
+    nested_agents = nested_agents_files(root)
     shared_project_settings = root / ".claude" / "settings.json"
     local_project_settings = root / ".claude" / "settings.local.json"
     project_rules = root / ".claude" / "rules"
@@ -1261,8 +1316,22 @@ def main() -> int:
             claude_findings.append("CLAUDE.md resolves to the same physical file as AGENTS.md")
         else:
             claude_findings.append("CLAUDE.md delegates to AGENTS.md")
-    if yes(global_claude) == "no" and yes(claude) == "no":
+    claude_reads_agents = yes(agents) == "yes" and agents_fallback_on
+    if yes(global_claude) == "no" and yes(claude) == "no" and not claude_reads_agents:
         claude_findings.append("Claude instruction surface not found")
+    # A root CLAUDE.md switches the whole project off the AGENTS.md path, so the
+    # nested guides stop loading with it. The one exception is the both mode,
+    # where AGENTS.md is read beside CLAUDE.md and the walk still reaches them,
+    # unless CLAUDE.md IS that AGENTS.md, in which case the deduplicated chain
+    # is skipped and the nested files go dark again. Measured all four ways.
+    both_mode = instructions_mode == "claude-md-and-agents-md"
+    nested_hidden = nested_agents and yes(claude) == "yes" and (
+        not both_mode or claude_aliases_agents
+    )
+    if nested_hidden:
+        claude_findings.append(
+            f"a root CLAUDE.md hides {len(nested_agents)} nested AGENTS.md from Claude"
+        )
 
     if (
         yes(global_claude) == "yes"
@@ -1304,7 +1373,13 @@ def main() -> int:
     claude_status = (
         "WARN"
         if (
-            (claude_findings and "surface not found" in " ".join(claude_findings))
+            (
+                claude_findings
+                and any(
+                    marker in " ".join(claude_findings)
+                    for marker in ("surface not found", "hides")
+                )
+            )
             or permission_status == "WARN"
             or path_context_status == "WARN"
         )
@@ -1339,6 +1414,8 @@ def main() -> int:
     print("=== CLAUDE SURFACE ===")
     print(f"claude_status: {claude_status}")
     print(f"global_claude_md: {yes(global_claude)}")
+    print(f"project_instructions_mode: {instructions_mode}")
+    print(f"nested_agents_md: {len(nested_agents)}")
     print(f"global_settings_json: {yes(global_claude_settings)}")
     print(f"project_claude_md: {yes(claude)}")
     print(f"shared_settings_json: {yes(shared_project_settings)}")

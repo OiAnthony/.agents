@@ -1032,7 +1032,17 @@ fi
 
 echo "[8/12] Conversation signals + extract..."
 CONVERSATION_AUDIT_SCRIPT="$(resolve_health_helper conversation_audit.py || true)"
-if [ -n "$CONVERSATION_AUDIT_SCRIPT" ] && [ -n "$PYTHON_BIN" ]; then
+if [ "$AUDIT_HINT" = "instructions" ]; then
+  # Out of scope, not unavailable: an instruction-and-config audit does not need
+  # session history, and calling a deliberate skip a coverage gap would train the
+  # reader to ignore real ones.
+  echo "=== CONVERSATION COVERAGE ==="
+  echo "(out of scope: instruction and config audit, session history not read)"
+  echo "=== CONVERSATION FILES ==="
+  echo "(out of scope)"
+  echo "=== CONVERSATION SIGNALS ==="
+  echo "(out of scope)"
+elif [ -n "$CONVERSATION_AUDIT_SCRIPT" ] && [ -n "$PYTHON_BIN" ]; then
   "$PYTHON_BIN" -I "$CONVERSATION_AUDIT_SCRIPT" "$CONVO_DIR" "$MODE" \
     --codex-root "$HOME/.codex/sessions" --project-root "$P"
 else
