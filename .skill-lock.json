@@ -182,15 +182,6 @@
       "installedAt": "2026-05-19T08:03:23.597Z",
       "updatedAt": "2026-09-12T01:59:19.304Z"
     },
-    "lark": {
-      "source": "OiAnthony/lark-cli-progressive-skill",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/OiAnthony/lark-cli-progressive-skill.git",
-      "skillPath": "skills/lark/SKILL.md",
-      "skillFolderHash": "08c3317e10a52906106bd799e7afea6bea740fc9",
-      "installedAt": "2026-07-13T07:06:39.696Z",
-      "updatedAt": "2026-09-12T01:59:31.896Z"
-    },
     "herdr": {
       "source": "herdrdev/herdr",
       "sourceType": "github",
@@ -226,6 +217,15 @@
       "skillFolderHash": "0bdb821a21e793a4f6f82a7078c052154447e5cc",
       "installedAt": "2026-09-04T01:49:29.736Z",
       "updatedAt": "2026-09-04T01:49:29.736Z"
+    },
+    "lark-suite": {
+      "source": "OiAnthony/lark-suite",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/OiAnthony/lark-suite.git",
+      "skillPath": "skills/lark-suite/SKILL.md",
+      "skillFolderHash": "97457a3bbf4b6dc0e00ba1d283eadbf5fc6548f6",
+      "installedAt": "2026-09-20T06:46:08.403Z",
+      "updatedAt": "2026-09-20T06:56:38.059Z"
     }
   },
   "dismissed": {
@@ -233,14 +233,13 @@
   },
   "lastSelectedAgents": [
     "amp",
-    "antigravity",
-    "antigravity-cli",
     "cline",
     "codex",
     "cursor",
-    "deepagents",
+    "droid",
     "gemini-cli",
     "github-copilot",
+    "kilo",
     "kimi-code-cli",
     "opencode",
     "warp",
