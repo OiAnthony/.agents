@@ -1,7 +1,7 @@
 ---
 name: hunt
-description: "Finds root cause before applying fixes for errors, crashes, regressions, failing tests, broken behavior, and screenshot-reported defects. Use when users report in any language errors, crashes, broken behavior, regressions, failing tests, screenshot evidence, or something that used to work and now fails. Not for code review or new features."
-when_to_use: "排查, 查查, 报错, 崩溃, 不工作, 不对, 跑不通, 以前是好的, 回归, 截图回归, 判断错误原因, 判断为什么报错, 反复修不好, debug, regression, used to work, broke after update, why broken, not working, what's wrong, fix error, stack trace"
+description: "Finds root cause before any fix. Use when something errors, crashes, regresses, or used to work. Not for code review or new features."
+when_to_use: "排查, 报错, 崩溃, 回归, 截图回归, 判断错误原因, 判断为什么报错, 反复修不好, debug, regression, used to work, broke after update, why broken, not working, what's wrong, fix error, stack trace, 以前是好的"
 dispatch_intent: "Error, crash, regression, screenshot-reported defect, test failure, stale cache, runtime boundary, why broken"
 ---
 
@@ -17,7 +17,7 @@ A patch applied to a symptom creates a new bug somewhere else.
 - Done when: one sentence explains the cause, every observed symptom fits it, and the fix or handoff is verified against a reproducible check.
 - Evidence: source trace, repro command or UI path, logs or state, targeted test/build output, and runtime evidence for UI or native defects.
 - Output: root cause, fix or handoff, verification result, and any unswept sibling risks.
-- Authorization: "diagnose", "investigate", "why", "look into", "排查", "看看", or equivalent is report-only. Apply a fix only when the current turn explicitly asks to fix, change, implement, or optimize; root-cause proof is still required first.
+- Authorization: "diagnose", "investigate", "why", "look into", "排查", "看看", or equivalent is report-only. Apply a fix only when the current request explicitly asks to fix, change, implement, or optimize, or when an authorization to do so is still in force for this same unfinished task with the action, scope, and goal unchanged; root-cause proof is still required first. A fix authorization never carries commit, push, publish, or any destructive action with it.
 
 **Do not touch code until you can state the root cause in one sentence:**
 > "I believe the root cause is [X] because [evidence]."
@@ -107,6 +107,7 @@ For input method, character rendering, or text encoding bugs (IME state, cursor 
 - **Visual/rendering bugs: static analysis first.** Trace paint layers, stacking contexts, and layer order in DevTools before adding console.log or visual debug overlays. Logs cannot capture what the compositor does. Only add instrumentation after static analysis fails.
 - **Behavioral / lifecycle / async bugs: instrument while forming the hypothesis.** Window lifecycle, event delivery, navigation, focus, timer, state-machine, and async-ordering bugs almost never yield to static reading alone. The moment the hypothesis involves "this callback fires before/after that one", "this state should be X when Y runs", or "this object should still be alive here", add the log before writing any fix (anti-pattern 28); two guesses in a row is the hard-stop signal. Compositor behavior needs DevTools, not logs; pure-logic bugs (wrong formula, off-by-one) need only static analysis.
 - **Tuning magic numbers past round three: stop, unify.** When a spacing / sizing / threshold value has been adjusted three times and still looks wrong, the bug is structural, not numeric. Replace the N independent values with one named token (`Spacing.s4`, `--gap-content`, etc.) and verify the asymmetry was hiding a missing constraint. Asymmetry that survives tuning is structural; more tuning will not converge.
+- **"While you are at it, add X" is a separate task.** Name the bundled feature request in one line, defer it, and finish the diagnosis. Agreement to fix a bug this hunt surfaced lifts the listing restriction for that bug only; it does not turn the hunt into feature work.
 - **Performance complaints need numbers.** For "slow", "laggy", or memory-growth reports outside Native App Freeze Mode, measure the baseline first (wall-clock time, profile sample, memory footprint), fix, then re-measure and report before/after numbers. "Feels faster" is not evidence.
 - **Fix the cause, not the symptom.** Continue necessary fixes within the user's authorized scope. Ask only when the fix expands that scope or requires a user decision; file count alone is not an approval boundary.
 

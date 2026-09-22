@@ -190,6 +190,7 @@ Signals: an operation is reported as failed, stalled, or "no progress" while it 
 
 Checks:
 - For each timeout constant, name the slowest *healthy* case (a several-hundred-MB download on a slow link, a first-of-day index rebuild, a tool rebuilding its cache after a cleanup) and confirm the constant clears it with margin. This is the inverse of magic-wait coupling: there the timer is too loose to be a real signal, here it is too tight to allow a healthy slow case.
+- A detector threshold has the same two directions as a timeout. Take the measurement from the incident that motivated the check and set the threshold below it; a rounder number chosen by taste excludes the one case the check exists for. Then confirm it against the healthy population so it does not fire on everything, and check what the detector prints when nothing crosses the line, since a floor that reports "nothing found" exactly when a name was needed is the same defect facing the other way.
 - Replace "no output for N seconds" with a real liveness probe (a growing temp file, a byte counter, a heartbeat) and keep the timeout as the genuine stall guard.
 - For each watchdog, enumerate every exit from the region it guards, including thrown errors and forks into an alternate path. A watchdog that survives a fork fires in the middle of the path that replaced it.
 - Check whether a second bound already covers a genuinely hung run. If so, the extra timer can only ever fire early.
