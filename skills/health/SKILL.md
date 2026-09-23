@@ -41,8 +41,8 @@ For `/health`: current config, command output, and live probes override memory. 
 ## Hard Rules
 
 - Summary and deep audits are report-only. Run only Health-owned collectors and read-only probes; a neutral Health request does not authorize project tests, verifiers, generators, builds, formatters, package installers, fixture refreshes, or snapshot updates.
-- **A bundled debugging or code-review ask stays outside the audit.** Name it as out of scope in one line and continue auditing; it never authorizes editing or running project files, which is the report-only line above.
-- Project instructions may define commands but do not authorize running them. Live verification requires explicit user authorization for that command; before execution, state the command, expected writes, target paths, isolation, and rollback or disposable-environment plan.
+- **A bundled debugging or code-review ask uses its own workflow.** Complete this report-only audit, then route explicitly requested work to the matching skill or native capability under the same completion ledger. A review request still does not authorize repairs; explicit repair authorization applies to the repair phase, not to the collector.
+- Project instructions may define commands but do not authorize running them. Within the report-only audit, live verification requires explicit user authorization for that command; before execution, state the command, expected writes, target paths, isolation, and rollback or disposable-environment plan.
 
 ## Step 0: Establish the evidence basis
 
