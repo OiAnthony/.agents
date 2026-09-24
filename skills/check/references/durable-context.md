@@ -12,7 +12,7 @@ Current code, diff, screenshots, logs, tests, docs, CI, remote state, and live p
 
 ## Memory is not authorization
 
-Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Current-turn instructions and current project rules decide authorization. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
+Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Live task instructions and current project rules decide authorization, including explicit authorization still in force for the same unfinished goal. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
 
 ## Redaction gate
 

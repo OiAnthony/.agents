@@ -11,7 +11,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 > Note: `/review` is a built-in Anthropic plugin command for PR review. Waza uses `/check` (or the alias `code-review`) instead. Do not re-trigger `/review` from within this skill.
 
-Read the diff and find the problems. Review, audit, triage, and readiness requests are report-only; apply fixes only when the current turn explicitly asks to fix, change, implement, or optimize. Done means the requested review surface is covered and every verification claim comes from this session.
+Read the diff and find the problems. Review, audit, triage, and readiness requests are report-only; apply fixes only under explicit repair authorization still in force for the same task. Done means the requested review surface is covered and every verification claim comes from this session.
 
 ## Outcome Contract
 
@@ -267,7 +267,7 @@ In a dirty or multi-agent checkout, a passing local build or test run is not pro
 
 ## Document Review
 
-For document, PDF, white paper, or prose review, route to `/write` (Document Review Mode). `/check` handles code diffs and release artifacts only. If `/write` is not installed, say the request belongs to it and stop there rather than taking the prose review.
+For document, PDF, white paper, or prose review, route to `/write` (Document Review Mode). `/check` handles code diffs and release artifacts only. If `/write` is not installed, use the available prose capability and state any real limitation; keep explicitly requested prose work in the same completion ledger.
 
 ## Gotchas
 
