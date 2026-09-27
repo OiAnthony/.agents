@@ -66,8 +66,8 @@ font-family: "YuMincho", "Yu Mincho", "Hiragino Mincho ProN",
 
 /* Korean */
 font-family: "Source Han Serif K", "Source Han Serif KR",
-             "Noto Serif KR", "Apple SD Gothic Neo", AppleMyungjo,
-             Charter, Georgia, serif;
+             "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo,
+             "Apple SD Gothic Neo", Charter, Georgia, serif;
 ```
 
 **Font fallback affects page count**. Any font swap requires re-running the page-count check. If output overflows, first confirm the intended font actually loaded. If it did, edit content using pitfall "Hard-limit overflow"; spacing comes later and font size is the last resort.
@@ -173,7 +173,7 @@ different element for chapter titles, add `.running-title` to that element.
 | `@font-face` | gradients (slow, use sparingly) | CSS animations / transitions |
 | `break-before` / `break-inside: avoid` | | |
 | CSS variables `var(--name)` | | |
-| `target-counter(attr(href), page)` for rendered TOC page numbers | | |
+| `target-counter(attr(href), page)` on a block anchor (pitfall 24) | | |
 | `::before` / `::after` | | |
 
 ### Strict LaTeX mathematics
@@ -935,6 +935,53 @@ not generated from `assets/diagrams/*.html`.
 **Done when**: every visual change to a diagram template is also present in the
 matching mini SVG in `index.html`, `index-zh.html`, `index-ja.html`, `index-ko.html`,
 and `index-tw.html`.
+
+### 24. (P0) `target-counter` resolves to 0 on a flex anchor (WeasyPrint 70.0)
+
+**Symptom**: every long-doc TOC page number renders as `0`. WeasyPrint 69.0 and
+earlier print the correct numbers from the same HTML; 70.0 (2026-09-08) does not.
+
+**Root cause**: WeasyPrint 70.0 fails to resolve `target-counter()` in an
+`::after` whose originating `<a>` is itself `display: flex`. The unresolved
+counter still prints a well-formed `0`, so no text-level gate objects.
+
+**Fix**: keep the anchor a block and float the numeral instead of relying on
+flex alignment:
+
+```css
+.toc-title {
+  flex: 1;             /* still a flex ITEM of .toc-item, which is fine */
+  display: block;      /* must not be a flex CONTAINER itself */
+}
+.toc-title[href]::after {
+  content: target-counter(attr(href), page);
+  float: right;        /* not margin-left: auto */
+}
+```
+
+**Done when**: `python3 scripts/build.py --verify long-doc` passes. That target
+cross-checks each rendered numeral against the page its TOC row links to, so a
+`0` fails the build instead of shipping. Same substitution as the resume badge
+fix (`float: right` over `margin-left: auto`): it is stable across versions.
+Match each numeral to its containing row, not every link to the same destination:
+body cross-references are not TOC rows, and repeated destinations still need
+separate checks. CI renders all three long-doc variants even without a page ceiling.
+
+### 25. Korean text is extractable but absent in a PDF preview
+
+**Symptom**: a Source Han Serif KR PDF contains Korean text and embeds its font,
+but a MuPDF/PyMuPDF preview shows only Latin text and page numbers.
+
+**Root cause**: WeasyPrint's CID-keyed CFF font handling can produce different
+results across PDF readers. This is an [upstream compatibility limitation](https://github.com/Kozea/WeasyPrint/issues/1593),
+not proof of a missing font file. The same PDF can render correctly in Poppler
+while MuPDF omits the Korean glyphs; embedding the full font is not a reliable fix.
+
+**Verification**: compare the same page with `pdftoppm -f 2 -l 2 -png output.pdf preview`
+and inspect it in the recipient's PDF reader. Text extraction and embedded font
+names alone do not establish visible glyphs. Do not replace the template's typeface
+or shrink its layout to repair a preview. A successful Poppler render does not
+establish compatibility with MuPDF; keep that limit explicit in the handoff.
 
 ---
 

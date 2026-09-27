@@ -236,6 +236,22 @@ def rel_to_root(path: Path) -> Path:
     return path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
 
 
+def resolve_input(raw: str | Path) -> Path:
+    """Resolve a user-supplied file argument.
+
+    Agents call the checks from the directory holding their document, so a
+    relative path means the caller's working directory first. Skill-relative
+    paths (`assets/examples/resume.pdf`) keep working as the fallback.
+    """
+    path = Path(raw).expanduser()
+    if path.is_absolute():
+        return path
+    from_cwd = Path.cwd() / path
+    if from_cwd.exists():
+        return from_cwd
+    return ROOT / path
+
+
 def default_example_pdfs() -> list[str]:
     """Return every rendered example PDF, the default scan set for PDF checks."""
     return [str(p) for p in sorted(EXAMPLES.glob("*.pdf"))]
@@ -317,7 +333,7 @@ def load_checks_thresholds() -> dict[str, Any]:
         return json.loads(CHECKS_THRESHOLDS_FILE.read_text(encoding="utf-8"))
     return {
         "rhythm": {"max_content_run": 5, "divider_min_deck_size": 12},
-        "density": {"warn_pct": 0.25, "sparse_pct": 0.50, "dpi": 36},
+        "density": {"warn_pct": 0.25, "sparse_pct": 0.50, "last_page_pct": 0.60, "dpi": 36},
         "resume_balance": {
             "min_fill_pct": 0.83,
             "max_fill_pct": 0.95,

@@ -214,7 +214,7 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 ### Resume
 
-**Impact formula**: Action + Scope + Measurable Result + Business Outcome. Every bullet must answer "what did I do, at what scale, with what result, and why did it matter?"
+**Impact formula**: Action + Honest Scope + Observable Result. Explain the business outcome when relevant; use verified metrics when available and concrete qualitative evidence otherwise.
 
 | Avoid | Use |
 |---|---|
@@ -236,7 +236,7 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Core rule**: open every case study with the problem and its stakes, not with your role or the project name.
 
-**Density bar**: each project page reads as a complete case study. At target font size, a body page that renders under half-full is a draft defect, not a design choice. Merge upward into the previous project or downward into the next; do not pad with filler prose. See SKILL.md Step 4.1 for the items-per-page contract.
+**Density bar**: each project page reads as a complete case study. At target font size, a body page that renders under half-full is a draft defect, not a design choice. Merge upward into the previous project or downward into the next; do not pad with filler prose. See «Page density» below for the items-per-page contract.
 
 | Avoid | Use |
 |---|---|
@@ -245,17 +245,17 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Rules**:
 1. Show 2-3 decision points where you chose between alternatives. Explain the tradeoff, not just the winner
-2. Three-layer outcomes: quantitative metric (conversion rate +80%) + qualitative evidence (user quote) + business context ($1.2M additional annual revenue)
+2. Support outcomes with verified metrics or concrete qualitative evidence, and explain the business context when relevant. Include user quotes only when supplied or sourced
 3. State your exact role and scope: "I designed" vs "I led" vs "I contributed to" are very different signals
 4. 3-5 deep case studies beats 12 shallow ones. Depth is credibility
-5. Always close the loop: every problem introduced must have a measured resolution
+5. Close the loop with an observable result for each problem; state unresolved limits when the evidence does not establish a resolution
 6. Prefer final product screenshots over mockups. If product images are missing, mark the gap rather than filling with unrelated imagery
 
 ### Slides
 
 **Core rule**: every slide title should be a full declarative sentence (an assertion), not a topic label. The body provides one piece of evidence supporting the assertion.
 
-**Density bar**: each body slide carries one assertion + 3-5 supporting items (or 1 chart + 2-3 callouts). Slides with fewer than 3 items and no chart must merge into an adjacent slide. A pinned `.co` callout is valid only when it adds a real relationship, constraint, or conclusion; never use it to fill trailing whitespace. See SKILL.md Step 4.1.
+**Density bar**: each body slide carries one assertion + 3-5 supporting items (or 1 chart + 2-3 callouts). Slides with fewer than 3 items and no chart must merge into an adjacent slide. A pinned `.co` callout is valid only when it adds a real relationship, constraint, or conclusion; never use it to fill trailing whitespace. See «Page density» below.
 
 | Avoid | Use |
 |---|---|
@@ -287,7 +287,7 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Core rule**: lead with the variant perception (what you see that the market doesn't) and tie every thesis driver to a measurable financial impact.
 
-**Density bar**: a body page with only a 2-row table and a sentence is too thin. Each page should carry one section + one table/chart + supporting prose. Combine sections rather than leaving a page half-empty. See SKILL.md Step 4.1.
+**Density bar**: a body page with only a 2-row table and a sentence is too thin. Each page should carry one section + one table/chart + supporting prose. Combine sections rather than leaving a page half-empty. See «Page density» below.
 
 | Avoid | Use |
 |---|---|
@@ -310,7 +310,7 @@ Structure is necessary but not sufficient. These bars define what separates comp
 
 **Core rule**: each chapter's claim paragraph must survive the "so what?" test. If the reader asks "why should I care?", the first paragraph must have the answer.
 
-**Density bar**: each body page carries 1 chapter heading + 2-4 paragraphs + at most 1 figure. A chapter that fits in under 40% of a page must merge into the next chapter rather than claiming its own page. Trailing whitespace at the bottom of a body page is a draft defect. See SKILL.md Step 4.1.
+**Density bar**: each body page carries 1 chapter heading + 2-4 paragraphs + at most 1 figure. A chapter that fits in under 40% of a page must merge into the next chapter rather than claiming its own page. Trailing whitespace at the bottom of a body page is a draft defect. See «Page density» below.
 
 After converting from Markdown, remove or convert thematic breaks, bold markers,
 and inline-code backticks before delivery, then run `python3 scripts/build.py
@@ -347,7 +347,7 @@ and inline-code backticks before delivery, then run `python3 scripts/build.py
 
 **Core rule**: one sentence per change, verb-led, user-facing language. If the user cannot understand the change from the sentence alone, rewrite it.
 
-**Density bar**: each version block carries 4-8 entries. A version with fewer than 4 entries should sit on the same page as the prior version rather than triggering a near-empty page. See SKILL.md Step 4.1.
+**Density bar**: each version block carries 4-8 entries. A version with fewer than 4 entries should sit on the same page as the prior version rather than triggering a near-empty page. See «Page density» below.
 
 | Avoid | Use |
 |---|---|
@@ -361,6 +361,24 @@ and inline-code backticks before delivery, then run `python3 scripts/build.py
 4. No internal jargon. "Fix memory leak in image decoder" is clear. "Fix retain cycle in UIImageDecoderBridge" is not
 
 ---
+
+## Page density (multi-page documents)
+
+Applies to slides-weasy, long-doc, portfolio, equity-report, and changelog. Resume, one-pager, and letter have their own length contracts. The most common draft defect in a generated multi-page document is content split too thin, so several pages never fill.
+
+Body pages target 60-80% fill; cover, table of contents, and closing colophon are exempt. The last body page may close at 40-60%; forcing balance there usually means padding.
+
+| Template | Typical body page | Floor (merge if below) |
+|---|---|---|
+| slides-weasy | 1 assertion title + 3-5 supporting items, or 1 chart + 2-3 callouts | Under 3 items and no chart: merge into an adjacent slide |
+| long-doc | 1 chapter heading + 2-4 paragraphs + at most 1 figure | Chapter renders under 40% of a page: merge into a neighbor |
+| portfolio | 1 project header + 1 hero image + 3-5 outcome bullets | No image and under 3 outcomes: merge with an adjacent project |
+| equity-report | 1 section + 1 table or chart + supporting prose | Only a 2-row table on the page: combine sections |
+| changelog | 1 version block + 4-8 entries | Under 4 entries: share the page with the prior version |
+
+A body page that renders under 50% full gets one of these, in order: merge upward into the previous section; merge downward into the next; remove the page and fold its one useful assertion or proof into a neighbor; convert existing information to a small table or diagram only when that form is clearer even without the density problem. Never fill a sparse page with filler prose, a heading restated as a sentence, invented statistics, the prior page reworded, or a callout, chart, icon, or image whose only job is to occupy space. If no merge applies, the page should not exist.
+
+`--check-density` (inside `--deliver`) reports trailing whitespace per page; a body page flagged there is a draft defect to re-author with the merge rule above.
 
 ## Diagrams and infographics
 
@@ -412,6 +430,7 @@ Across any document:
 | ~$10M | $9,876,543 (false precision reads fake) |
 | 2026.04 | 2026年4月 / April 2026 (when horizontal space is tight) |
 | -> | → |
+| n/a (EN), 不适用 (CN), 해당 없음 (KO) in an empty table cell | an em dash (U+2014); the Markdown residue check rejects it in every document |
 
 ### Language-specific punctuation
 

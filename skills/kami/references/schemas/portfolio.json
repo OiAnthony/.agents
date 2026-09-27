@@ -13,7 +13,7 @@
     "contact": { "type": "string", "minLength": 4, "maxLength": 160 },
     "about": { "type": "string", "minLength": 60 },
     "projects": {
-      "$comment": "Each project: problem and stakes first, exact role and scope, 2-3 decision points with tradeoffs, three-layer outcomes (metric + qualitative evidence + business context).",
+      "$comment": "Each project: problem and stakes first, exact role and scope, 2-3 decision points with tradeoffs, outcomes supported by verified metrics or concrete qualitative evidence, and business context when relevant. State unresolved limits honestly.",
       "type": "array",
       "minItems": 3,
       "maxItems": 5,

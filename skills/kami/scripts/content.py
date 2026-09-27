@@ -33,11 +33,11 @@ from shared import (
     HTML_TEMPLATES,
     MARP_TEMPLATES,
     PPTX_TEMPLATES,
-    ROOT,
     SCHEMAS_DIR,
     SCREEN_TEMPLATES,
     content_schema_types,
     rel_to_root,
+    resolve_input,
 )
 
 # Strings longer than this are treated as prose the agent may rephrase while
@@ -668,9 +668,7 @@ def check_content(
         print(f"  known types: {known}")
         return finish("contract", 2)
 
-    content_path = Path(args[0])
-    if not content_path.is_absolute():
-        content_path = ROOT / content_path
+    content_path = resolve_input(args[0])
     rel = rel_to_root(content_path)
     if not content_path.exists():
         print(f"ERROR: {args[0]}: file not found")
@@ -693,9 +691,7 @@ def check_content(
     if len(args) == 1:
         return 0
 
-    html_path = Path(args[1])
-    if not html_path.is_absolute():
-        html_path = ROOT / html_path
+    html_path = resolve_input(args[1])
     html_rel = rel_to_root(html_path)
     if not html_path.exists():
         print(f"ERROR: {args[1]}: file not found")

@@ -34,6 +34,12 @@ Each project row uses a fixed three-part structure. The word and character targe
 
 ---
 
+## Recruiter pass (before building)
+
+Mechanical checks validate structure and layout, not prose; a resume can pass every one of them and still read broken. After filling and before building, reread every project card the way a recruiter would, against the three-part rows above: Role carries your position in the project, not background alone; Actions are verb-led, one concrete approach per sentence; Impact reads as an outcome, not a restatement of the process. Across rows, no row repeats another row's information.
+
+Fix a failing row by rewriting from the source material. If the source cannot support a row (no outcome fact exists), ask the user for the missing fact; never pad, and never fall back to generic claims ("保障稳定运行", "improved efficiency"). The pass is silent: surface it only when a row cannot be fixed without new information.
+
 ## Source and truth pass
 
 Run this pass before rewriting when the user provides more than one source, such as an old resume plus a self-review, annual review, promotion packet, or project notes.

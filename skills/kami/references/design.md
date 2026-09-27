@@ -196,6 +196,26 @@ Print documents are **tighter** than English web body. English web typically run
 - All-caps overlines: +0.5 to +1pt mandatory
 - **Slide-specific**: print tracking x0.5 at slide scale. Eyebrow max 3px (not 8px), display titles -0.5pt. Large type at 40pt+ will look scattered at print tracking values
 
+### External principles cross-check
+
+A cross-check against Pierrick Calvez, "A Five-Minute Guide to Better Typography" (external reference, read once for calibration, not reprinted here). Where the guide agrees with Kami it sharpens a rule already stated above; where it conflicts, the Kami invariant wins. Use this list to resist "improving" Kami toward habits that suit a Western multi-weight editorial page but break this constraint system.
+
+**Agrees with Kami (apply):**
+
+- **Set blocks, not glyphs.** Type is a beautiful group of letters, not a group of beautiful letters. Judge a paragraph as a shape and an even gray field, not one admirable character at a time. This is why Kami pins measure, line-height, and tracking per context rather than tuning individual words.
+- **Optical alignment beats mathematical alignment.** Text is aligned when it looks aligned, not when the box edges match. Nudge the optical edge back when a quotation mark, a bullet, a large display cap, or a hanging figure pushes a line visually past the margin. This is the same instinct behind the existing display-tracking and «cap both tracks» rules; it is a manual eyeball pass, not a token.
+- **Measure (line length) for reading body: about 40 to 70 characters per line.** Too wide and the eye loses the next line's start; too narrow and rhythm breaks. This is the character-count basis for the reading-measure caps already stated for screen prose (Section 11 «Documentation site», about 720px) and for the natural print measure held by the A4 margins in Section 3. Keep body reading inside this band; do not let a full-frame screen column run edge to edge.
+- **Line-spacing scales with measure and length.** Short blocks read fine near 1.2x the font size; long reading passages want roughly 1.5x. Map this onto Kami's locked tiers, do not invent your own: tight headlines 1.10-1.30, dense body 1.40-1.45, reading body 1.50-1.55. The guide's "1.5x" lands on Kami's reading tier; it is not a licence to reach 1.6+ on a print body (still forbidden above).
+- **Hierarchy comes from contrast, not ornament.** Separate levels with size, weight, and space, and when a step is unclear either skip a weight rather than adding a faint one, or open the size gap. Kami reaches the same end through its fixed ladder: use the next registered size step and the 500/400 weight pair, plus spacing, never a new in-between size (see «Ladder discipline») and never a decorative rule (see «Subtractive rule»).
+- **Left-align body; centre only short display lines.** Ragged-right left alignment gives the eye a stable return edge for running text. Centring is for a cover title, a short subtitle, or a single pinned callout line, never for paragraphs or lists. This matches the left-edge discipline in «Feature rows» and the centred-cover exceptions in the Deck Recipe.
+- **Kerning and tracking are optical tools for large and small type.** Spend them on display sizes and all-caps or small-caps labels, exactly where the Letter-spacing rules above already allow it. Do not track body copy for effect.
+
+**Conflicts with Kami (do not import):**
+
+- **Multi-weight typeface families.** The guide advises choosing a face with many weights (Light, Regular, Medium, Bold) and orchestrating them. Kami forbids this for the serif: body is 400, headings are 500, and that is the whole range. No 700 (synthetic bold is banned), no Light. Emphasis is carried by size, space, and ink-blue, per «Weight» and invariant 5. Do not add a weight step to a Kami serif document.
+- **Western ornamental punctuation habits.** Editorial guides written for English print lean on the em dash and decorative punctuation. Kami constrains dashes and decoration deliberately: see the no-em-dash rule in `references/anti-patterns.md` #28 and the list-marker rule in «Lists» (no faux en-dash bullets). Do not import em-dash-heavy phrasing or ornamental marks from the guide.
+- **Do not reprint the guide.** Keep this a distilled cross-check. Do not paste a full translation or a substantial verbatim excerpt of the source into the repo.
+
 ---
 
 ## 3. Spacing
@@ -777,7 +797,9 @@ CSS alone cannot prevent "the last two lines of a chapter pushed onto a fresh pa
 
 Long-doc table-of-contents rows should link to stable chapter ids and use
 WeasyPrint `target-counter(attr(href), page)` for rendered page numbers. Do not
-hand-fill page numerals; any pagination-affecting edit will make them drift.
+hand-fill page numerals; any pagination-affecting edit will make them drift. Keep
+the row anchor a block and float the numeral right: a flex anchor makes WeasyPrint
+70.0 resolve every page number to 0 (production.md pitfall 24).
 
 **Cascading break-inside**: when two `break-inside: avoid` blocks sit next to each other and the first would split, both get pushed to the next page together. A chapter with more than two `break-inside: avoid` blocks (quote + table + callout, etc.) near a page boundary is at high risk of leaving 40-80mm of trailing whitespace on the previous page. Fix by splitting the chapter, or downgrade one block (allow the table to break with a repeating header `<thead>`).
 
@@ -1102,7 +1124,16 @@ The landing-page template is the only kami template designed for browser deliver
 ### Product site system
 
 - Use `landing-page*.html` for a single ready-to-serve product page. Keep CSS and JS inline so the file can be copied without a build step.
-- If the deliverable needs docs, help, releases, changelog, roadmap, legal pages, or more than two locales, treat it as a production product site.
+- If the deliverable needs docs, help, releases, changelog, roadmap, legal pages, or more than two locales, treat it as a production product site. Lock these five from the source material before filling any template, asking only where a missing item would change the deliverable:
+
+| # | Lock |
+|---|---|
+| 1 | **Product category**: the first-viewport category (app, CLI, terminal, utility, skill, template system, or another user-provided label). |
+| 2 | **Real assets**: product screenshots, logo, icon, or UI captures mapped to hero, gallery, feature, and social slots. A missing asset stays marked, never replaced with stock imagery. |
+| 3 | **Site shape**: a single page, or home plus docs, help, releases, changelog, roadmap, or legal pages. |
+| 4 | **Locales**: the exact locale list, canonical paths, and whether a generator with a check mode is needed. |
+| 5 | **Truth surfaces**: install path, price, version, support route, FAQ, `llms.txt`, and `llms-full.txt` that must stay synchronized. |
+
 - For a production product site, prefer one structural template, locale string files, and long-content files. The generator must have a check mode that fails on missing keys and generated-output drift.
 - Product positioning must be checked against current product surfaces before rewriting. Stale category language is worse than a missing feature detail.
 - Locale pages, FAQ, JSON-LD, `llms.txt`, `llms-full.txt`, screenshots, install copy, pricing, version, and support links are one public fact set. Keep the factual claims aligned across them.
@@ -1137,9 +1168,9 @@ Certain copy surfaces must render as one line; a wrap there reads as a defect, n
 
 - Single-line at the desktop baseline (1280px): hero tagline, feature subtitles, benefit points, gallery captions, section ledes under ~12 words, footer ethos.
 - Single-line at 375px as well: key-fact tokens (price line, platform line, CTA labels, hero chips).
-- Fix order is fixed: cut words first, rephrase second, adjust layout last. Never shrink the font, never force it with `<br>`, never shave padding to buy one word of width.
+- Check container geometry and forced breaks first, then shorten redundant wording without losing facts or approved meaning. Never shrink the font, force it with `<br>`, or shave padding to buy one word of width.
 - Any component whose height depends on its text (carousel captions, rotating taglines) must be verified with the longest shipped locale; a wrap that appears in one locale makes the component jump between slides.
-- One wrap found means sweeping every surface in this list across every locale, not fixing the reported spot (see `AGENTS.md` «Critical Line-Break Scan» for the PDF-side counterpart).
+- One wrap found means sweeping every surface in this list across every locale, not fixing the reported spot (the PDF-side counterpart is `python3 scripts/build.py --check-orphans` plus `--check-density`).
 
 ### Decorative layers
 
@@ -1173,7 +1204,7 @@ Below the phone breakpoint, the information diet reverses: images first, words s
 - Quality chips, not a facts list. The tokens row should carry product *qualities* (good-looking, lightweight, AI-friendly), not an inventory (license, package manager, OS version). Push every hard fact to the footer or docs where it is referenceable. Pick about three.
 - No chip may repeat the tagline. Read tagline and chips together and cut any concept stated twice. If trimming a chip leaves an orphaned separator, the row should collapse to one clean line, not a dangling dot.
 - Wrap-safe chip separator. Put the middot on `span:not(:last-child)::after`, never on `::before` of the following item, so a chip that wraps to the next line never carries a leading dot. Use `color-mix(... 58%, transparent)` so the dot stays quieter than the text.
-- Line-widow discipline (title + tagline). Eliminate 1-2 word last lines by trimming the copy so the block rebalances, not by adding a `max-width` cap (a cap narrower than its container wraps early and leaves empty space on the right, which reads as a premature break). `text-wrap: balance` on the title and `pretty` on the tagline help only as a backstop; do not rely on them. Leave inherently-two-line notes alone.
+- Line-widow discipline (title + tagline). Use natural wrapping by default. Inspect container width and forced breaks before trimming redundant copy; preserve facts and approved meaning. Do not add a `max-width` cap merely to move a widow, or enable `balance` / `pretty` on body or tagline text by default. Deliberate headline balancing requires rendered verification. Leave inherently-two-line notes alone.
 
 ### Gallery
 
@@ -1387,11 +1418,11 @@ not apply). Full pipeline and rationale in `references/mermaid.md`.
 
 Before declaring any screen change done, screenshot the real rendered surface; a type check or CSS-balance read is not enough. Several regressions (early wraps, orphaned separator dots, table overflow, missed pages) are invisible in source and only show in the render.
 
-- Capture at phone (375px, plus 320px for CTAs) and desktop (1280px), in every shipped locale.
-- Scan for line widows objectively: measure each text block's last-line width against its widest line and flag anything below about 13%. Eyeballing misses pages, and nested `<code>` hides widows from greps. Accept "0 widows" only after the check confirms it.
+- Capture at phone (375px, plus 320px for CTAs), desktop (1280px), both sides of each actual breakpoint, and an intermediate tablet width, in every shipped locale. These are verification samples, not instructions to add layout branches.
+- Measure each text block's last-line width against its widest line; a ratio below about 13% is a review candidate, not a defect verdict. Inspect the rendered context, including nested `<code>` and intentional short lines, before changing anything. Preserve natural, meaningful text rather than rewriting it to force the candidate count to zero.
 - Confirm CTAs reach their natural-width left-aligned resting state with no overflow, code is legible at the reduced mobile font, the gallery and any multi-column grids collapse to a single column, and total page overflow is zero.
 - Scan each screenshot for sparse blocks: a low-information region taller than about a quarter viewport, an empty grid slot, or a single item rattling in a multi-column row. Fix by tightening, merging, rewriting, or removing the weak block. Add content only when required evidence is genuinely missing, never to fill space.
-- Check every «Single-line surfaces» entry at both widths; key-fact tokens (price, platform, CTA) must hold one line at 375px.
+- Check every «Single-line surfaces» entry at its required widths; key-fact tokens (price, platform, CTA) must hold one line at 375px.
 - Long pages do not fit one viewport; use a capture helper that can scroll to a specific element (first code block, pager) before shooting.
 - Serve fresh bytes: browsers cache stylesheets and restore scroll positions, so a plain reload can screenshot the OLD css at the OLD scroll point and pass a broken change. Verify through a cache-busted URL (or a fresh-named temp copy of the page) and confirm the viewport actually shows the section under review before trusting the capture.
 
@@ -1435,8 +1466,8 @@ Canonical values (verified during the `one-pager-ko` pilot, 2026-05-28):
 Fallback chain (consistent across all KO templates):
 
 ```css
---serif: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR", "Apple SD Gothic Neo",
-         "AppleMyungjo", Charter, Georgia, serif;
+--serif: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR", "Nanum Myeongjo",
+         "AppleMyungjo", "Apple SD Gothic Neo", Charter, Georgia, serif;
 --sans:  var(--serif);
 --mono:  "JetBrains Mono", "D2Coding", "SF Mono", "Fira Code",
          Consolas, Monaco, monospace;

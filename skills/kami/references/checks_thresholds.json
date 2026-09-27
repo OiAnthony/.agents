@@ -6,6 +6,7 @@
   "density": {
     "warn_pct": 0.25,
     "sparse_pct": 0.50,
+    "last_page_pct": 0.60,
     "dpi": 36
   },
   "resume_balance": {

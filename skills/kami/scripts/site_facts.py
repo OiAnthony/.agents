@@ -56,6 +56,10 @@ FULL_PUBLIC_FACT_FILES = (
     *DEVELOPER_FACT_FILES,
 )
 SITE_VERSION_BADGE_FILES = (SITE_BASE_PAGE, *SITE_LOCALE_PAGES)
+# Anchored on the badge's own copy rather than a bare version pattern: these
+# pages also print the Claude Code minimum as "v2.1.142+", which a generic
+# `v\d+\.\d+\.\d+` judge would read as a stale Kami badge on every page.
+SITE_VERSION_BADGE = re.compile(r"Design System\s*·\s*v(\d+\.\d+\.\d+)")
 REDIRECT_SITE_FILE = "index-en.html"
 SITE_SURFACE_ABSENT = "__site_surface_absent__"
 
@@ -246,8 +250,19 @@ def site_fact_issues(files: Mapping[str, str] | None = None) -> list[str]:
         # The homepage HTML pages carry a hand-written Kami version badge; tie
         # those pages to VERSION without forcing the prose/developer files to
         # repeat a badge they do not display.
-        if rel in SITE_VERSION_BADGE_FILES and f"v{kami_version()}" not in text:
-            issues.append(f"{rel}: missing Kami version badge v{kami_version()}")
+        # Each page writes the badge twice, in the eyebrow and in the type
+        # sample. Check every occurrence: a presence-only test passed while a
+        # stale second badge sat next to a freshly bumped first one.
+        if rel in SITE_VERSION_BADGE_FILES:
+            badges = SITE_VERSION_BADGE.findall(text)
+            stale = sorted({badge for badge in badges if badge != kami_version()})
+            if not badges:
+                issues.append(f"{rel}: missing Kami version badge v{kami_version()}")
+            elif stale:
+                found = ", ".join(f"v{badge}" for badge in stale)
+                issues.append(
+                    f"{rel}: stale Kami version badge {found} (VERSION is {kami_version()})"
+                )
 
         if not _contains_template_count(text, template_count):
             issues.append(f"{rel}: missing public document template count {template_count}")

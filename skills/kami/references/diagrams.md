@@ -49,7 +49,7 @@ If "no", don't draw. Diagrams add signal to hierarchy, direction, and magnitude.
 - A line whose meaning is obvious from layout -> remove the line
 - 5 nodes in ink-blue -> you haven't decided what's focal
 
-**Teaching tier: 6-7/10.** A figure inside a technical teaching article (the reader expects to learn how something works) carries more: layers, data-flow direction, and at least one labeled trade-off or decision point. A 3-box overview shipped as an "architecture diagram" in that context reads as marketing, and readers say so. If hand-assembled SVG cannot hold that detail at the target display width, switch to the host-image illustration path (SKILL.md «Illustrations») instead of enlarging the SVG.
+**Teaching tier: 6-7/10.** A figure inside a technical teaching article (the reader expects to learn how something works) carries more: layers, data-flow direction, and at least one labeled trade-off or decision point. A 3-box overview shipped as an "architecture diagram" in that context reads as marketing, and readers say so. If hand-assembled SVG cannot hold that detail at the target display width, switch to the host-image illustration path (section 11) instead of enlarging the SVG.
 
 **Focal rule**: 1-2 focal elements per diagram (`#1B365D` stroke + `#EEF2F7` fill). Everything else goes neutral. Focal signal comes from contrast, not count.
 
@@ -299,6 +299,45 @@ Node titles carry function first, protocol noun second. A bare protocol noun out
 
 In-diagram copy holds objects, boundaries, and actions only; argument stays in prose. CJK copy inside nodes uses short labels with commas, slashes, and semicolons, never the CJK full stop (。). If a line needs a full stop, it is a sentence, and sentences live in the document, not the diagram.
 
+### Executable architecture geometry
+
+Keep HTML as the only source: mark the existing visible node rectangle with
+`data-node="api"`, the line or polyline shaft with `data-edge="enqueue"`,
+`data-from="api"`, and `data-to="queue"`. Mark a relationship label's existing
+background rectangle with `data-label-for="enqueue"`. IDs stay stable when text
+or positions change. Do not mark arrowheads, legends, or boundary frames as nodes.
+The architecture figure and the board's main path demonstrate this contract.
+
+`python3 scripts/build.py --check` checks the shipped templates;
+`python3 scripts/build.py --check-style filled.html` checks a filled document.
+These checks report duplicate IDs, missing endpoints, overlapping node rectangles
+or label masks, lines through nodes or other labels, and endpoints that do not
+attach outward within 8 SVG units of the named node edge. The board's intentional
+4px standoff remains valid. Rectangle-edge grazing and crossing a real boundary
+frame are allowed; neither means passing through a node.
+
+This is a bounded static check, not a browser layout engine. Marked geometry uses
+numeric SVG user coordinates on `rect`, `line`, and `polyline`, without inline
+style or ancestor transforms/styles. Do not override its geometry through CSS,
+animation, or reuse elements. Curved paths and unmarked diagrams remain outside
+this contract. Text must fit its label mask at the final display size; inspect
+actual Chinese and Latin font rendering in the visual pass. A passing mask check
+does not establish text fit, arrowhead visibility, or factual architecture accuracy.
+
+Preserve meaningful relationship labels: protocol, action, direction, and
+synchronous/asynchronous behavior. When a label does not fit, move its mask and
+text together, widen the corridor, or reroute the edge. Do not shrink text or
+remove meaning to pass a check. Multiple branches need separate attachment points;
+keep their order stable and leave room at corners.
+
+Record verified source paths and the source revision in the existing `prompt.md`
+blocks, including evidence for relationships, not just component names. Source
+existence alone does not prove a call or dependency. During updates distinguish
+changed relationships from moved boxes; preserve stable IDs for unchanged objects.
+
+The semantic-geometry approach draws on [Archify](https://github.com/tt-a1i/archify).
+Kami retains static SVG and its existing typography; no Archify runtime is bundled.
+
 ### Terminology sync
 
 The diagram and its host document are one vocabulary. When prose renames an object, the same change updates: SVG `<text>` labels, `<title>` and `<desc>`, `prompt.md`, the re-exported PNG, and any cross-references. A diagram that still shows the old name is a bug, not a style issue.
@@ -547,6 +586,8 @@ Scan for these when drawing or reviewing:
 
 Five data-driven chart types for investment reports, financial comparisons, and market-share breakdowns. Like the first three diagram types, all are self-contained HTML + inline SVG, embeddable in any kami document.
 
+**Choosing the chart.** When content carries numbers, pick the chart yourself and embed it without asking. Two house calls differ from the common default: a share that sums to about 100% renders as a donut only up to 6 items, and 7 or more becomes a horizontal bar; a single time series whose absolute count changes dominate (not the rate) renders as bars, not a line. When several types fit, prefer the one that shows variance most clearly. Embed every chart in a `<figure>` whose caption states the insight, not the data range.
+
 ### Color palette (derived from kami warm palette)
 
 | Role | Value | Use |
@@ -646,7 +687,11 @@ Every diagram template carries a poster-size `@page` sized to its own frame and 
 
 ## 11. Illustration briefs (host image model)
 
-For raster illustrations delegated to the host's image generation (SKILL.md «Illustrations» defines when to switch). The brief is the deliverable Kami controls; write it tightly and the image model has nowhere to drift.
+For raster illustrations delegated to the host's image generation. The brief is the deliverable Kami controls; write it tightly and the image model has nowhere to drift.
+
+**When to switch.** Use this path for a standalone raster illustration, a redraw of a figure, photo, or screenshot in the Kami look, or a figure that needs more detail than hand-assembled SVG holds at the target display width (typically web-article figures at teaching depth, see the density tiers in section 2). Never call an external image API or require a key: if the host exposes image generation, render directly from the brief; if it does not, hand over the same complete brief as text. Route from observed capability, not from a remembered list of hosts.
+
+**Batches.** When one deliverable needs several generated images, drive them through a single handoff file: one line per image (slot, aspect ratio, shared style anchor, prompt, status). Generate in batches of at most 5, update the status column after each batch, and check existing output before regenerating. The style anchor is shared by the whole batch; per-image style drift is the failure mode.
 
 **Brief skeleton**, in order:
 
@@ -668,9 +713,9 @@ For raster illustrations delegated to the host's image generation (SKILL.md «Il
 - Composition reads as a report figure (balanced margins, clear focal point), not as a poster or clip art.
 - The claim is legible at the stated smallest display size; a detail visible only in the full-resolution source does not count.
 - Every exclusion holds, especially version text, invented product surfaces, unrelated decoration, and private identifiers.
-- Style matches the other generated images in the same deliverable (shared style anchor, see SKILL.md batch rule).
+- Style matches the other generated images in the same deliverable (shared style anchor, see «Batches» above).
 
-After a partly successful generation, name what survives before changing the brief. After two look-based rejections, stop blind regeneration and use the SKILL.md comparison protocol: preserve the accepted part, show labeled alternatives in the same frame, and realign on the claim, reference, and exclusions.
+After a partly successful generation, name what survives before changing the brief. After two look-based rejections, stop blind regeneration and use the SKILL.md «Feedback protocol» comparison: preserve the accepted part, show labeled alternatives in the same frame, and realign on the claim, reference, and exclusions.
 
 ---
 

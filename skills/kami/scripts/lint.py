@@ -27,8 +27,10 @@ from shared import (
     TOKENS_FILE,
     iter_template_files,
     rel_to_root,
+    resolve_input,
 )
 from tokens import ROOT_BLOCK, parse_root_vars
+from diagram_geometry import scan_geometry
 
 # Font-stack vars legitimately differ between a base template and its locale
 # variants (-en, -ko); every other :root var must match across the pair.
@@ -98,7 +100,8 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
     can be scanned with the same rules as a template, reporting line numbers
     back in the enclosing document via `line_offset`.
     """
-    findings: list[Finding] = []
+    findings = [Finding(path, line_offset + line, "diagram-geometry", message)
+                for line, message in scan_geometry(raw_text)]
     text = _strip_css_block_comments(raw_text)
     lines = text.splitlines()
     is_en = path.name.endswith("-en.html")
@@ -451,7 +454,8 @@ def _emphasis_container_findings(path: Path) -> list[Finding]:
     """Flag a document that fills its emphasis blocks in more than one color.
 
     A template reuses one fill across every raised block (long-doc runs three
-    components off `--ivory`; resume runs two off `--brand-tint`), so the page
+    components off `--ivory`; resume runs `.team-culture` and `.os-highlight`
+    off the same `--ivory`), so the page
     reads as one system used repeatedly. Drift looks different: a generated
     document invents a white rounded card for the question, then a tinted
     rounded block for the caveat, and the page now carries two unrelated
@@ -509,9 +513,7 @@ def check_style(paths: list[str]) -> int:
     failures = 0
     scanned = 0
     for raw in files:
-        path = Path(raw)
-        if not path.is_absolute():
-            path = ROOT / path
+        path = resolve_input(raw)
         if not path.exists():
             print(f"ERROR: {raw}: file not found")
             failures += 1
@@ -619,9 +621,7 @@ def check_docs(paths: list[str]) -> int:
     failures = 0
     scanned = 0
     for raw_path in targets:
-        path = Path(raw_path)
-        if not path.is_absolute():
-            path = ROOT / path
+        path = resolve_input(raw_path)
         if not path.exists():
             print(f"ERROR: {raw_path}: file not found")
             failures += 1

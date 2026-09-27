@@ -1,6 +1,6 @@
 # Brand Profile Reference
 
-Full specification for loading and applying user brand profiles. Referenced from SKILL.md Step 0.
+Full specification for loading and applying user brand profiles. Referenced from SKILL.md «Brand profile».
 
 ## Profile locations
 
@@ -74,3 +74,9 @@ These six rules apply to every layer above. Weight them equally with the field t
 ```
 explicit prompt  >  editorial judgment for this document  >  habit notes  >  frontmatter defaults  >  built-in defaults
 ```
+
+## Sibling project style scan (opt-in)
+
+Run only when the user explicitly names another project as the visual reference ("like my <project> site", "match the style of <repo>", "use the look from <directory>"). Before generating, read that project's declared design tokens (CSS variables, tailwind or theme config, token files) and extract dominant colors, font stack, spacing scale, and radius scale; prefer declared tokens over inline literals. Merge the result as Layer C (visual customization), never Layer B, and never over an explicit `--brand` flag or a value the user typed this turn. Report it in one line before continuing: "scanned <project>, extracted N colors / M fonts; using as visual reference."
+
+Skip and fall back to the profile defaults when the path does not exist, holds no CSS-like files, or the extraction would conflict with values the user gave in the current message.

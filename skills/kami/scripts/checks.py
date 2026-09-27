@@ -20,15 +20,20 @@ from html_visibility import visible_html_text
 from optional_deps import MissingDepError, require_pymupdf, require_pypdf_reader
 from shared import (
     PARCHMENT_RGB,
-    ROOT,
     TEMPLATES,
     default_example_pdfs,
     load_checks_thresholds,
     pptx_targets,
     rel_to_root,
+    resolve_input,
 )
 
 PLACEHOLDER = re.compile(r"\{\{[^}]+\}\}")
+# The author meta tag may keep its placeholder: render.py stamps the PDF /Author
+# from git config or KAMI_AUTHOR exactly when it is still unfilled (SKILL.md
+# metadata table), so leaving it is the documented path, not a miss.
+AUTHOR_META_PLACEHOLDER = re.compile(
+    r"""<meta\s+name=["']author["']\s+content=["']\{\{[^}]+\}\}["']\s*/?>""", re.I)
 MARKDOWN_THEMATIC_BREAK = re.compile(r"^\s*[-*_]{3,}\s*$")
 MARKDOWN_RESIDUE_MARKERS = (
     ("markdown thematic break", MARKDOWN_THEMATIC_BREAK),
@@ -51,15 +56,13 @@ def check_placeholders(paths: list[str]) -> int:
 
     failures = 0
     for raw in paths:
-        path = Path(raw)
-        if not path.is_absolute():
-            path = ROOT / path
+        path = resolve_input(raw)
         if not path.exists():
             print(f"ERROR: {raw}: file not found")
             failures += 1
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        hits = list(dict.fromkeys(PLACEHOLDER.findall(text)))
+        hits = list(dict.fromkeys(PLACEHOLDER.findall(AUTHOR_META_PLACEHOLDER.sub("", text))))
         rel = rel_to_root(path)
         if hits:
             print(f"ERROR: {rel}: unfilled placeholder(s): {', '.join(hits)}")
@@ -138,9 +141,7 @@ def check_markdown_residue(paths: list[str]) -> int:
     failures = 0
     scanned = 0
     for raw in paths:
-        path = Path(raw)
-        if not path.is_absolute():
-            path = ROOT / path
+        path = resolve_input(raw)
         rel = rel_to_root(path)
         if not path.exists():
             print(f"ERROR: {raw}: file not found")
@@ -316,6 +317,8 @@ def scan_density(paths: list[str], scan_single_page: bool = False) -> tuple[int,
     references/checks_thresholds.json. Public: verify.py runs the same scan
     as its advisory pass.
 
+    The last page of a multi-page PDF is judged only against `last_page_pct`.
+
     Page 1 is skipped as a cover exemption, which left a one-page document with
     no scanned page at all: the single-page templates (one-pager, letter) were
     silently exempt from the only layout gate that reads a rendered page. When
@@ -333,6 +336,10 @@ def scan_density(paths: list[str], scan_single_page: bool = False) -> tuple[int,
     density_cfg = load_checks_thresholds()["density"]
     warn_pct = float(density_cfg["warn_pct"])
     sparse_pct = float(density_cfg["sparse_pct"])
+    # The last page of a multi-page document may close short (writing.md «Page
+    # density»: the last body page runs 40-60% full), so it is
+    # only reported once it passes this looser ceiling.
+    last_page_pct = float(density_cfg.get("last_page_pct", 0.60))
     dpi = int(density_cfg["dpi"])
 
     sparse = 0
@@ -370,7 +377,10 @@ def scan_density(paths: list[str], scan_single_page: bool = False) -> tuple[int,
             last_content_y = _last_content_y(pix.samples, w, h, pix.stride, pix.n)
 
             empty = (h - last_content_y) / h
-            bucket = _density_bucket(empty, warn_pct, sparse_pct)
+            if not single_page and page_num == len(doc) - 1:
+                bucket = "SPARSE" if empty > last_page_pct else "OK"
+            else:
+                bucket = _density_bucket(empty, warn_pct, sparse_pct)
             if bucket == "SPARSE":
                 print(f"  SPARSE: {rel} p{page_num + 1}: {empty:.0%} trailing whitespace")
                 sparse += 1

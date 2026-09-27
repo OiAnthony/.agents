@@ -11,8 +11,10 @@ Thin CLI shell. Implementation lives in:
   - content.py (check_content)
   - html_visibility.py (shared HTML/CSS evidence for content and residue checks)
   - visual.py  (check_visual)
+  - deliver.py (deliver: every document gate in order, one verdict)
 
 Usage:
+    python3 scripts/build.py --deliver filled.html [content.json]  # finish a document: all gates, one verdict
     python3 scripts/build.py                      # build all examples (HTML + diagrams + PPTX)
     python3 scripts/build.py resume               # build one template, print pages + fonts
     python3 scripts/build.py landing-page         # check one browser-only static template
@@ -52,6 +54,7 @@ from checks import (
     check_rhythm,
 )
 from content import check_content
+from deliver import deliver
 from lint import (
     check_all,
     check_cross_template_consistency,
@@ -225,6 +228,7 @@ def main(argv: list[str]) -> int:
         "--check-fonts": check_fonts,
         "--check-style": check_style,
         "--check-docs": check_docs,
+        "--deliver": deliver,
     }
     handler = path_checks.get(args[0])
     if handler is not None:

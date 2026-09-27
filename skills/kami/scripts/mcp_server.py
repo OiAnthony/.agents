@@ -190,12 +190,12 @@ def tool_templates(_args: dict) -> dict:
         "templates_dir": str(ROOT / "assets" / "templates"),
         "diagrams_dir": str(ROOT / "assets" / "diagrams"),
         "schemas_dir": str(ROOT / "references" / "schemas"),
+        # The SKILL.md "New document" tier: templates carry every token, so
+        # design.md is opened per component, not read whole before filling.
         "read_before_filling": [
             str(ROOT / "SKILL.md"),
             str(ROOT / "CHEATSHEET.md"),
-            str(ROOT / "references" / "design.md"),
             str(ROOT / "references" / "writing.md"),
-            str(ROOT / "references" / "anti-patterns.md"),
         ],
     }
 

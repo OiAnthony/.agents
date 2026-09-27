@@ -1,6 +1,6 @@
 # Deck pre-flight (slides only)
 
-Loaded from `SKILL.md` Step 2.6 when the document type is slides. Every other doc type skips this file entirely.
+Loaded from `SKILL.md` when the document type is slides. Every other doc type skips this file entirely.
 
 Read `references/design.md` Section 8 «Deck Recipe» alongside this file before drafting: it owns the slide architecture, typography, layout patterns, table styles, and SVG constraints.
 
@@ -26,7 +26,7 @@ Default is `280mm 158mm`. Ask only if the user has mentioned length or density c
 
 ## Content pre-flight
 
-Resolve these points from the request and source material before drafting. Treat the table as an internal checklist, not a questionnaire. Ask only about unresolved choices that materially change the deliverable, within `SKILL.md`'s shared question budget; infer the rest from the defaults above.
+Resolve these points from the request and source material before drafting. Treat the table as an internal checklist, not a questionnaire. Ask only about unresolved choices that materially change the deliverable, within the `SKILL.md` question budget; infer the rest from the defaults above.
 
 | # | Question |
 |---|---|

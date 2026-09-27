@@ -95,55 +95,55 @@
       <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
       <!-- Arrows (behind nodes) -->
-      <line x1="168" y1="240" x2="220" y2="240" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <line x1="364" y1="240" x2="416" y2="240" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-brand)"/>
-      <line x1="576" y1="224" x2="628" y2="180" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <line x1="576" y1="256" x2="628" y2="300" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line data-edge="https" data-from="reader" data-to="cdn" x1="168" y1="240" x2="220" y2="240" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line data-edge="ssr" data-from="cdn" data-to="origin" x1="364" y1="240" x2="416" y2="240" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-brand)"/>
+      <line data-edge="read" data-from="origin" data-to="content" x1="576" y1="224" x2="628" y2="180" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line data-edge="query" data-from="origin" data-to="database" x1="576" y1="256" x2="628" y2="300" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
 
       <!-- Arrow labels (masked rect prevents line bleed-through) -->
-      <rect x="172" y="220" width="48" height="12" rx="2" fill="#f5f4ed"/>
+      <rect data-label-for="https" x="172" y="220" width="48" height="12" rx="2" fill="#f5f4ed"/>
       <text x="196" y="230" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">HTTPS</text>
 
-      <rect x="368" y="220" width="48" height="12" rx="2" fill="#f5f4ed"/>
+      <rect data-label-for="ssr" x="368" y="220" width="48" height="12" rx="2" fill="#f5f4ed"/>
       <text x="392" y="230" fill="#1B365D" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">SSR</text>
 
-      <rect x="560" y="180" width="56" height="12" rx="2" fill="#f5f4ed"/>
+      <rect data-label-for="read" x="560" y="180" width="56" height="12" rx="2" fill="#f5f4ed"/>
       <text x="588" y="190" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">READ</text>
 
-      <rect x="560" y="288" width="56" height="12" rx="2" fill="#f5f4ed"/>
+      <rect data-label-for="query" x="560" y="288" width="56" height="12" rx="2" fill="#f5f4ed"/>
       <text x="588" y="298" fill="#504e49" font-size="8" font-family="'JetBrains Mono', monospace" text-anchor="middle" letter-spacing="0.1em">QUERY</text>
 
       <!-- Node 1: Reader (external) -->
       <rect x="40" y="208" width="128" height="64" rx="6" fill="#f5f4ed"/>
-      <rect x="40" y="208" width="128" height="64" rx="6" fill="#E9E8E1" stroke="#6b6a64" stroke-width="1"/>
+      <rect data-node="reader" x="40" y="208" width="128" height="64" rx="6" fill="#E9E8E1" stroke="#6b6a64" stroke-width="1"/>
       <text x="62" y="226" fill="#6b6a64" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">USER</text>
       <text x="104" y="246" fill="#141413" font-size="12" font-weight="500" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Reader</text>
       <text x="104" y="262" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="middle">Browser</text>
 
       <!-- Node 2: Edge / CDN (cloud) -->
       <rect x="220" y="208" width="144" height="64" rx="6" fill="#f5f4ed"/>
-      <rect x="220" y="208" width="144" height="64" rx="6" fill="#EEEDE6" stroke="#B2B1AC" stroke-width="1"/>
+      <rect data-node="cdn" x="220" y="208" width="144" height="64" rx="6" fill="#EEEDE6" stroke="#B2B1AC" stroke-width="1"/>
       <text x="242" y="226" fill="#6b6a64" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">EDGE</text>
       <text x="292" y="246" fill="#141413" font-size="12" font-weight="500" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">CDN</text>
       <text x="292" y="262" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="middle">cache · SSL</text>
 
       <!-- Node 3: Origin (FOCAL - brand accent) -->
       <rect x="416" y="208" width="160" height="64" rx="6" fill="#f5f4ed"/>
-      <rect x="416" y="208" width="160" height="64" rx="6" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+      <rect data-node="origin" x="416" y="208" width="160" height="64" rx="6" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
       <text x="438" y="226" fill="#1B365D" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">ORIGIN</text>
       <text x="496" y="246" fill="#141413" font-size="12" font-weight="500" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">App Server</text>
       <text x="496" y="262" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="middle">render · route</text>
 
       <!-- Node 4: Store (content) -->
       <rect x="628" y="128" width="144" height="64" rx="6" fill="#f5f4ed"/>
-      <rect x="628" y="128" width="144" height="64" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="content" x="628" y="128" width="144" height="64" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="650" y="146" fill="#141413" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">BUNDLE</text>
       <text x="700" y="166" fill="#141413" font-size="12" font-weight="500" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Content</text>
       <text x="700" y="182" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="middle">*.mdx · assets</text>
 
       <!-- Node 5: Database (store) -->
       <rect x="628" y="288" width="144" height="64" rx="6" fill="#f5f4ed"/>
-      <rect x="628" y="288" width="144" height="64" rx="6" fill="#EAE9E2" stroke="#504e49" stroke-width="1"/>
+      <rect data-node="database" x="628" y="288" width="144" height="64" rx="6" fill="#EAE9E2" stroke="#504e49" stroke-width="1"/>
       <text x="650" y="306" fill="#504e49" font-size="7" font-family="'JetBrains Mono', monospace" letter-spacing="0.15em">STORE</text>
       <text x="700" y="326" fill="#141413" font-size="12" font-weight="500" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Database</text>
       <text x="700" y="342" fill="#504e49" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="middle">postgres · vectors</text>

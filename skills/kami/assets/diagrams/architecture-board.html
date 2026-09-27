@@ -180,38 +180,38 @@
       <text x="1152" y="608" fill="#6b6a64" font-size="10" font-family="'JetBrains Mono', monospace" text-anchor="end" letter-spacing="0.18em">THE PATH EVERY KEYSTROKE TAKES</text>
 
       <!-- Connectors keep a 4px standoff from both node edges -->
-      <line x1="196" y1="648" x2="236" y2="648" stroke="#1B365D" stroke-width="1.4"/>
+      <line data-edge="keystroke-to-input-map" data-from="keystroke" data-to="input-map" x1="196" y1="648" x2="236" y2="648" stroke="#1B365D" stroke-width="1.4"/>
       <path d="M 228 644 L 236 648 L 228 652" fill="none" stroke="#1B365D" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="388" y1="648" x2="428" y2="648" stroke="#1B365D" stroke-width="1.4"/>
+      <line data-edge="input-map-to-pty" data-from="input-map" data-to="pty" x1="388" y1="648" x2="428" y2="648" stroke="#1B365D" stroke-width="1.4"/>
       <path d="M 420 644 L 428 648 L 420 652" fill="none" stroke="#1B365D" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="580" y1="648" x2="620" y2="648" stroke="#1B365D" stroke-width="1.4"/>
+      <line data-edge="pty-to-parser" data-from="pty" data-to="parser" x1="580" y1="648" x2="620" y2="648" stroke="#1B365D" stroke-width="1.4"/>
       <path d="M 612 644 L 620 648 L 612 652" fill="none" stroke="#1B365D" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="772" y1="648" x2="812" y2="648" stroke="#1B365D" stroke-width="1.4"/>
+      <line data-edge="parser-to-cell-model" data-from="parser" data-to="cell-model" x1="772" y1="648" x2="812" y2="648" stroke="#1B365D" stroke-width="1.4"/>
       <path d="M 804 644 L 812 648 L 804 652" fill="none" stroke="#1B365D" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="964" y1="648" x2="1004" y2="648" stroke="#1B365D" stroke-width="1.4"/>
+      <line data-edge="cell-model-to-gpu" data-from="cell-model" data-to="gpu" x1="964" y1="648" x2="1004" y2="648" stroke="#1B365D" stroke-width="1.4"/>
       <path d="M 996 644 L 1004 648 L 996 652" fill="none" stroke="#1B365D" stroke-width="1.4" stroke-linecap="round"/>
 
-      <rect x="48" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="keystroke" x="48" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="120" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Keystroke</text>
       <text x="120" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">user intent</text>
 
-      <rect x="240" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="input-map" x="240" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="312" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Input map</text>
       <text x="312" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">kaku-gui</text>
 
-      <rect x="432" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="pty" x="432" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="504" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">PTY · shell</text>
       <text x="504" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">pty crate</text>
 
-      <rect x="624" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="parser" x="624" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="696" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Escape parse</text>
       <text x="696" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">vtparse</text>
 
-      <rect x="816" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="cell-model" x="816" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="888" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">Cell grid</text>
       <text x="888" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">surface</text>
 
-      <rect x="1008" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+      <rect data-node="gpu" x="1008" y="624" width="144" height="48" rx="6" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
       <text x="1080" y="644" fill="#141413" font-size="12" font-weight="600" font-family="'TsangerJinKai02', 'Source Han Serif SC', 'Songti SC', Charter, Georgia, serif" text-anchor="middle">GPU frame</text>
       <text x="1080" y="660" fill="#6b6a64" font-size="8.5" font-family="'JetBrains Mono', monospace" text-anchor="middle">glyphcache</text>
 

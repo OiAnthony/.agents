@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 
 from optional_deps import MissingDepError, require_pymupdf
-from shared import ROOT, load_checks_thresholds, rel_to_root
+from shared import load_checks_thresholds, rel_to_root, resolve_input
 from verify import check_fonts
 
 # Distilled from references/design.md and references/production.md Part 4.
@@ -116,9 +116,7 @@ def check_visual(paths: list[str]) -> int:
     failures = 0
     rendered: list[tuple[Path, list[Path]]] = []
     for raw in files:
-        pdf = Path(raw)
-        if not pdf.is_absolute():
-            pdf = ROOT / pdf
+        pdf = resolve_input(raw)
         rel = rel_to_root(pdf)
         if not pdf.exists():
             print(f"ERROR: {raw}: file not found")
