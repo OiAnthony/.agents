@@ -108,10 +108,23 @@ test('Export preserves menu, clipboard, semantic cards and recording lifecycles'
   const route = `Archify.routeProbe.begin({source:'users',focusNode:false});if(!Archify.routeProbe.choose('db',{updateUrl:false}))throw new Error('route fixture failed');`;
   const reach = `Archify.focus.set('api',{toggle:false,updateUrl:false});if(!Archify.focus.reach('downstream',{toggle:false,updateUrl:false,reveal:false}))throw new Error('reach fixture failed');`;
 
+  await t.test('removed share actions cannot be invoked through the menu or old API', async () => {
+    await load();
+    assert.equal(await run(`document.querySelector('[data-format="share-card"], [data-action="copy-share-card"]') === null`), true);
+    assert.equal(await run(`typeof Archify.exportMenu.copyShareCard`), 'undefined');
+    assert.equal(await run(`Archify.exportMenu.shareCard().then(()=>false,()=>true)`), true);
+    assert.equal(await run(`Archify.exportMenu.run('share-card').then(()=>false,()=>true)`), true);
+    const state = await record('removed-share-actions');
+    assert.deepEqual(state.downloads, []);
+    assert.deepEqual(state.urls, []);
+    assert.deepEqual(state.receipt, {});
+    assert.deepEqual(state.console, []);
+  });
+
   await t.test('native menu input skips unavailable entries and preserves focus and mutual exclusion', async () => {
     for (const width of [390, 720, 1440]) {
       await load({ width, extra: '&fault=unsupported' });
-      assert.deepEqual(await run('Object.keys(Archify.exportMenu).sort()'), ['close','copyShareCard','downloadReachShareCard','downloadRouteShareCard','isOpen','open','run','shareCard','syncReachShare','syncRouteShare'].sort());
+      assert.deepEqual(await run('Object.keys(Archify.exportMenu).sort()'), ['close','downloadReachShareCard','downloadRouteShareCard','isOpen','open','run','shareCard','syncReachShare','syncRouteShare'].sort());
       assert.deepEqual(await run('Object.keys(Archify.motion).sort()'), ['canRecord','recordWebm']);
       assert.deepEqual(await run(`[...document.querySelectorAll('#export-menu [data-format="jpeg"],#export-menu [data-format="webp"],#export-menu [data-format="webm"],#export-menu [data-action="copy"]')].map(e=>e.disabled)`), [true,true,true,true]);
       await run(`document.getElementById('btn-export').focus()`);
@@ -190,14 +203,15 @@ test('Export preserves menu, clipboard, semantic cards and recording lifecycles'
   });
 
   await t.test('clipboard keeps promise construction in the click and distinct fallback/error receipts', async () => {
-    for (const action of ['copy','copy-share-card']) for (const mode of ['promise','fallback','reject']) {
+    for (const mode of ['promise','fallback','reject']) {
+      const action = 'copy';
       await load();
       await run(`window.copyCalls=[];window.copyDone=false;window.copyBlob=null;
         window.ClipboardItem=class {constructor(data){const value=data['image/png'];copyCalls.push({promise:value instanceof Promise,gesture:navigator.userActivation.isActive,inClickHandler:copyInClickHandler});if(${JSON.stringify(mode)}==='fallback'&&value instanceof Promise)throw new Error('promise unsupported');this.value=value;}};
         Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write(items){copyCalls.push({write:true});if(${JSON.stringify(mode)}==='reject'){copyDone=true;return Promise.reject(new Error('clipboard denied'));}return Promise.resolve(items[0].value).then(blob=>{copyBlob=blob;copyDone=true;});}}});
         document.querySelector('[data-action="${action}"]').disabled=false;Archify.exportMenu.open();`);
       await click(`[data-action="${action}"]`);
-      await run(`exportWait(()=>copyDone&&(${JSON.stringify(mode)}==='reject'?exportAlerts.length>0:${JSON.stringify(action)}==='copy-share-card'?document.documentElement.hasAttribute('data-last-export-format'):document.querySelector('.archify-toast').textContent.length>0))`);
+      await run(`exportWait(()=>copyDone&&(${JSON.stringify(mode)}==='reject'?exportAlerts.length>0:document.querySelector('.archify-toast').textContent.length>0))`);
       const calls = await run('copyCalls');
       assert.deepEqual(calls[0], { promise: true, gesture: true, inClickHandler: true });
       if (mode === 'fallback') assert.equal(calls[1].inClickHandler, false, 'Blob fallback remains asynchronous');
@@ -207,18 +221,17 @@ test('Export preserves menu, clipboard, semantic cards and recording lifecycles'
       if (mode !== 'reject') {
         assert.equal(await run('copyBlob.type'), 'image/png');
         const dims = await run('(async()=>{const b=await createImageBitmap(copyBlob);const size=[b.width,b.height];b.close();return size;})()');
-        if (action === 'copy-share-card') assert.deepEqual(dims,[1200,630]);
-        else assert.ok(dims[0] > 1200);
-        assert.equal(state.receipt['data-last-export-format'], action === 'copy-share-card' ? 'share-card' : undefined);
+        assert.ok(dims[0] > 1200);
+        assert.equal(state.receipt['data-last-export-format'], undefined);
       } else {
         assert.equal(state.alerts.length,1);
-        assert.equal(state.receipt['data-last-export-error-format'], action === 'copy-share-card' ? 'share-card' : undefined);
+        assert.equal(state.receipt['data-last-export-error-format'], undefined);
       }
       await run('exportWait(()=>[...exportUrls.values()].every(u=>u.revoked))');
     }
     await load({extra:'&fault=unsupported'});
-    assert.equal(await run('Archify.exportMenu.copyShareCard() === undefined'), true);
-    assert.equal((await record('clipboard-unavailable')).alerts.length, 1);
+    assert.equal(await run(`document.querySelector('[data-action="copy"]').disabled`), true);
+    assert.equal((await record('clipboard-unavailable')).alerts.length, 0);
   });
 
   await t.test('raster failures release sources and retain retry and synchronous SVG behavior', async () => {
@@ -239,6 +252,95 @@ test('Export preserves menu, clipboard, semantic cards and recording lifecycles'
     await load();
     const sync = await run(`(()=>{const svg=document.querySelector('.diagram-container > svg'),clone=svg.cloneNode;svg.cloneNode=()=>{throw new Error('sync serialization')};try{Archify.exportMenu.run('svg');return false;}catch(e){return e.message==='sync serialization';}finally{svg.cloneNode=clone;}})()`);
     assert.equal(sync,true);assert.deepEqual((await record('svg-sync-throw')).receipt,{});
+  });
+
+  await t.test('standalone SVG keeps intrinsic dimensions without changing Viewer or raster sizing', async () => {
+    const fixtures = [
+      ['architecture', 'web-app.architecture.json'],
+      ['workflow', 'agent-tool-call.workflow.json'],
+      ['sequence', 'cache-miss-request.sequence.json'],
+      ['dataflow', 'product-analytics.dataflow.json'],
+      ['lifecycle', 'agent-run.lifecycle.json'],
+    ];
+    try {
+      for (const [mode, fixture] of fixtures) {
+        execFileSync(process.execPath, [path.join(skillRoot, `renderers/${mode}/render-${mode}.mjs`), path.join(skillRoot, 'examples', fixture), file]);
+        for (const theme of ['dark', 'light']) {
+          await load({ theme });
+          const dimensions = await run(`(()=>{const v=document.querySelector('.diagram-container svg').viewBox.baseVal;return [v.width,v.height];})()`);
+          const viewerWidths = [];
+          for (const width of [640, 1440]) {
+            await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+            await run('Archify.readerLayout.whenStable()');
+            await run('Archify.viewerChromeLayout.whenStable()');
+            viewerWidths.push(await run(`document.querySelector('.diagram-container svg').getBoundingClientRect().width`));
+          }
+          assert.notEqual(viewerWidths[0], viewerWidths[1], `${mode}: Viewer remains responsive`);
+          const original = await run(`document.querySelector('.diagram-container svg').outerHTML`);
+          await run(`Archify.exportMenu.run('svg')`);
+          await run('exportWait(()=>exportDownloads.length===1)');
+          const svgText = await run('exportDownloads[0].blob.text()');
+          const svgFile = path.join(evidence || scratch, `${mode}-${theme}.svg`);
+          fs.writeFileSync(svgFile, svgText);
+          const figure = await run(`(()=>{const v=document.querySelector('.diagram-container svg').viewBox.baseVal;const sub=(document.querySelector('.header .subtitle')||{}).textContent;const header=document.querySelector('.header h1')?32+(sub&&sub.trim()?24:0)+18:0;return [(v.width+104)*4,(v.height+104+header)*4];})()`);
+          const rasterSizes = [];
+          for (const format of ['png', 'jpeg', 'webp']) {
+            await run(`Archify.exportMenu.run('${format}')`);
+            const result = await run(`(async()=>{const blob=exportDownloads.at(-1).blob;const image=await createImageBitmap(blob);const dimensions=[image.width,image.height];image.close();return {dimensions,type:blob.type};})()`);
+            assert.deepEqual(result.dimensions, figure, `${mode} ${theme} ${format}: native 4x framed raster`);
+            assert.equal(result.type, 'image/' + format);
+            rasterSizes.push({ format, ...result });
+            if (evidence) {
+              const bytes = await run('(async()=>Array.from(new Uint8Array(await exportDownloads.at(-1).blob.arrayBuffer())))()');
+              fs.writeFileSync(path.join(evidence, `${mode}-${theme}.${format}`), Buffer.from(bytes));
+            }
+          }
+          assert.equal(await run(`document.querySelector('.diagram-container svg').outerHTML`), original, 'exports leave the live SVG unchanged');
+          await record(`${mode}-${theme}-sizing`);
+          for (const width of [640, 1440]) {
+            await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+            await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }, { name: 'prefers-reduced-motion', value: 'reduce' }] });
+            const loaded = browser.cdp.waitFor('Page.loadEventFired', session);
+            await send('Page.navigate', { url: pathToFileURL(svgFile).href });
+            await loaded;
+            await run('document.fonts.ready');
+            const actual = await run(`(()=>{const s=document.documentElement,r=s.getBoundingClientRect(),v=s.viewBox.baseVal;return {rendered:[r.width,r.height],attributes:[Number(s.getAttribute('width')),Number(s.getAttribute('height'))],viewBox:[v.width,v.height]};})()`);
+            records.push({ label: `${mode}-${theme}-direct-${width}`, ...actual, viewerWidths, rasterSizes });
+            if (evidence && mode === 'architecture') {
+              const shot = await send('Page.captureScreenshot', { format: 'png' });
+              fs.writeFileSync(path.join(evidence, `${mode}-${theme}-direct-${width}.png`), Buffer.from(shot.data, 'base64'));
+            }
+            assert.deepEqual(actual.attributes, dimensions);
+            assert.deepEqual(actual.viewBox, dimensions);
+            assert.deepEqual(actual.rendered, dimensions, `${mode} ${theme}: intrinsic size at ${width}px viewport`);
+          }
+        }
+      }
+    } finally {
+      execFileSync(process.execPath, [path.join(skillRoot, 'renderers/architecture/render-architecture.mjs'), input, file]);
+    }
+  });
+
+  await t.test('SVG download declares UTF-8 and preserves CJK text', async () => {
+    const originalInput = fs.readFileSync(input, 'utf8');
+    try {
+      const cjkSource = JSON.parse(originalInput);
+      cjkSource.components[0].label = '用户入口';
+      fs.writeFileSync(input, JSON.stringify(cjkSource));
+      execFileSync(process.execPath, [path.join(skillRoot, 'renderers/architecture/render-architecture.mjs'), input, file]);
+      await load();
+      await run(`Archify.exportMenu.run('svg')`);
+      await run('exportWait(()=>exportDownloads.length===1)');
+      const download = await run(`exportDownloads[0].blob.text().then(text=>({name:exportDownloads[0].name,type:exportDownloads[0].blob.type,text}))`);
+      assert.ok(download.name.endsWith('.svg'));
+      assert.equal(download.type, 'image/svg+xml;charset=utf-8');
+      assert.ok(download.text.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'standalone SVG must declare its UTF-8 encoding');
+      assert.ok(download.text.includes('用户入口'), 'CJK label must survive serialization');
+      await record('svg-utf8');
+    } finally {
+      fs.writeFileSync(input, originalInput);
+      execFileSync(process.execPath, [path.join(skillRoot, 'renderers/architecture/render-architecture.mjs'), input, file]);
+    }
   });
 
   await t.test('recording succeeds with real encoding and releases tracks and the background URL', async () => {

@@ -42,13 +42,17 @@ test('scope CLI handles documentation, renames, main pushes, and invalid bases',
       const result = spawnSync(process.execPath, [script], { cwd: root, env: { ...process.env, CI_EVENT_NAME: event, CI_BASE_SHA: sha, GITHUB_OUTPUT: output } });
       return { status: result.status, output: fs.readFileSync(output, 'utf8') };
     };
-    assert.deepEqual(run('pull_request'), { status: 0, output: 'scope=docs\n' });
-    assert.deepEqual(run('push'), { status: 0, output: 'scope=full\n' });
+    assert.deepEqual(run('pull_request'), { status: 0, output: 'scope=docs\nwebsite=false\n' });
+    assert.deepEqual(run('push'), { status: 0, output: 'scope=full\nwebsite=true\n' });
     assert.notEqual(run('pull_request', 'bad').status, 0);
     assert.equal(run('pull_request', 'f'.repeat(40)).output, '');
     git('mv', 'runtime.js', 'README_EN.md');
     git('commit', '-qm', 'rename runtime into docs');
-    assert.deepEqual(run('pull_request'), { status: 0, output: 'scope=full\n' });
+    assert.deepEqual(run('pull_request'), { status: 0, output: 'scope=full\nwebsite=false\n' });
+    fs.mkdirSync(path.join(root, 'website'));
+    fs.writeFileSync(path.join(root, 'website', 'astro.config.mjs'), 'export default {};');
+    git('add', 'website'); git('commit', '-qm', 'website change');
+    assert.deepEqual(run('pull_request'), { status: 0, output: 'scope=full\nwebsite=true\n' });
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -83,7 +83,7 @@ Use this template to compress repository context before running Waza `/check`. T
 
 ## Public Replies
 
-See `public-reply.md` for the full reply template (language match, `@user` + thanks, factual paragraphs, ship-state line, closure criteria). It is the single source; do not restate the rules here.
+See `public-reply.md` for posting, edit-or-new-comment, read-back, and closure criteria; the reply body follows `/write` Public Reply Mode. Do not restate the rules here.
 
 ## Release Follow-through
 
