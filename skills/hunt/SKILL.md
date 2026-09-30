@@ -36,10 +36,6 @@ See [references/durable-context.md](references/durable-context.md) for when dura
 
 For `/hunt`: durable context is hypothesis fuel only, and current code, logs, and repro evidence override memory. It never replaces a fresh root-cause sentence or a reproducible symptom list.
 
-## Fix Scope Discipline
-
-If the bug needs a prerequisite refactor (e.g. a shared interface must change), state why it is necessary and check the authorized scope. Continue if that work is covered; ask before expanding the scope or choosing an unresolved behavior tradeoff. Keep unrelated refactors separate.
-
 ## Bisect Mode
 
 Activate when: "以前是好的", "之前是好的", "used to work", "上一次提交还是对的", "broke after update", or the user remembers a specific good commit or version.
@@ -105,11 +101,10 @@ For input method, character rendering, or text encoding bugs (IME state, cursor 
 - **External tool failure: diagnose before switching.** When an MCP tool or API fails, determine why first (server running? API key valid? Config correct?) before trying an alternative.
 - **System/tooling symptoms need a lower-layer baseline.** Before blaming the visible app, generated file, or top-level feature, measure the raw lower layer first: OS capture versus post-processing, runtime service versus UI, compiler/toolchain versus test assertion, network/API versus client handling. Retire hypotheses that the baseline disproves instead of circling them.
 - **Visual/rendering bugs: static analysis first.** Trace paint layers, stacking contexts, and layer order in DevTools before adding console.log or visual debug overlays. Logs cannot capture what the compositor does. Only add instrumentation after static analysis fails.
-- **Behavioral / lifecycle / async bugs: instrument while forming the hypothesis.** Window lifecycle, event delivery, navigation, focus, timer, state-machine, and async-ordering bugs almost never yield to static reading alone. The moment the hypothesis involves "this callback fires before/after that one", "this state should be X when Y runs", or "this object should still be alive here", add the log before writing any fix (anti-pattern 28); two guesses in a row is the hard-stop signal. Compositor behavior needs DevTools, not logs; pure-logic bugs (wrong formula, off-by-one) need only static analysis.
+- **Behavioral / lifecycle / async bugs: instrument while forming the hypothesis.** Window lifecycle, event delivery, navigation, focus, timer, state-machine, and async-ordering bugs almost never yield to static reading alone. The moment the hypothesis involves "this callback fires before/after that one", "this state should be X when Y runs", or "this object should still be alive here", add the log before writing any fix; two guesses in a row is the hard-stop signal. Compositor behavior needs DevTools, not logs; pure-logic bugs (wrong formula, off-by-one) need only static analysis.
 - **Tuning magic numbers past round three: stop, unify.** When a spacing / sizing / threshold value has been adjusted three times and still looks wrong, the bug is structural, not numeric. Replace the N independent values with one named token (`Spacing.s4`, `--gap-content`, etc.) and verify the asymmetry was hiding a missing constraint. Asymmetry that survives tuning is structural; more tuning will not converge.
-- **"While you are at it, add X" is a separate task.** Name the bundled feature request in one line, defer it, and finish the diagnosis. Agreement to fix a bug this hunt surfaced lifts the listing restriction for that bug only; it does not turn the hunt into feature work.
 - **Performance complaints need numbers.** For "slow", "laggy", or memory-growth reports outside Native App Freeze Mode, measure the baseline first (wall-clock time, profile sample, memory footprint), fix, then re-measure and report before/after numbers. "Feels faster" is not evidence.
-- **Fix the cause, not the symptom.** Continue necessary fixes within the user's authorized scope. Ask only when the fix expands that scope or requires a user decision; file count alone is not an approval boundary.
+- **Fix the cause within the authorized scope.** Continue necessary fixes, including a prerequisite refactor such as a shared interface change once you state why it is needed; ask only when the fix expands that scope or needs an unresolved behavior tradeoff, and file count alone is not an approval boundary. Keep unrelated refactors separate, and route an explicitly requested feature to its own workflow under the same completion ledger after diagnosis; a bug-fix authorization alone does not authorize an unrequested feature.
 
 ## Gotchas
 
@@ -119,7 +114,6 @@ For input method, character rendering, or text encoding bugs (IME state, cursor 
 | Orchestrator reported RUNNING while a downstream stage was misconfigured | In multi-stage pipelines, test each stage in isolation |
 | Race condition diagnosed as a stale-state bug | For timing-sensitive issues, inspect event timestamps and ordering before state |
 | Reproduced locally but failed in CI | Align the environment first (runtime version, env vars, timezone), then chase the code |
-| Stack trace points deep into a library | Walk back 3 frames into your own code; the bug is almost always there, not in the dependency |
 | Worked when launched from app, broke when opened via file association / drag-drop / deep link / external proxy | Reproduce using the exact entry point the user described. App-internal init differs from cold-launch-with-file init; state may not be ready when the document arrives. |
 | Fix matched the reporter's setup but changed nothing for everyone else, or regressed the default | A defect report is evidence, not the full scope. State whether the fix changes the default experience for all users or only the reporter's configuration, and prefer fixing the default path. |
 | Broke after toggling theme / mode / locale, fine after restart | State not re-applied on the toggle path. Trace the toggle's recompute or invalidation route first; do not tune styles pixel by pixel while the state path is broken. |
@@ -149,35 +143,8 @@ Status: **resolved**, **resolved with caveats** (state them), or **blocked** (st
 1. A regression test exists that fails on the unfixed code and passes on the fixed code.
 2. The test lives in the project's test suite, not a temporary file.
 3. The commit message states why the bug recurred and why this fix prevents it.
-4. Red-green was **run**, not assumed: revert the fix (or stash it), watch the new test fail, restore the fix, watch it pass. A regression test that has only ever been observed passing pins nothing. State the red run in the output. Two shapes make this fail silently: a framework or syntax where a failing assertion mid-test does not fail the test, so only the last one gates (in shell suites this can hinge on the bracket form alone, with one keyword swallowed and the other caught, so confirm which by running a two-line minimal repro rather than reasoning about it); and an assertion that the wrong string is absent, which passes forever because that string was never emitted under any code version. Any negative assertion ("output must not contain X") also needs a paired positive case in the same test proving the assertion can fail at all.
+4. Red-green was **run**, not assumed: run the new test against the unfixed code in an isolated temporary checkout or fixture, then against the fix. Do not revert or stash the shared worktree for this comparison. A regression test that has only ever been observed passing pins nothing. State the red run in the output. Two shapes make this fail silently: a framework or syntax where a failing assertion mid-test does not fail the test, so only the last one gates (in shell suites this can hinge on the bracket form alone, with one keyword swallowed and the other caught, so confirm which by running a two-line minimal repro rather than reasoning about it); and an assertion that the wrong string is absent, which passes forever because that string was never emitted under any code version. Any negative assertion ("output must not contain X") also needs a paired positive case in the same test proving the assertion can fail at all.
 
 ### Handoff Format (after 3 failed hypotheses)
 
-```
-Symptom:
-[Original error description, one sentence]
-
-Hypotheses Tested:
-1. [Hypothesis 1] → [Test method] → [Result: ruled out because...]
-2. [Hypothesis 2] → [Test method] → [Result: ruled out because...]
-3. [Hypothesis 3] → [Test method] → [Result: ruled out because...]
-
-Evidence Collected:
-- [Log snippets / stack traces / file content]
-- [Reproduction steps]
-- [Environment info: versions, config, runtime]
-
-Ruled Out:
-- [Root causes that have been eliminated]
-
-Unknowns:
-- [What is still unclear]
-- [What information is missing]
-
-Suggested Next Steps:
-1. [Next investigation direction]
-2. [External tools or permissions that may be needed]
-3. [Additional context the user should provide]
-```
-
-Status: **blocked**
+Status **blocked**, then: the symptom in one sentence; each hypothesis with its test method and why it was ruled out; evidence collected (log or stack excerpts, repro steps, versions, config, runtime); what is still unknown or missing; and next steps, naming any tool, permission, or context the user must supply.
