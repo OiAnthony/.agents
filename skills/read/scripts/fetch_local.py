@@ -40,7 +40,11 @@ FETCH_TIMEOUT_SECS = 20
 
 def fetch_html(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT_SECS) as resp:
+    # Direct connection by contract: a system proxy is a third party too, and
+    # --use-proxy is the only opt-in for sending the URL off-machine. urllib
+    # would otherwise honor http_proxy/https_proxy env silently.
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(req, timeout=FETCH_TIMEOUT_SECS) as resp:
         raw = resp.read()
     # Detect charset from Content-Type header; fall back to utf-8 with replace.
     charset = "utf-8"
