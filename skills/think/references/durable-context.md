@@ -12,12 +12,10 @@ Current code, diff, screenshots, logs, tests, docs, CI, remote state, and live p
 
 ## Memory is not authorization
 
-Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Current-turn instructions and current project rules decide authorization. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
+Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Live task instructions and current project rules decide authorization, including explicit authorization still in force for the same unfinished goal. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
 
 ## Redaction gate
 
 When turning prior chats, durable memory, or cross-project notes into reusable Waza guidance, promote only workflow rules. Strip raw transcript text, screenshots, local paths, project-specific commands, issue or PR numbers, release tags, commit hashes, private product boundaries, paid or license details, support routing, user names, and one-machine state.
 
 If an example is necessary, use neutral placeholders such as `ExampleCLI`, `ExampleApp`, `<issue>`, `<release>`, or `<command>`. Do not copy a private answer, maintainer reply, screenshot observation, or project-specific incident as a durable rule.
-
-The skill-specific overrides and constraints live in each `SKILL.md`, in the paragraph that follows its link to this file.

@@ -1,7 +1,7 @@
 ---
 name: think
-description: "Turns rough ideas into approved, decision-complete plans with validated structure before coding. Use when users ask in any language for planning, architecture, design direction, feasibility, value judgment, or whether a feature is worth doing before implementation. Not for bug fixes or small edits."
-when_to_use: "出方案, 给方案, 深入分析, 怎么设计, 用什么方案, 判断一下, 有没有必要, 值不值得, what's the best approach, plan this, how should I, should we keep this"
+description: "Turns rough ideas into approved, decision-complete plans before coding. Use when planning architecture, judging whether to build, or writing a handoff. Not for bug fixes or small edits."
+when_to_use: "出方案, 给方案, 怎么设计, 用什么方案, 有没有必要, 值不值得, what's the best approach, plan this, how should I, should we keep this"
 dispatch_intent: "New feature, architecture, how should I design this, value judgment, executable plan, handoff"
 ---
 
@@ -26,13 +26,13 @@ See [references/durable-context.md](references/durable-context.md) for when dura
 
 For `/think`: current repo state and live docs override memory. Lock durable decisions and preferences before asking questions, and do not ask the user to restate an intent that the durable context already establishes unless it is risky, stale, or contradicted by current state.
 
-Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and any local agent-memory summary if the user pointed at one. If the proposed plan contradicts a "hard rule", "never X", "must Y", or "prefer Z" stated in those files, surface the contradiction in the plan output (one sentence: which rule, which step contradicts it, recommended resolution). Do not silently override the rule. If the rule blocks the plan, stop and ask before continuing.
+Before outputting any plan, read the project guide index (`AGENTS.md` or `CLAUDE.md`) and only the domain rule that matches the problem. Do not load the entire `.claude/rules/` tree. If the user pointed at a local agent-memory summary, read that too. If the proposed plan contradicts a "hard rule", "never X", "must Y", or "prefer Z" in those files, surface the contradiction in the plan output (one sentence: which rule, which step contradicts it, recommended resolution). Do not silently override the rule. If the rule blocks the plan, stop and ask before continuing.
 
 ## Lightweight Mode
 
 Activate when the user asks for a plan for a defined problem and the only open question is "how to fix it." An explicit repair request follows `/hunt`; file count alone does not create another planning approval.
 
-Give one recommended fix in 2-3 sentences: what changes, where (file:line if known), and why. Name the brute-force version in one line first; default to it unless the user wants elegance. List involved files, flag explicitly if more than 5. State one risk. Wait for approval before implementing.
+Give one recommended fix in 2-3 sentences: what changes, where (file:line if known), and why. Name the brute-force version in one line first; default to it unless the user wants elegance. List involved files, flag explicitly if more than 8. State one risk. Wait for approval before implementing.
 
 Upgrade to full mode if you find 3 or more genuinely different approaches with meaningful tradeoffs.
 
@@ -46,7 +46,7 @@ For a bundle of independently accepted or rejected asks or screenshots, includin
 
 ## Before Reading Any Code
 
-- If the project tracks prior decisions (ADRs, design docs, issue threads), skim the ones matching the problem before proposing. Skip if none exist.
+- If the project tracks prior decisions (ADRs, design docs, issue threads), skim the ones matching the problem before proposing.
 - If the plan involves a default value, env var, or config field, open the project's actual config file (e.g. `app.config.json`, `tauri.conf.json`, `package.json`, `.env`) and lift the live value. Never quote a default from memory or docs.
 
 ## Check for Official Solutions First
@@ -61,7 +61,7 @@ Give one recommended approach with rationale. Include effort, risk, and what exi
 
 Anything that asks a person to install or configure something (hook, MCP server, editor plugin, config key, pricing tier, per-day limit) is a setup cost paid by every user. Default to the zero-setup form: a built-in command plus a skill, a fixed sensible default, a doc line. Offer the setup-requiring form only after naming why the zero-setup one cannot do the job.
 
-When the plan is about distilling lessons from one project into a reusable skill set or shared rules, split the plan into **promote** and **do not promote**. Promote only reusable workflow constraints. Explicitly reject project-specific commands, paths, release checklists, safety boundaries, and private local context unless the user asks to update that project itself.
+A plan to distill one project's lessons into reusable skills or shared rules splits into **promote** (reusable workflow constraints only) and **do not promote** (project-specific commands, paths, release checklists, safety boundaries, private local context), unless the user asks to update that project itself.
 
 For the recommendation, identify the most fragile assumption (premise collapse) and state it explicitly: "This plan assumes X. If X does not hold, Y happens." If the assumption is load-bearing and fragile, deform the design to survive its failure.
 
@@ -97,7 +97,7 @@ When the plan adds files, abstractions, error layers, config knobs, or retries t
 - **Minimal path:** the brute-force version in one line; the chosen plan must beat it on risk, rollback, or latency, not elegance.
 - **Defensive layers:** every try/catch, retry, fallback, or flag maps to one named failure mode; delete layers that only "might" fail.
 - **Surface delta:** list new commands, env vars, flags, or services; prefer +0 unless a user split needs a knob.
-- **Compensating complexity:** if the plan is mostly workaround machinery around a misbehaving API, stop and name a route change (anti-patterns #27).
+- **Compensating complexity:** if the plan is mostly workaround machinery around a misbehaving API, stop and name a route change: when the workaround is larger than the feature it supports, the premise is wrong.
 
 If the gate fails, shrink the plan or switch to the minimal option before asking for approval.
 
@@ -114,13 +114,13 @@ A finished plan must be executable by another engineer or agent without re-decid
 
 When the user asks to export a handoff, or when the environment prevents further execution, make the handoff execution-ready instead of explaining the limitation. Include file targets, key constants or selectors, exact commands, runtime or visual checklist, and risk boundaries. If the work depends on a screenshot or artifact, name the artifact and the pass/fail delta.
 
-When the user says "Implement the plan", "just do it", "可以干", "直接改", "整", or otherwise explicitly requests implementation, leave planning and execute the approved direction without another approval round. State which plan is being executed and check for repo drift; stop only if specific drift makes it unsafe. Approval of the design alone does not authorize implementation or public actions.
+When the user says "Implement the plan", "just do it", "可以干", "直接改", "直接做", "按你说的来", "不用确认", "整", or otherwise explicitly requests implementation, or the only open choice is already settled by the user or project rules, skip every approval gate in this skill (including Lightweight Mode's wait) and execute the direction without another approval round. State which plan is being executed and check for repo drift; stop only if specific drift makes it unsafe. Approval of the design alone does not authorize implementation or public actions.
 
 ## Hard Rules
 
 - **No placeholders in approved plans.** Every step must be concrete before approval. Forbidden patterns: TBD, TODO, "implement later," "similar to step N," "details to be determined." A plan with placeholders is a promise to plan later.
-- **Phase independence.** If the plan has multiple phases, each phase must be independently mergeable: after Phase N ships, the system is in a usable state, even if N+1 never lands. Plans that require all phases to complete before anything works are fragile (one stuck phase blocks the whole release) and waste review effort. If the work cannot be cut into mergeable phases, say so and ship it as one phase instead of pretending it is staged.
-- **Plan red flags (self-check before handoff):** a phase depends on the next phase to be useful, or a "Phase 0: investigate / spike" exists (investigation belongs before the plan, not inside it). Either red flag means the plan is not ready; resolve it before handing off.
+- **Phase independence.** Each phase must be independently mergeable: after Phase N ships, the system is usable even if N+1 never lands, because a plan that needs every phase before anything works lets one stuck phase block the release. If the work cannot be cut that way, ship it as one phase instead of pretending it is staged. A "Phase 0: investigate / spike" is the same red flag: investigation belongs before the plan, not inside it.
+- **An error or bug report routes out before anything else.** "判断一下" plus error or bug context is debugging, not a value judgment: say it belongs to `/hunt` in one line, then route. Evaluation Mode is for value and existence judgments only.
 
 ## Gotchas
 
@@ -129,7 +129,6 @@ When the user says "Implement the plan", "just do it", "可以干", "直接改",
 | Rejected design restarted from scratch | Ask what specifically failed, re-enter with narrowed constraints |
 | Picked a regional or locale-specific API variant without checking | List all regional or locale differences before writing integration code |
 | Introduced a second language or runtime into a single-stack project | Never add a new language or runtime without explicit approval |
-| User said "判断一下这个报错" and got Evaluation Mode | "判断一下" + error/bug context = debugging, route to `/hunt`. Evaluation Mode is for value/existence judgments only |
 
 ## Output
 
