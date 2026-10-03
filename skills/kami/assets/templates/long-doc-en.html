@@ -152,15 +152,15 @@
     color: var(--near-black);
     padding-left: 6pt;
     text-decoration: none;
-    display: flex;
-    justify-content: space-between;
-    gap: 12pt;
+    /* Stays a block: WeasyPrint 70.0 resolves target-counter to 0 on a flex
+       anchor, so the page numbers below must not sit in a flex container. */
+    display: block;
   }
   .toc-title[href]::after {
     content: target-counter(attr(href), page);
     color: var(--stone);
     font-variant-numeric: tabular-nums;
-    margin-left: auto;
+    float: right;
   }
 
   /* HEADINGS */

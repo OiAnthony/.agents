@@ -9,7 +9,10 @@ inline code, URLs, and link targets so punctuation that belongs to code is
 never flagged.
 
 Run as: python3 check_punctuation.py [--lang LANG] [--fix] [FILE]
-  --lang  zh | en | ja | auto   (default: auto)
+  --lang  zh | en | ja | auto   (default: auto). auto classifies the whole
+          input by fixed priority: any kana is ja, else any CJK is zh, else
+          any Hangul is ko (reserved, skipped), else en. Pass --lang
+          explicitly for mixed-locale or predominantly-English text.
   --fix   print corrected text to stdout (zero-ambiguity fixes only)
   FILE    file to read; reads stdin when omitted
 

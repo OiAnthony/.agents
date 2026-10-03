@@ -40,16 +40,16 @@
 
     @top-right {
       content: string(section-title);
-      font-family: "Source Han Serif K", "Source Han Serif KR", "Apple SD Gothic Neo",
-                   "Noto Serif KR", "AppleMyungjo", Georgia, serif;
+      font-family: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR",
+                   "Nanum Myeongjo", "AppleMyungjo", "Apple SD Gothic Neo", Georgia, serif;
       font-size: 8pt;
       color: #6b6a64;
     }
 
     @bottom-center {
       content: counter(page) "  ·  {{문서 제목}}";
-      font-family: "Source Han Serif K", "Source Han Serif KR", "Apple SD Gothic Neo",
-                   "Noto Serif KR", "AppleMyungjo", Georgia, serif;
+      font-family: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR",
+                   "Nanum Myeongjo", "AppleMyungjo", "Apple SD Gothic Neo", Georgia, serif;
       font-size: 9pt;
       color: #6b6a64;
     }
@@ -73,7 +73,7 @@
     --border:    #e8e6dc;
     --border-soft:#e5e3d8;
     --tag-bg:    #E4ECF5;
-    --serif: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR", "Apple SD Gothic Neo", "AppleMyungjo", Charter, Georgia, serif;
+    --serif: "Source Han Serif K", "Source Han Serif KR", "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", "Apple SD Gothic Neo", Charter, Georgia, serif;
     --sans: var(--serif);
 
     --rhythm-module:  14pt;
@@ -172,15 +172,15 @@
     color: var(--near-black);
     padding-left: 6pt;
     text-decoration: none;
-    display: flex;
-    justify-content: space-between;
-    gap: 12pt;
+    /* Stays a block: WeasyPrint 70.0 resolves target-counter to 0 on a flex
+       anchor, so the page numbers below must not sit in a flex container. */
+    display: block;
   }
   .toc-title[href]::after {
     content: target-counter(attr(href), page);
     color: var(--stone);
     font-variant-numeric: tabular-nums;
-    margin-left: auto;
+    float: right;
   }
 
   /* ========== HEADINGS ========== */
