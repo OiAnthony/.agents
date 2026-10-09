@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -777,11 +778,11 @@ def parse_codex_config(
         if table_match:
             section = table_match.group(1)
             marketplace_match = re.match(r'marketplaces\.([A-Za-z0-9_.@-]+)$', section)
-            plugin_match = re.match(r'plugins\."?([^"]+)"?$', section)
+            plugin_match = re.fullmatch(r'plugins\.(?:"([^"]+)"|([A-Za-z0-9_@-]+))', section)
             if marketplace_match:
                 marketplaces.append(marketplace_match.group(1))
             if plugin_match:
-                plugins.append(plugin_match.group(1))
+                plugins.append(plugin_match.group(1) or plugin_match.group(2))
             continue
 
         if SENSITIVE_RE.search(line):
@@ -792,6 +793,11 @@ def parse_codex_config(
         if "=" not in line:
             continue
         key, value = [part.strip() for part in line.split("=", 1)]
+        plugin_match = re.fullmatch(r'plugins\.(?:"([^"]+)"|([A-Za-z0-9_@-]+))', section)
+        if plugin_match and key == "enabled":
+            name = plugin_match.group(1) or plugin_match.group(2)
+            if value.split("#", 1)[0].strip() == "false" and name in plugins:
+                plugins.remove(name)
         if section == "features" and value.split("#", 1)[0].strip().strip('"').lower() == "true":
             features.append(key)
         elif section.startswith('projects."') and key == "trust_level":
@@ -805,6 +811,131 @@ def parse_codex_config(
         sorted(set(marketplaces)),
         sorted(set(redacted)),
     )
+
+
+def runtime_inventory(root: Path, home: Path) -> list[str]:
+    """Inspect configured sources without starting servers or exposing arguments."""
+    lines = ["=== RUNTIME CONFIGURATION ===",
+             "runtime_probe: static; no servers started",
+             "plugin_mcp_coverage: Claude user registry; Codex plugin state not inspected"]
+    servers: dict[str, dict[str, tuple[str, dict]]] = {"claude": {}, "codex": {}}
+    sources = [
+        ("claude:user", home / ".claude.json"),
+        ("claude:project", root / ".mcp.json"),
+        ("claude:global", home / ".claude" / "settings.json"),
+        ("claude:shared", root / ".claude" / "settings.json"),
+        ("claude:local", root / ".claude" / "settings.local.json"),
+        ("codex:global", home / ".codex" / "hooks.json"),
+    ]
+    def executable_state(command: object) -> str:
+        if not isinstance(command, str) or not command:
+            return "remote"
+        if "${" in command or "$" in command:
+            return "unresolved"
+        if command.startswith("~/"):
+            path = home / command[2:]
+        elif Path(command).is_absolute():
+            path = Path(command)
+        elif "/" in command or "\\" in command:
+            return "relative; runtime working directory required"
+        else:
+            return "found" if shutil.which(command) else "missing"
+        return "found" if path.is_file() and os.access(path, os.X_OK) else "missing"
+
+    settings, _ = load_json(home / ".claude" / "settings.json")
+    installed, _ = load_json(home / ".claude" / "plugins" / "installed_plugins.json")
+    if isinstance(settings, dict) and isinstance(installed, dict):
+        registry = installed.get("plugins", {})
+        enabled_plugins = settings.get("enabledPlugins", {})
+        for name, enabled in enabled_plugins.items() if isinstance(enabled_plugins, dict) else []:
+            if enabled is not True or not isinstance(registry, dict):
+                continue
+            entries = registry.get(name, [])
+            for entry in entries if isinstance(entries, list) else []:
+                if isinstance(entry, dict) and entry.get("scope") == "user" and isinstance(entry.get("installPath"), str):
+                    sources.append(("claude:plugin:" + str(name), Path(entry["installPath"]) / ".mcp.json"))
+    for label, path in sources:
+        data, error = load_json(path)
+        if error:
+            lines.append(f"{label} config=invalid")
+        if not isinstance(data, dict):
+            continue
+        mappings = data.get("mcpServers", data if ":plugin:" in label else {})
+        if isinstance(mappings, dict):
+            for name, config in mappings.items():
+                if isinstance(config, dict):
+                    server_name = label + ":" + str(name) if ":plugin:" in label else str(name)
+                    servers["claude"][server_name] = (label, config)
+        if label == "claude:user":
+            projects = data.get("projects", {})
+            local = projects.get(str(root), {}) if isinstance(projects, dict) else {}
+            mappings = local.get("mcpServers", {}) if isinstance(local, dict) else {}
+            for name, config in mappings.items() if isinstance(mappings, dict) else []:
+                if isinstance(config, dict):
+                    servers["claude"][str(name)] = ("claude:local-project", config)
+        hooks = data.get("hooks", {})
+        if not isinstance(hooks, dict):
+            continue
+        for event, groups in hooks.items():
+            for group in groups if isinstance(groups, list) else []:
+                if not isinstance(group, dict):
+                    continue
+                handlers = group.get("hooks", [])
+                for handler in handlers if isinstance(handlers, list) else []:
+                    if not isinstance(handler, dict):
+                        continue
+                    kind = handler.get("type", "unknown")
+                    lines.append(f"{label} hook={safe_label(str(event))} type={safe_label(str(kind))}")
+                    command = handler.get("command", "")
+                    if kind == "command" and isinstance(command, str):
+                        if "supacode-managed-hook" in command:
+                            lines.append(f"{label} managed_hook=supacode; review owner installation")
+                        try:
+                            parts = shlex.split(command)
+                        except ValueError:
+                            parts = []
+                        if parts and parts[0] not in {"[", "test", "if", "true", "echo", "printf"}:
+                            lines.append(f"{label} hook_executable={executable_state(parts[0])}")
+                    elif kind == "mcp_tool":
+                        if not handler.get("server") or not handler.get("tool"):
+                            lines.append(f"{label} mcp_hook=missing server or tool")
+                    elif kind not in {"prompt", "agent", "http", "command"}:
+                        lines.append(f"{label} hook_type=unverified")
+
+    # TOML parsing is optional on Python 3.9/3.10; report the gap, never a false zero.
+    try:
+        import tomllib
+    except ImportError:
+        lines.append("codex_runtime_config: unavailable; Python 3.11+ TOML parser required")
+        codex = None
+    else:
+        try:
+            codex = tomllib.loads(read(home / ".codex" / "config.toml"))
+        except (ValueError, OSError):
+            codex = None
+            lines.append("codex_runtime_config: invalid")
+    if codex is not None:
+        mappings = codex.get("mcp_servers", {})
+        for name, config in mappings.items() if isinstance(mappings, dict) else []:
+            if isinstance(config, dict):
+                servers["codex"][name] = ("codex:user", config)
+        limit = codex.get("project_doc_max_bytes", 32768)
+        if isinstance(limit, int) and not isinstance(limit, bool) and limit > 0:
+            candidates = [home / ".codex" / "AGENTS.override.md", home / ".codex" / "AGENTS.md"]
+            global_file = next((p for p in candidates if read(p).strip()), None)
+            project_file = next((p for p in [root / "AGENTS.override.md", root / "AGENTS.md"] if read(p).strip()), None)
+            total = sum(len(read_bytes(p)) for p in [global_file, project_file] if p)
+            lines.append("instruction_budget_scope: user config, global and current root; overrides, ancestors and nested files not included")
+            lines.append(f"project_instruction_bytes: {total}")
+            lines.append(f"project_instruction_limit: {limit}")
+            lines.append(f"project_instruction_limit_exceeded: {'yes' if total > limit else 'no'}")
+    for runtime, entries in servers.items():
+        for name, (label, config) in sorted(entries.items()):
+            disabled = config.get("enabled") is False or config.get("disabled") is True
+            state = "disabled" if disabled else "enabled"
+            executable = "skipped" if disabled else executable_state(config.get("command"))
+            lines.append(f"{label} mcp={safe_label(name)} state={state} executable={executable}")
+    return lines
 
 
 def permission_rules(data: object, key: str) -> list[str]:
@@ -1442,6 +1573,9 @@ def main() -> int:
     print_list("claude_findings", claude_findings)
 
     for line in permission_lines:
+        print(safe_label(line, 2_000))
+
+    for line in runtime_inventory(root, home):
         print(safe_label(line, 2_000))
 
     for line in path_context_lines:

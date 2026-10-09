@@ -7,10 +7,10 @@ Input bundle: settings.local.json, GITIGNORE, CLAUDE.md (global), CLAUDE.md (loc
 Hooks checks:
 - Hooks are optional. Recommend one only when a repeated deterministic failure or a high-consequence safety boundary is better enforced mechanically than remembered in prose.
 - If hooks exist, verify schema:
-  - Each entry needs `matcher` and a `hooks` array
-  - Each hook needs `type: "command"` and `command`
+  - Each event group needs a `hooks` array; validate `matcher` only for events that support filtering.
+  - Validate handlers by runtime and type: command hooks need `command`; MCP-tool hooks need `server` and `tool`. Prompt, agent, HTTP, and unfamiliar types need the matching runtime contract, not a command-only rejection.
   - File path may be available via `$CLAUDE_TOOL_INPUT_FILE_PATH`
-  - Missing `matcher` fires on all tool calls
+  - Interpret `matcher` by event; lifecycle hooks such as Stop do not require a tool matcher.
 - Flag full test suites on every edit, prefer fast checks for immediate feedback.
 - Flag commands without output truncation, unbounded output floods context.
 - Flag commands without explicit failure surfacing.

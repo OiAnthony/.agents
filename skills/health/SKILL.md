@@ -26,7 +26,7 @@ Two lanes share one report:
 - **Agent config health**: Codex/Claude/Pi instruction drift, permissions, hooks, MCP, skills, and memory supply chain.
 - **AI maintainability health**: non-obvious constraint reachability, risk-backed hotspot ownership, verifier coverage, generated-artifact checks, and stale or misleading durable docs.
 
-**Output language:** Check in order: (1) project agent instructions (`AGENTS.md` before runtime-specific files); (2) global agent instructions; (3) user's recent language; (4) English.
+**Output language:** Follow the user's current language or explicit language request. Use applicable project and global defaults only when the request does not establish a language.
 
 **Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Inventory counts never trigger escalation on their own. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
@@ -42,7 +42,7 @@ For `/health`: current config, command output, and live probes override memory. 
 
 - Summary and deep audits are report-only. Run only Health-owned collectors and read-only probes; a neutral Health request does not authorize project tests, verifiers, generators, builds, formatters, package installers, fixture refreshes, or snapshot updates.
 - **A bundled debugging or code-review ask uses its own workflow.** Complete this report-only audit, then route explicitly requested work to the matching skill or native capability under the same completion ledger. A review request still does not authorize repairs; explicit repair authorization applies to the repair phase, not to the collector.
-- Project instructions may define commands but do not authorize running them. Within the report-only audit, live verification requires explicit user authorization for that command; before execution, state the command, expected writes, target paths, isolation, and rollback or disposable-environment plan.
+- Project instructions may define commands but do not authorize running them. Read-only health probes are covered by the audit request. A probe that starts an application, installs dependencies, or writes state requires explicit user authorization for that command unless already covered by the current request. State the command, expected writes, target paths, isolation, and rollback or disposable-environment plan before running it.
 
 ## Step 0: Establish the evidence basis
 
@@ -106,7 +106,7 @@ The collector includes both runtime-specific and agent-agnostic surfaces:
 
 ## Step 1b: MCP Live Check
 
-Test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. Respect `enabled: false` (skip without flagging). For API keys, record only whether the environment variable is set; never emit any part of its value.
+Inspect configured global, project, and installed-plugin sources first, retaining source and enablement. Use the runtime inventory to flag missing executables and managed hooks whose owner may be gone; unknown working directories or plugin state remain coverage gaps. Call a harmless tool only on already connected servers. Never launch an unverified GUI executable just to test MCP. Record connected, failed, disabled, or untested separately; static presence is not live health. Never emit credentials. Compare discovered instruction bytes with the effective configured limit and state any uninspected ancestors, nested files, or runtime overrides.
 
 ## Step 1c: Safety and security checks
 
@@ -212,4 +212,4 @@ Outdated items, global vs local placement, context hygiene, stale allowedTools e
 
 If no issues: `All relevant checks passed. Nothing to fix.`
 
-The report never auto-applies fixes without confirmation, and never acts as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.
+A report-only request never authorizes fixes; an explicit optimization or repair request continues into its authorized repair phase without another confirmation. The audit is not a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.

@@ -899,9 +899,9 @@ try:
         d = json.load(fh)
 except Exception:
     msg = '(unavailable: settings.local.json missing or malformed)'
-    print('=== hooks ===')
+    print('=== PROJECT-LOCAL hooks ===')
     print(msg)
-    print('=== MCP ===')
+    print('=== PROJECT-LOCAL MCP ===')
     print(msg)
     print('=== MCP FILESYSTEM ===')
     print(msg)
@@ -909,7 +909,7 @@ except Exception:
     print(msg)
     sys.exit(0)
 
-print('=== hooks ===')
+print('=== PROJECT-LOCAL hooks ===')
 hooks = d.get('hooks', {})
 if isinstance(hooks, dict):
     names = sorted(hooks.keys())
@@ -934,7 +934,7 @@ if isinstance(hooks, dict):
 else:
     print('hook_events: (unknown format)')
 
-print('=== MCP ===')
+print('=== PROJECT-LOCAL MCP ===')
 servers = d.get('mcpServers', d.get('enabledMcpjsonServers', {}))
 names = list(servers.keys()) if isinstance(servers, dict) else list(servers)
 count = len(names)
@@ -942,8 +942,7 @@ safe_names = [re.sub(r'[^A-Za-z0-9_.@+-]+', '_', str(name))[:80] for name in nam
 print(f'servers({count}):', ', '.join(safe_names))
 if count > 20:
     print('server_names_truncated:', count - 20)
-est = count * 25 * 200
-print(f'est_tokens: ~{est} (inventory estimate: 25 tools/server x 200 tokens/tool; actual loaded cost unknown)')
+print('coverage: project settings only; see RUNTIME CONFIGURATION for global sources')
 
 print('=== MCP FILESYSTEM ===')
 if isinstance(servers, list):
@@ -973,9 +972,9 @@ print('=== allowedTools count ===')
 print(len(d.get('permissions', {}).get('allow', [])))
 PYEOF
 else
-  echo "=== hooks ==="
+  echo "=== PROJECT-LOCAL hooks ==="
   echo "(unavailable)"
-  echo "=== MCP ==="
+  echo "=== PROJECT-LOCAL MCP ==="
   echo "(unavailable)"
   echo "=== MCP FILESYSTEM ==="
   echo "(unavailable)"
