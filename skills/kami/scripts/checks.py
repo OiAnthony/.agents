@@ -212,7 +212,7 @@ def check_orphans(paths: list[str]) -> int:
     missing = 0
     scanned = 0
     for raw in paths:
-        path = Path(raw)
+        path = resolve_input(raw)
         if not path.exists():
             print(f"ERROR: {raw}: not found")
             missing += 1
@@ -347,7 +347,7 @@ def scan_density(paths: list[str], scan_single_page: bool = False) -> tuple[int,
     missing = 0
     scanned = 0
     for raw in paths:
-        path = Path(raw)
+        path = resolve_input(raw)
         if not path.exists():
             print(f"ERROR: {raw}: not found")
             missing += 1
@@ -500,7 +500,7 @@ def check_resume_balance(paths: list[str]) -> int:
     missing = 0
     scanned = 0
     for raw in paths:
-        path = Path(raw)
+        path = resolve_input(raw)
         if not path.exists():
             print(f"ERROR: {raw}: not found")
             missing += 1

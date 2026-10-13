@@ -205,7 +205,9 @@ test('all README languages show the brand mark and localized launch video', () =
     const videoId = filename === 'README_ZH.md' ? '88cff7dd-bdf3-4b97-950c-37cc079898b1' : '78570807-ba1d-4737-953f-55504a378a87';
     assert.ok(readme.includes(`\nhttps://github.com/user-attachments/assets/${videoId}\n`), `${filename}: missing standalone localized video attachment`);
     assert.ok(!readme.includes('docs/assets/archify-live-proof.gif'), `${filename}: obsolete preview remains`);
-    assert.match(readme, /https:\/\/tt-a1i\.github\.io\/archify\/gallery\.html/);
+    assert.match(readme, filename === 'README_ZH.md'
+      ? /https:\/\/archify\.si\/zh\/gallery(?=[?#)"])/
+      : /https:\/\/archify\.si\/gallery\.html/);
   }
   assert.equal(
     fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8'),

@@ -28,7 +28,7 @@ _LINUX_NATIVE_LIBS = (
     "(Debian/Ubuntu), or `sudo dnf install cairo pango harfbuzz` (Fedora/RHEL)"
 )
 
-WEASYPRINT_INSTALL_HINT = "pip install weasyprint pypdf --break-system-packages"
+WEASYPRINT_INSTALL_HINT = "pip install weasyprint pypdf pymupdf --break-system-packages"
 if sys.platform.startswith("linux"):
     WEASYPRINT_INSTALL_HINT = f"{WEASYPRINT_INSTALL_HINT}. {_LINUX_NATIVE_LIBS}"
 PYMUPDF_INSTALL_HINT = "pip install pymupdf --break-system-packages"

@@ -63,15 +63,25 @@
 
 @font-face {
   font-family: "TsangerJinKai02";
-  src: url("https://cdn.jsdelivr.net/gh/AlfredoSequeworthy/TsangerJinKai02@main/TsangerJinKai02-W04.woff2") format("woff2");
+  src: url("../fonts/TsangerJinKai02-W04.ttf") format("truetype"),
+       url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W04.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TsangerJinKai02";
-  src: url("https://cdn.jsdelivr.net/gh/AlfredoSequeworthy/TsangerJinKai02@main/TsangerJinKai02-W05.woff2") format("woff2");
+  src: url("../fonts/TsangerJinKai02-W05.ttf") format("truetype"),
+       url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/assets/fonts/TsangerJinKai02-W05.ttf") format("truetype");
   font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/JetBrainsMono.woff2") format("woff2"),
+       url("https://cdn.jsdelivr.net/gh/tw93/Kami@main/skills/kami/assets/fonts/JetBrainsMono.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -660,7 +670,7 @@ pre.code .k { color: var(--brand); }
   padding: 4px 0;
 }
 .price-amount {
-  font-family: Georgia, Charter, serif;
+  font-family: var(--serif);
   font-weight: 500;
   font-size: 30px;
   line-height: 1.2;

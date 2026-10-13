@@ -8,7 +8,7 @@ One-page quick reference. Scan before filling a template or tweaking a detail. F
 2. Single accent: ink-blue `#1B365D`
 3. All grays **warm-toned** (yellow-brown undertone), no cool blue-gray
 4. One serif font per page (headings + body). `--sans` is a CSS alias for the same family; introduce a real sans only for genuinely UI-style chrome
-5. Serif weight locked at 500, no bold
+5. Serif weights 400 body / 500 headings, no bold
 6. Line-height: headlines 1.1-1.3 / dense 1.4-1.45 / reading 1.5-1.55
 7. Letter-spacing: Chinese body with TsangerJinKai 0.1-0.2pt (dense layouts may push to 0.3pt); English body 0; small labels and all-caps overlines get +0.2-1pt
 8. Tag backgrounds solid hex, no rgba (WeasyPrint double-rectangle bug)
@@ -62,12 +62,12 @@ Full pass in SKILL.md «2 · Sources, materials, and content». The one contract
 | Body       | 10   | 400    | 1.55        |
 | Body Dense | 9.2  | 400    | 1.42        |
 | Caption    | 9    | 400    | 1.45        |
-| Label      | 9    | 600    | 1.35        |
+| Label      | 9    | 500    | 1.35        |
 | Tiny       | 9    | 400    | 1.40        |
 
 
 Screen (px) ≈ pt × 1.33.
-Minimum floor: web text >= 12px, PDF text >= 9pt.
+Minimum floor: web text >= 12px, PDF body text and labels >= 9pt. Named dense exceptions may go to 8-8.5pt: `.compact` tables, running footers, and dense resume timelines.
 
 ### Typography cross-check (from Pierrick Calvez, "A Five-Minute Guide to Better Typography")
 
@@ -96,8 +96,8 @@ English:
 Chinese:
 
 ```css
---serif: "TsangerJinKai02", "Source Han Serif SC",
-         "Noto Serif CJK SC", "Songti SC", "STSong",
+--serif: "TsangerJinKai02", "Source Han Serif SC", "Source Han Serif CN",
+         "Noto Serif CJK SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun",
          Georgia, serif;
 --sans:  var(--serif);
 --mono:  "JetBrains Mono", "SF Mono", Consolas,
@@ -285,16 +285,6 @@ Usage: extract the `<svg>` block from the HTML file and paste into the template'
 
 **Editing data**: only modify elements between `<!-- DATA START -->` / `<!-- DATA END -->`, leave CSS untouched. All coordinates must be divisible by 4.
 
-## Dark section
-
-Alternate light/dark rhythm: add `.sd-alt` to any section container.
-
-- Background switches to `--deep-dark` (`#141413`)
-- Body text switches to `--warm-silver` (`#b0aea5`)
-- Headings switch to `--ivory`
-- Appropriate for: section-level light/dark alternation in long-doc / portfolio
-- Restriction: showcase pages only, never in print templates
-
 ## Verification checks
 
 Finish every filled document with one command: `python3 scripts/build.py --deliver filled.html content.json`. It runs placeholders, strict math (rendered to MathJax SVG in place), Markdown residue, template style, content coverage, the PDF render, page contract, resume balance, fonts, density, and orphans, exports page images, and ends in READY or NOT READY. Fix every ERROR, re-run, then view every page image against the printed checklist.
@@ -370,12 +360,12 @@ Resume visual rule: header and section titles carry the only structural rules. T
 | Buttons             | `landing-page` `.btn-primary` / `.btn-ghost` (screen only)      |
 | Section start       | serif scale and margin only, no tick, side bar, or short rule    |
 | Cover               | Display heading + right-aligned author/date + heavy whitespace |
-| Figure SVG          | `width: 100%; height: auto; max-height: <safe>`. Never `max-height` alone (starves width on wide viewBoxes; production.md #17). |
-| Metric labels (4-col) | Soft cap 14-18 chars at 9pt Charter; trim context, don't wrap (production.md #18). |
-| Multi-column body   | Hold lengths within ±10 chars across parallel columns (production.md #19). |
-| Image references    | Always inside the demo's own `images/` folder (`site/assets/demos/images/` in this repository) or `site/assets/illustrations/`; never `../../sibling-project/...` (production.md #20). |
-| Metric row layout   | Vertical stack (`flex-direction: column`); horizontal baseline-align breaks when any label wraps (production.md #21). |
-| Slide bullets       | Numerals `1. 2. 3.` or `•`; en-dash `–` reads informal at slide scale (production.md #22). Print docs keep en-dash. |
+| Figure SVG          | `width: 100%; height: auto; max-height: <safe>`. Never `max-height` alone (starves width on wide viewBoxes; production.md #16). |
+| Metric labels (4-col) | Soft cap 14-18 chars at 9pt Charter; trim context, don't wrap (production.md #17). |
+| Multi-column body   | Hold lengths within ±10 chars across parallel columns (production.md #18). |
+| Image references    | Always inside the demo's own `images/` folder (`site/assets/demos/images/` in this repository) or `site/assets/illustrations/`; never `../../sibling-project/...` (production.md #19). |
+| Metric row layout   | Screen (landing page, slides): vertical stack (`flex-direction: column`), since horizontal baseline-align breaks when any label wraps. Print keeps the one-pager baseline row with `nowrap` labels (production.md #20). |
+| Slide bullets       | Numerals `1. 2. 3.` or `•`; en-dash `–` reads informal at slide scale (production.md #21). Print docs keep en-dash. |
 
 
 Not on the table -> first principles: **use type size for hierarchy, spacing for grouping, and ink-blue for emphasis**.

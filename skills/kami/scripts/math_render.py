@@ -614,11 +614,16 @@ def _render_svg(formulas: list[dict]) -> list[str]:
 
 def render_latex_in_html(raw: str) -> str:
     """Replace standard TeX delimiters in HTML text nodes with strict SVG."""
+    return _render_latex_counted(raw)[0]
+
+
+def _render_latex_counted(raw: str) -> tuple[str, int]:
+    """Return (rendered HTML, formula count) from a single span scan."""
     spans, issues = _latex_spans(raw)
     if issues:
         raise MathRenderError("; ".join(issues))
     if not spans:
-        return raw
+        return raw, 0
     formulas = [{"tex": span.tex, "display": span.display} for span in spans]
     fragments = _render_svg(formulas)
     pieces: list[str] = []
@@ -643,7 +648,7 @@ def render_latex_in_html(raw: str) -> str:
             )
         cursor = span.end
     pieces.append(raw[cursor:])
-    return "".join(pieces)
+    return "".join(pieces), len(spans)
 
 
 def check_latex_html(raw: str) -> list[str]:
@@ -716,16 +721,13 @@ def main(argv: list[str]) -> int:
         return 1
     if args.in_place:
         try:
-            spans, issues = _latex_spans(raw)
-            if issues:
-                raise MathRenderError("; ".join(issues))
-            rendered = render_latex_in_html(raw)
+            rendered, count = _render_latex_counted(raw)
             if rendered != raw:
                 _atomic_write_text(path, rendered)
         except (MathRenderError, OSError) as exc:
             print(f"ERROR: strict LaTeX rendering failed: {exc}")
             return 1
-        print(f"OK: {path}: rendered {len(spans)} LaTeX formula(s) to SVG")
+        print(f"OK: {path}: rendered {count} LaTeX formula(s) to SVG")
         return 0
     try:
         issues = check_latex_html(raw)

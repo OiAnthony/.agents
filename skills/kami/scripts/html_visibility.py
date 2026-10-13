@@ -528,19 +528,36 @@ def _style_state(
     return False, False
 
 
-def _style_hides(
-    style: str,
-    *,
-    fail_closed: bool,
-    replaced_element: bool = False,
-    custom_properties: dict[str, str] | None = None,
-) -> bool:
-    return _style_state(
-        style,
-        custom_properties=custom_properties,
-        fail_closed=fail_closed,
-        replaced_element=replaced_element,
-    )[0]
+_CSS_NON_ELEMENT_AT_RULES = {
+    "keyframes", "-webkit-keyframes", "-moz-keyframes", "font-face", "page",
+    "counter-style", "property", "font-feature-values", "font-palette-values",
+}
+
+
+def _style_rules(css: str, conditional: bool = False) -> list[tuple[str, str, bool]] | None:
+    """Flatten a stylesheet into ``(selectors, body, conditional)`` style rules.
+
+    Bodies of at-rules that never select elements (``@keyframes``,
+    ``@font-face``, ``@page``) are skipped. Rules nested in any other at-rule
+    (``@media``, ``@supports``, ``@container``) are marked conditional, since
+    the checker cannot tell whether the condition holds at render time.
+    """
+    rules = _top_level_css_rules(css)
+    if rules is None:
+        return None
+    flat: list[tuple[str, str, bool]] = []
+    for prelude, body in rules:
+        if prelude.startswith("@"):
+            name = re.match(r"@([\w-]*)", prelude).group(1).lower()
+            if name in _CSS_NON_ELEMENT_AT_RULES:
+                continue
+            nested = _style_rules(body, True)
+            if nested is None:
+                return None
+            flat.extend(nested)
+            continue
+        flat.append((prelude, body, conditional))
+    return flat
 
 
 def _css_hidden_filters(
@@ -585,7 +602,17 @@ def _css_hidden_filters(
         if fail_closed and re.search(r"@import\b", clean, flags=re.I):
             ambiguous_tags.add("*")
             globally_ambiguous = True
-        for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", clean, flags=re.S):
+        style_rules = _style_rules(clean)
+        if style_rules is None:
+            if fail_closed:
+                ambiguous_tags.add("*")
+                globally_ambiguous = True
+                continue
+            style_rules = [
+                (selectors, body, False)
+                for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", clean, flags=re.S)
+            ]
+        for selectors, body, conditional in style_rules:
             hides, body_ambiguous = _style_state(
                 body,
                 fail_closed=fail_closed,
@@ -593,6 +620,10 @@ def _css_hidden_filters(
             )
             if not hides and not body_ambiguous:
                 continue
+            if conditional:
+                if not fail_closed:
+                    continue
+                body_ambiguous = True
             class_store = ambiguous_classes if body_ambiguous else hidden_classes
             id_store = ambiguous_ids if body_ambiguous else hidden_ids
             tag_store = ambiguous_tags if body_ambiguous else hidden_tags
@@ -633,7 +664,7 @@ def _css_hidden_filters(
                         target,
                     )
                 }
-                if ":not(" not in target and (target_classes or target_ids):
+                if target_classes or target_ids:
                     class_store.update(target_classes)
                     id_store.update(target_ids)
                     continue
@@ -667,15 +698,6 @@ def _css_hidden_filters(
         ambiguous_attrs,
         globally_ambiguous,
     )
-
-
-def css_hidden_selectors(raw: str) -> tuple[set[str], set[str]]:
-    """Return class and id filters hidden by inline stylesheet rules."""
-    hidden_classes, hidden_ids, _, _, _, _, _, _, _ = _css_hidden_filters(
-        raw,
-        fail_closed=False,
-    )
-    return hidden_classes, hidden_ids
 
 
 class _HtmlVisibilityParser(HTMLParser):
@@ -955,6 +977,7 @@ class _HtmlVisibilityParser(HTMLParser):
             or (self._fail_closed and svg_position_hidden)
             or (
                 self._fail_closed
+                and tag not in {"svg", "g"}
                 and attrs_map.get("fill", "").strip().lower() == "none"
             )
             or (
@@ -962,8 +985,14 @@ class _HtmlVisibilityParser(HTMLParser):
                 and _is_zero_css_value(attrs_map.get("fill-opacity", ""))
             )
         )
+        # A container's fill is only inherited: a descendant can set its own.
+        container_fill_none = (
+            tag in {"svg", "g"}
+            and attrs_map.get("fill", "").strip().lower() == "none"
+        )
         css_ambiguous = (
-            tag in self._ambiguous_tags
+            container_fill_none
+            or tag in self._ambiguous_tags
             or "*" in self._ambiguous_tags
             or any(
                 name in attrs_map

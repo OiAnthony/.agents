@@ -102,6 +102,15 @@
     letter-spacing: 2pt;
     text-transform: uppercase;
   }
+  /* Brand logo slot (optional, from brand profile; styles apply only once uncommented). */
+  .brand-logo {
+    display: block;
+    height: 72px;
+    width: auto;
+    max-width: 200px;
+    object-fit: contain;
+    margin-bottom: 16pt;
+  }
   .cover-center {
     display: flex;
     flex-direction: column;
@@ -456,7 +465,12 @@
 
 <!-- ========== 표지 ========== -->
 <div class="cover">
-  <div class="cover-top">{{연도 또는 분야 태그 · 예: "Selected Works 2023–2026"}}</div>
+  <div class="cover-head">
+    <!-- Brand logo slot (optional, from the brand profile logo field). Leave commented when there is no logo; do not insert a broken image.
+         To use, uncomment and set src to an expanded local absolute path:
+    <img class="brand-logo" src="/absolute/path/to/logo.svg" alt=""> -->
+    <div class="cover-top">{{연도 또는 분야 태그 · 예: "Selected Works 2023–2026"}}</div>
+  </div>
 
   <div class="cover-center">
     <div class="cover-name">{{이름<br>포트폴리오}}</div>

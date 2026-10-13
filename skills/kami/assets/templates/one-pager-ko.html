@@ -118,6 +118,14 @@
     line-height: 1.45;
     white-space: nowrap;
   }
+  /* Brand logo slot (optional, from brand profile; styles apply only once uncommented). */
+  .brand-logo {
+    height: 44px;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+    align-self: flex-start;
+  }
 
   /* ========== METRICS ========== */
   /* Horizontal baseline layout, same kami-native posture as resume.html.
@@ -164,7 +172,6 @@
     height: 110mm;
     overflow: hidden;
     border-radius: 5pt;
-    box-shadow: 0 1.5pt 6pt rgba(20, 20, 19, 0.16);
   }
   .product-shot .frame img {
     width: 100%; height: 100%;
@@ -342,6 +349,9 @@
     {{날짜 YYYY.MM.DD}}<br>
     {{버전 / 상태}}
   </div>
+  <!-- Brand logo slot (optional, from the brand profile logo field). Leave commented when there is no logo; do not insert a broken image.
+       To use, uncomment and set src to an expanded local absolute path:
+  <img class="brand-logo" src="/absolute/path/to/logo.svg" alt=""> -->
 </div>
 
 <!-- ========== METRICS (선택, 3~4 카드 권장) ========== -->

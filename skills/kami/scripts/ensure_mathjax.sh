@@ -52,14 +52,12 @@ acquire_lock() {
 }
 
 reclaim_stale_lock() {
-  local owner_pid stale_staging current_owner
+  local owner_pid stale_staging
   [[ -f "$OWNER_FILE" ]] || return 1
   owner_pid="$(sed -n '1p' "$OWNER_FILE" 2>/dev/null || true)"
   if [[ "$owner_pid" =~ ^[0-9]+$ ]] && kill -0 "$owner_pid" 2>/dev/null; then
     return 1
   fi
-  current_owner="$(sed -n '1p' "$OWNER_FILE" 2>/dev/null || true)"
-  [[ "$current_owner" == "$owner_pid" ]] || return 1
   stale_staging=""
   if [[ -f "$STAGING_FILE" ]]; then
     IFS= read -r stale_staging < "$STAGING_FILE" || true

@@ -519,7 +519,23 @@ test('workflow migration staging never aliases a destination named like its veri
 test('workflow migration cleanup failure warns without reversing a successful commit', () => {
   const source = copyFixture('cleanup-warning-source.workflow.json');
   const destination = path.join(tmp, 'cleanup-warning-destination.workflow.json');
-  const importModule = path.join(__dirname, 'fixtures', 'fail-migration-cleanup.mjs');
+  const importModule = path.join(tmp, 'fail-migration-cleanup.mjs');
+  fs.writeFileSync(importModule, `
+import fs from 'node:fs';
+import path from 'node:path';
+const rmdirSync = fs.rmdirSync.bind(fs);
+let failed = false;
+fs.rmdirSync = (directory, ...args) => {
+  if (!failed && path.basename(String(directory)).startsWith('.archify-migration-')) {
+    failed = true;
+    rmdirSync(directory, ...args);
+    const error = new Error('simulated migration cleanup failure');
+    error.code = 'EPERM';
+    throw error;
+  }
+  return rmdirSync(directory, ...args);
+};
+`);
 
   const result = runMigration(source, destination, { importModule });
 

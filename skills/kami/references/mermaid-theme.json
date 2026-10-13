@@ -19,5 +19,5 @@
     "border": "--border  · node / group stroke"
   },
   "renderFont": "Charter",
-  "cssFontStack": "Charter, Georgia, \"TsangerJinKai02\", \"Source Han Serif SC\", \"Noto Serif CJK SC\", serif"
+  "cssFontStack": "\"TsangerJinKai02\", \"Source Han Serif SC\", \"Source Han Serif CN\", \"Noto Serif CJK SC\", \"Noto Serif SC\", \"Songti SC\", \"STSong\", \"SimSun\", Charter, Georgia, serif"
 }

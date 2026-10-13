@@ -265,12 +265,23 @@
     color: var(--stone);
     letter-spacing: 0.3pt;
   }
+  /* Brand logo slot (optional, from brand profile; styles apply only once uncommented). */
+  .cover .brand-logo {
+    height: 72px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
+    margin-bottom: 24pt;
+  }
 </style>
 </head>
 <body>
 
 <!-- 표지 슬라이드 -->
 <section class="slide cover">
+  <!-- Brand logo slot (optional, from the brand profile logo field). Leave commented when there is no logo; do not insert a broken image.
+       To use, uncomment and set src to an expanded local absolute path:
+  <img class="brand-logo" src="/absolute/path/to/logo.svg" alt=""> -->
   <h1>{{제목}}</h1>
   <div class="sub">{{부제목}}</div>
   <div class="meta">{{발표자}} · {{날짜}}</div>

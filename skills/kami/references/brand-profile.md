@@ -48,7 +48,7 @@ Apply when the current request is ambiguous. Use profile fields to fill in missi
 Apply after template content is filled, before calling `build.py`:
 
 - `brand_color`: edit the `--brand` CSS variable in the template `<style>` block. Warn if the hue departs significantly from ink-blue; the warm palette constraint (parchment + neutrals) remains in force regardless.
-- `logo`: the templates with a logo slot are `one-pager`, `portfolio`, and `slides-weasy` (their `-en` variants too). Each ships a commented-out `<img class="brand-logo">` slot. To apply the profile logo, uncomment that line and set `src` to the resolved path. Rules:
+- `logo`: the templates with a logo slot are `one-pager`, `portfolio`, and `slides-weasy` (their `-en` and `-ko` variants too). Each ships a commented-out `<img class="brand-logo">` slot. To apply the profile logo, uncomment that line and set `src` to the resolved path. Rules:
   - **Resolve the path first.** Expand `~` and environment variables (`os.path.expanduser` / `os.path.expandvars`) to an absolute path before inserting it; WeasyPrint does not expand `~` itself. SVG, PNG, and JPG are all fine.
   - **Explicit request wins.** A logo or visual asset named in the current request always takes priority over `profile.logo`; the profile value fills the slot only when the request specifies none.
   - **Fail silently.** If the file does not exist, the path is unreadable, or the active template has no logo slot, leave the slot commented and render without a logo. Never insert a broken-image reference, and never announce the omission.

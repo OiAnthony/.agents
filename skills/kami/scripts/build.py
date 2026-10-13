@@ -102,6 +102,9 @@ def build_html(name: str, source: str, max_pages: int,
     except (MissingDepError, MathRenderError) as exc:
         print(f"ERROR: {exc}")
         return False
+    except Exception as exc:  # WeasyPrint / pypdf / OS errors: report, keep the sweep going
+        print(f"ERROR: {name}: render failed: {exc}")
+        return False
 
     if max_pages and n > max_pages:
         print(f"ERROR: {name}: {n} pages (limit {max_pages})")

@@ -55,14 +55,8 @@ PARCHMENT_RGB = (0xF5, 0xF4, 0xED)
 _HOMEBREW_PREFIXES = (Path("/opt/homebrew"), Path("/usr/local"))
 
 
-def _default_cache_dir() -> Path:
-    """Return a sensible per-platform fontconfig cache directory."""
-    if sys.platform == "darwin":
-        return Path("/private/tmp/kami-fontconfig-cache")
-    xdg = os.environ.get("XDG_CACHE_HOME")
-    if xdg:
-        return Path(xdg)
-    return Path.home() / ".cache"
+# macOS-only fontconfig cache base; Linux keeps the caller's XDG_CACHE_HOME.
+_DARWIN_CACHE_DIR = Path("/private/tmp/kami-fontconfig-cache")
 
 
 def configure_weasyprint_runtime() -> None:
@@ -75,7 +69,7 @@ def configure_weasyprint_runtime() -> None:
     if sys.platform != "darwin":
         return
 
-    os.environ.setdefault("XDG_CACHE_HOME", str(_default_cache_dir()))
+    os.environ.setdefault("XDG_CACHE_HOME", str(_DARWIN_CACHE_DIR))
 
     brew_lib = next(
         (p / "lib" for p in _HOMEBREW_PREFIXES if (p / "lib" / "libgobject-2.0.dylib").exists()),

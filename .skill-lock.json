@@ -142,27 +142,27 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/write/SKILL.md",
-      "skillFolderHash": "33ca4d6fe5111855f66f9dcb72a680dcd627f1e4",
+      "skillFolderHash": "5e97a65e9be3a1943cbf1b1b27fbc79cad3e7da6",
       "installedAt": "2026-04-07T08:11:02.881Z",
-      "updatedAt": "2026-10-03T01:32:50.212Z"
+      "updatedAt": "2026-10-13T01:08:40.852Z"
     },
     "learn": {
       "source": "tw93/Waza",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/learn/SKILL.md",
-      "skillFolderHash": "7440b3e2ea865e9d9d2dd1386e97f73b731f8db6",
+      "skillFolderHash": "494f6574a07645561156222a0c98364ce81b94e4",
       "installedAt": "2026-04-18T09:53:21.848Z",
-      "updatedAt": "2026-10-03T01:39:53.568Z"
+      "updatedAt": "2026-10-13T01:09:01.632Z"
     },
     "kami": {
       "source": "tw93/kami",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "fffbec309b06d1b4da6ebbccc98fb249fea0afdc",
+      "skillFolderHash": "b0d31ed141a3ca5ec13ead3c882edd5f7015c318",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-03T01:40:03.078Z"
+      "updatedAt": "2026-10-13T01:16:33.618Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -178,9 +178,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
       "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
-      "skillFolderHash": "48a35ed8010c1667ad9ab22c9c307949ac4eeb6f",
+      "skillFolderHash": "0b6619c11598d7ce32041044cb2e6fc6adea1efc",
       "installedAt": "2026-05-19T08:03:23.597Z",
-      "updatedAt": "2026-10-03T01:40:07.617Z"
+      "updatedAt": "2026-10-13T01:14:14.015Z"
     },
     "herdr": {
       "source": "herdrdev/herdr",
@@ -196,9 +196,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "b92051e907e1aaa1698eb4acebc85dceff399f9b",
+      "skillFolderHash": "a38bc1bc9e97804aa5d23f09c357ac23e096eb54",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-10-03T01:40:22.430Z"
+      "updatedAt": "2026-10-13T01:14:38.951Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",
@@ -223,9 +223,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/OiAnthony/lark-suite.git",
       "skillPath": "skills/lark-suite/SKILL.md",
-      "skillFolderHash": "97457a3bbf4b6dc0e00ba1d283eadbf5fc6548f6",
+      "skillFolderHash": "31af28d4e6e3e7d62d8c2da86abd2cdbf1117314",
       "installedAt": "2026-09-20T06:46:08.403Z",
-      "updatedAt": "2026-09-20T06:56:38.059Z"
+      "updatedAt": "2026-10-13T01:14:50.467Z"
     }
   },
   "dismissed": {

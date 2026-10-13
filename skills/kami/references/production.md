@@ -11,7 +11,7 @@ verification and debugging, and the known pitfalls gathered from production use.
 ### Install
 
 ```bash
-pip install weasyprint pypdf --break-system-packages --quiet
+pip install weasyprint pypdf pymupdf --break-system-packages --quiet
 ```
 
 Linux first-time:
@@ -56,8 +56,9 @@ font-family: Charter, Georgia, Palatino,
              "Times New Roman", serif;
 
 /* Chinese */
-font-family: "TsangerJinKai02", "Source Han Serif SC",
-             "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+font-family: "TsangerJinKai02", "Source Han Serif SC", "Source Han Serif CN",
+             "Noto Serif CJK SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun",
+             Georgia, serif;
 
 /* Japanese */
 font-family: "YuMincho", "Yu Mincho", "Hiragino Mincho ProN",
@@ -74,7 +75,7 @@ font-family: "Source Han Serif K", "Source Han Serif KR",
 
 **Claude Desktop skill ZIPs do not bundle large CJK font files**: `TsangerJinKai02-W04.ttf`, `TsangerJinKai02-W05.ttf`, `SourceHanSerifKR-Regular.otf`, and `SourceHanSerifKR-Medium.otf` can make Claude.ai / Desktop skill upload or execution time out. The ZIP you upload must be the `scripts/package-skill.sh` output under the 6MB package ceiling, never a hand-zipped checkout. `package-skill.sh` excludes those large font files. Templates still keep local-first and jsDelivr fallback `@font-face` paths.
 
-When Chinese or Korean fonts are missing (the skill case), `scripts/ensure-fonts.sh` downloads them to the XDG user font dir (`${XDG_DATA_HOME:-~/.local/share}/fonts/kami`, override with `KAMI_FONT_DIR`), **not** into the skill's `assets/fonts`. fontconfig scans that dir by default on macOS and Linux, so WeasyPrint resolves `TsangerJinKai02` and `Source Han Serif K` from there while the installed skill stays small; online renders still use the jsDelivr `@font-face` URL.
+When Chinese or Korean fonts are missing (the skill case), `scripts/ensure-fonts.sh` downloads them to the XDG user font dir (`${XDG_DATA_HOME:-~/.local/share}/fonts/kami`), **not** into the skill's `assets/fonts`. fontconfig scans that default dir on macOS and Linux, so WeasyPrint resolves `TsangerJinKai02` and `Source Han Serif K` from there while the installed skill stays small; online renders still use the jsDelivr `@font-face` URL. `KAMI_FONT_DIR` overrides the target and is meant for tests: fontconfig does not scan an arbitrary directory, so an override outside a scanned font tree downloads fonts that WeasyPrint and `kami_doctor` never see.
 
 **Standalone HTML export** (sending a filled HTML file to someone else): this is not guaranteed to work outside the project tree. If the recipient cannot set up the font environment, use the PDF output instead.
 
@@ -429,17 +430,21 @@ For light verification of the theme and sample deck, prefer the HTML path.
 
 ## Part 3 · Verify & Debug
 
-### The three-step loop (mandatory after every change)
+### The loop (mandatory after every change)
 
 ```bash
-# 1. Generate
-python3 -c "from weasyprint import HTML; HTML('doc.html').write_pdf('out.pdf')"
+# Filled document: every gate, the render, page images, one verdict
+python3 scripts/build.py --deliver doc.html content.json
 
-# 2. Page count
-python3 -c "from pypdf import PdfReader; print(len(PdfReader('out.pdf').pages))"
+# Template work: build one target through render.py
+python3 scripts/build.py one-pager
+```
 
-# 3. Visual inspect (when in doubt)
-pdftoppm -png -r 300 out.pdf inspect
+Both go through `scripts/render.py`, which also renders math, highlights code, and stamps PDF metadata. Call WeasyPrint directly only to isolate a suspected WeasyPrint bug, and never ship that output:
+
+```bash
+# Debug isolation only: raw WeasyPrint, no math, highlighting, or metadata
+python3 -c "from weasyprint import HTML; HTML('doc.html').write_pdf('raw.pdf')"
 ```
 
 **Not verified = not done.**

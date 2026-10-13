@@ -127,11 +127,15 @@ def _highlight_block(match: re.Match[str]) -> str:
         return match.group(0)
     code = match.group("code")
     close_tag = match.group("close")
+    # Inline markup means the block is already styled; Pygments would escape
+    # the tags into visible literal text.
+    if re.search(r"<[A-Za-z/!]", code):
+        return match.group(0)
 
     code_text = html_mod.unescape(code)
 
     try:
-        lexer = get_lexer_by_name(language, stripall=False)
+        lexer = get_lexer_by_name(language, stripall=False, ensurenl=False)
     except Exception:
         return match.group(0)
 
@@ -142,6 +146,9 @@ def _highlight_block(match: re.Match[str]) -> str:
     )
 
     highlighted = pyg_highlight(code_text, lexer, formatter)
+    # HtmlFormatter ends the last line with a newline; keep the author's ending.
+    if highlighted.endswith("\n") and not code_text.endswith("\n"):
+        highlighted = highlighted[:-1]
     return f'{open_tag}{highlighted}{close_tag}'
 
 

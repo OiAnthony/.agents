@@ -52,10 +52,11 @@ HEX_ANY = re.compile(
 )
 # Thin closed border: border shorthand (not single-side) with sub-1pt width -- pitfall #2
 THIN_CLOSED_BORDER = re.compile(
-    r"border(?!-(?:left|right|top|bottom))\s*:\s*[^;]*0\.\d+pt",
+    r"border(?!-(?:left|right|top|bottom))\s*:\s*[^;{}]*(?<![\d.])0\.\d+pt",
     re.IGNORECASE,
 )
 BORDER_RADIUS_PROP = re.compile(r"border-radius\s*:", re.IGNORECASE)
+RULE_BODY_RE = re.compile(r"\{([^{}]*)\}")
 CSS_BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
 SVG_BLOCK_RE = re.compile(r"<svg\b.*?</svg>", re.DOTALL | re.IGNORECASE)
 
@@ -89,16 +90,18 @@ def _strip_css_block_comments(text: str) -> str:
     return CSS_BLOCK_COMMENT_RE.sub(repl, text)
 
 
-def scan_file(path: Path) -> list[Finding]:
-    return scan_text(path.read_text(encoding="utf-8", errors="replace"), path)
+def scan_file(path: Path, screen: bool | None = None) -> list[Finding]:
+    return scan_text(path.read_text(encoding="utf-8", errors="replace"), path, screen=screen)
 
 
-def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
+def scan_text(raw_text: str, path: Path, line_offset: int = 0,
+              screen: bool | None = None) -> list[Finding]:
     """Run the per-line and per-block rules over `raw_text`.
 
     Split out of scan_file so a CSS snippet that lives inside a Markdown fence
     can be scanned with the same rules as a template, reporting line numbers
-    back in the enclosing document via `line_offset`.
+    back in the enclosing document via `line_offset`. `screen` says whether
+    the file is a browser-only page; None falls back to the template file name.
     """
     findings = [Finding(path, line_offset + line, "diagram-geometry", message)
                 for line, message in scan_geometry(raw_text)]
@@ -108,7 +111,7 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
     # Screen-only landing pages do not pass through WeasyPrint. Their browser
     # gradients may use alpha, and CJK screen copy has a documented 1.65
     # line-height ceiling instead of the print ceiling of 1.55.
-    is_screen = path.name in set(SCREEN_TEMPLATES.values())
+    is_screen = path.name in set(SCREEN_TEMPLATES.values()) if screen is None else screen
 
     def line_for(offset: int) -> int:
         return line_offset + text.count("\n", 0, offset) + 1
@@ -190,31 +193,20 @@ def scan_text(raw_text: str, path: Path, line_offset: int = 0) -> list[Finding]:
                         "un-normalized Mermaid SVG (run scripts/mermaid_normalize.py before embedding)"))
 
     # Pass 3: thin-border-radius block scan (pitfall #2 double-ring).
-    # For each thin closed border line, scan backward to the block open and
-    # forward to the block close, checking for border-radius in the same block.
-    for i, raw in enumerate(lines):
-        if not THIN_CLOSED_BORDER.search(raw):
+    # Judge each rule block as a whole, so a one-line rule or a radius on the
+    # opening-brace line is seen the same as the expanded multi-line form.
+    # Match bodies only: a selector group spanning the whole HTML makes the
+    # scan quadratic on long brace-free text.
+    raw_lines = raw_text.split("\n")
+    for block in RULE_BODY_RE.finditer(text):
+        body = block.group(1)
+        if not BORDER_RADIUS_PROP.search(body):
             continue
-        if "skip-thin-border-radius" in raw:
-            continue
-        found = False
-        # Scan backward; stop at { or } (entering/leaving a block).
-        for j in range(i - 1, max(0, i - 6) - 1, -1):
-            if "{" in lines[j] or "}" in lines[j]:
-                break
-            if BORDER_RADIUS_PROP.search(lines[j]):
-                found = True
-                break
-        # Scan forward; stop at } (leaving the block).
-        if not found:
-            for j in range(i + 1, min(len(lines), i + 6)):
-                if "}" in lines[j]:
-                    break
-                if BORDER_RADIUS_PROP.search(lines[j]):
-                    found = True
-                    break
-        if found:
-            findings.append(Finding(path, line_offset + i + 1, "thin-border-radius",
+        for border in THIN_CLOSED_BORDER.finditer(body):
+            line = text.count("\n", 0, block.start(1) + border.start()) + 1
+            if "skip-thin-border-radius" in raw_lines[line - 1]:
+                continue
+            findings.append(Finding(path, line_offset + line, "thin-border-radius",
                 "thin border (<1pt) with border-radius -- pitfall #2 double-ring risk"))
     return findings
 
@@ -473,7 +465,9 @@ def _emphasis_container_findings(path: Path) -> list[Finding]:
     for match in CSS_RULE_RE.finditer(css):
         selector = " ".join(match.group(1).split())
         body = match.group(2)
-        if any(token in selector.lower() for token in EMPHASIS_EXEMPT_SELECTORS):
+        if any(name == token or name.startswith(token + "-")
+               for name in re.findall(r"[\w-]+", selector.lower())
+               for token in EMPHASIS_EXEMPT_SELECTORS):
             continue
         if INLINE_OR_FLOAT_DECL.search(body):
             continue
@@ -498,7 +492,7 @@ def _emphasis_container_findings(path: Path) -> list[Finding]:
                     "a page raises passages one way, reused, not a new container per idea")]
 
 
-def check_style(paths: list[str]) -> int:
+def check_style(paths: list[str], screen: bool | None = None) -> int:
     """CLI: --check-style filled.html [more.html ...]
 
     Applies the template rule set to a produced document. Same rules, other end
@@ -520,7 +514,7 @@ def check_style(paths: list[str]) -> int:
             continue
         scanned += 1
         rel = rel_to_root(path)
-        findings = scan_file(path)
+        findings = scan_file(path, screen=screen)
         findings.extend(_off_palette_findings(path, allowed))
         findings.extend(_emphasis_container_findings(path))
         if not findings:
@@ -607,7 +601,7 @@ def check_docs(paths: list[str]) -> int:
     """
     targets = [p for p in paths if not p.startswith("-")]
     if not targets:
-        candidates = [ROOT / "CHEATSHEET.md", ROOT / "SKILL.md", ROOT / "AGENTS.md"]
+        candidates = [ROOT / "CHEATSHEET.md", ROOT / "SKILL.md"]
         candidates += sorted((ROOT / "references").glob("*.md"))
         targets = [str(p) for p in candidates if p.exists()]
 
@@ -687,12 +681,12 @@ def _pair_names() -> list[tuple[str, str]]:
     return pairs
 
 
-def _source_for(name: str) -> tuple[Path, Path]:
-    """Return (source path, directory) for a template name across registries."""
+def _source_for(name: str) -> Path:
+    """Return the source path for a template name across registries."""
     if name in HTML_TEMPLATES:
-        return TEMPLATES / HTML_TEMPLATES[name].source, TEMPLATES
+        return TEMPLATES / HTML_TEMPLATES[name].source
     if name in SCREEN_TEMPLATES:
-        return TEMPLATES / SCREEN_TEMPLATES[name], TEMPLATES
+        return TEMPLATES / SCREEN_TEMPLATES[name]
     raise KeyError(f"unknown template name: {name}")
 
 
@@ -711,8 +705,8 @@ def check_cross_template_consistency(verbose: bool = False) -> int:
 
     for base_name, variant_name in pairs:
         try:
-            base_path, _ = _source_for(base_name)
-            variant_path, _ = _source_for(variant_name)
+            base_path = _source_for(base_name)
+            variant_path = _source_for(variant_name)
         except KeyError:
             continue
         if not base_path.exists() or not variant_path.exists():

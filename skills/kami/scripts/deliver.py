@@ -105,7 +105,11 @@ class Report:
     def check(self, label: str, fn, argv: list[str], *, warn_only: bool = False) -> int:
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
-            code = fn(argv)
+            try:
+                code = fn(argv)
+            except Exception as exc:  # a crashing gate must not cost the verdict
+                print(f"ERROR: {type(exc).__name__}: {exc}")
+                code = 2
         output = [
             ln.strip().replace(self.prefix, "")
             for ln in buffer.getvalue().splitlines()
@@ -180,6 +184,7 @@ def deliver(args: list[str]) -> int:
         spans, issues = _latex_spans(raw)
     except MathRenderError as exc:
         spans, issues = [], [str(exc)]
+    math_failed = bool(issues)
     if issues:
         report.line("ERROR", "math", "; ".join(issues))
     elif spans:
@@ -189,12 +194,17 @@ def deliver(args: list[str]) -> int:
         if code == 0:
             report.line("OK", "math", f"rendered {len(spans)} formula(s) to SVG in place")
         else:
+            math_failed = True
             report.line("ERROR", "math", buffer.getvalue().strip()
                         + " (run bash scripts/ensure_mathjax.sh first)")
     else:
         report.line("OK", "math", "no formulas")
     report.check("markdown residue (html)", check_markdown_residue, [str(html_path)])
-    report.check("template style", check_style, [str(html_path)], warn_only=True)
+    # The output path rarely keeps the template file name, so hand the style
+    # gate the detected family; an unrecognized document keeps the name fallback.
+    report.check("template style",
+                 lambda argv: check_style(argv, screen=screen if fam else None),
+                 [str(html_path)], warn_only=True)
     if content_path is not None:
         report.check("content coverage", check_content, [str(content_path), str(html_path)])
 
@@ -204,7 +214,11 @@ def deliver(args: list[str]) -> int:
     pages_png: list[Path] = []
     if screen:
         report.line("WARN", "screen template",
-                    "no PDF; screenshot the responsive matrix per locale (design.md Section 12)")
+                    "no PDF; screenshot the responsive matrix per locale (design.md «Responsive screenshot verification»)")
+    elif math_failed:
+        # render_pdf would re-run MathJax on the same TeX and report the same
+        # cause a second time; one cause, one ERROR.
+        report.line("SKIP", "render", "math failed; fix it and re-run --deliver")
     else:
         pdf = html_path.with_suffix(".pdf")
         try:

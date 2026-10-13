@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-gen_slides.py - parchment design system slide deck generator
+slides.py - parchment design system slide deck generator
 
 用法：
   pip install python-pptx --break-system-packages
-  python3 gen_slides.py
+  python3 slides.py --out output.pptx
 
 输出：
   output.pptx (16:9 宽屏, parchment 风格)
@@ -26,10 +26,8 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 PARCHMENT   = RGBColor(0xf5, 0xf4, 0xed)
 IVORY       = RGBColor(0xfa, 0xf9, 0xf5)
 BRAND       = RGBColor(0x1B, 0x36, 0x5D)
-BRAND_DEEP  = RGBColor(0x1B, 0x36, 0x5D)
 NEAR_BLACK  = RGBColor(0x14, 0x14, 0x13)
 DARK_WARM   = RGBColor(0x3d, 0x3d, 0x3a)
-CHARCOAL    = RGBColor(0x4d, 0x4c, 0x48)
 OLIVE       = RGBColor(0x50, 0x4e, 0x49)
 STONE       = RGBColor(0x6b, 0x6a, 0x64)
 BORDER      = RGBColor(0xe8, 0xe6, 0xdc)

@@ -132,10 +132,13 @@ class DiagramParser(HTMLParser):
         if not self.active:
             return
         # HTML void elements outside SVG never enter this stack.
-        if self.stack and self.stack[-1][0] == tag:
-            self.stack.pop()
         if tag == "svg":
+            # Drop unclosed children too, so they cannot leak into a later SVG.
+            while self.stack and self.stack.pop()[0] != "svg":
+                pass
             self.active.pop()
+        elif self.stack and self.stack[-1][0] == tag:
+            self.stack.pop()
 
     def handle_startendtag(self, tag, attrs):
         self.handle_starttag(tag, attrs)

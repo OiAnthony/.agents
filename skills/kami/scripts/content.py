@@ -27,7 +27,6 @@ from html_visibility import (
     _css_hidden_filters,
     _document_custom_properties,
     visible_html_evidence,
-    visible_html_text,
 )
 from shared import (
     HTML_TEMPLATES,
@@ -121,10 +120,10 @@ class _HtmlAttributeParser(_HtmlVisibilityParser):
 
     _RESOURCE_ATTRS = {
         "audio": {"src"},
-        "image": {"href"},
+        "image": {"href", "xlink:href"},
         "img": {"src", "srcset"},
         "source": {"src", "srcset"},
-        "use": {"href"},
+        "use": {"href", "xlink:href"},
         "video": {"poster", "src"},
     }
     _SKIP_TAGS = {
@@ -167,7 +166,6 @@ class _HtmlAttributeParser(_HtmlVisibilityParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         tag = tag.lower()
-        attrs_map = {name.lower(): (value or "") for name, value in attrs}
         if tag == "picture":
             self._picture_depth += 1
         if tag == "base" and self.base_href is None:
@@ -191,9 +189,7 @@ class _HtmlAttributeParser(_HtmlVisibilityParser):
             self.ambiguous_resources = True
         if self._picture_depth or tag == "source":
             return
-        if tag == "source" and (attrs_map.get("media") or attrs_map.get("type")):
-            return
-        if tag in {"img", "source"} and attrs_map.get("srcset"):
+        if tag == "img" and attrs_map.get("srcset"):
             candidates = [
                 part.strip().split()
                 for part in attrs_map["srcset"].split(",")
@@ -206,10 +202,7 @@ class _HtmlAttributeParser(_HtmlVisibilityParser):
         for name, value in attrs:
             if name.lower() not in allowed or not value:
                 continue
-            if name.lower() == "srcset":
-                continue
-            else:
-                self.values.add(value.strip())
+            self.values.add(value.strip())
 
     def _handle_ambiguous_starttag(
         self,

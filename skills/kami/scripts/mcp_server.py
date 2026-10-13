@@ -54,8 +54,8 @@ from shared import (
 from visual import MAX_DPI, MIN_DPI, REVIEW_CHECKLIST, render_pages
 from verify import check_fonts
 
-PROTOCOL_VERSION = "2025-06-18"
-SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
+PROTOCOL_VERSION = "2025-11-25"
+SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"}
 
 CHECK_RULESET_VERSION = 3
 CHECK_REGISTRY = {
@@ -427,6 +427,10 @@ def handle(msg: dict) -> None:
 
 
 def main() -> int:
+    # MCP stdio frames are UTF-8 regardless of the host locale (a Windows pipe
+    # defaults to the ANSI code page and cannot encode CJK results).
+    sys.stdin.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     for line in sys.stdin:
         line = line.strip()
         if not line:

@@ -11,6 +11,7 @@ import html
 import re
 from collections.abc import Mapping
 from html.parser import HTMLParser
+from pathlib import Path
 
 from shared import (
     CLAUDE_CODE_INSTALL_COMMANDS,

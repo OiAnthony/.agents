@@ -32,7 +32,9 @@
     "ajv": "^8.17.1",
     "parse5": "7.3.0",
     "saxes": "6.0.0",
-    "simple-icons": "16.28.0"
+    "simple-icons": "16.28.0",
+    "skills": "1.7.0",
+    "yaml": "2.9.1"
   },
   "overrides": {
     "fast-uri": "^3.1.7"

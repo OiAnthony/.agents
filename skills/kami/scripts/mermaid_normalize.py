@@ -43,8 +43,9 @@ _THEME_FILE = _ROOT / "references" / "mermaid-theme.json"
 # Fallbacks if references/mermaid-theme.json is missing. Mirror that file and
 # references/design.md.
 _DEFAULT_FONT_STACK = (
-    'Charter, Georgia, "TsangerJinKai02", "Source Han Serif SC", '
-    '"Noto Serif CJK SC", serif'
+    '"TsangerJinKai02", "Source Han Serif SC", "Source Han Serif CN", '
+    '"Noto Serif CJK SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", '
+    'Charter, Georgia, serif'
 )
 _DEFAULT_COLORS = {
     "--bg": "#f5f4ed", "--fg": "#141413", "--line": "#504e49",
@@ -206,7 +207,11 @@ class _Resolver:
 _STYLE_RE = re.compile(r"<style[^>]*>(.*?)</style>", re.DOTALL)
 _CUSTOM_PROP_RE = re.compile(r"(--[\w-]+)\s*:\s*([^;]*?(?:\([^)]*\)[^;]*?)*);")
 _IMPORT_RE = re.compile(r"@import\s+url\([^)]*\)\s*;", re.IGNORECASE)
-_FONT_FAMILY_RE = re.compile(r"font-family\s*:\s*[^;}]+")
+# Stops at "<" so a match inside a <style> body can never run into markup.
+_FONT_FAMILY_RE = re.compile(r"font-family\s*:\s*[^;}<]+")
+# Inside a double-quoted style="..." attribute: stops at the closing quote.
+_ATTR_FONT_FAMILY_RE = re.compile(r"font-family\s*:\s*[^;\"]+")
+_STYLE_ATTR_RE = re.compile(r'(\sstyle=")([^"]*)(")')
 
 
 def _collect_raw_defs(svg: str, overrides: dict[str, str]) -> dict[str, str]:
@@ -290,13 +295,20 @@ def normalize(svg: str, theme: dict[str, str] | None = None,
 
     out = _resolve_functions(svg, resolver)
     out = _IMPORT_RE.sub("", out)
-    out = _FONT_FAMILY_RE.sub(f"font-family: {font_stack}", out)
+    # Rewrite font-family only inside <style> bodies (in _clean_style below) and
+    # inside style="..." attributes, where the stack's double quotes would end
+    # the attribute early, so family names there are single-quoted.
+    attr_stack = f"font-family: {font_stack.replace(chr(34), chr(39))}"
+    out = _STYLE_ATTR_RE.sub(
+        lambda m: m.group(1) + _ATTR_FONT_FAMILY_RE.sub(attr_stack, m.group(2)) + m.group(3),
+        out,
+    )
 
     # The derived custom props were inlined into presentation attributes, so the
     # <style> svg{} rules and the root role decls are now dead. Strip them, keeping
     # only live rules (e.g. the rewritten font-family).
     def _clean_style(m: re.Match[str]) -> str:
-        body = m.group(1)
+        body = _FONT_FAMILY_RE.sub(f"font-family: {font_stack}", m.group(1))
         body = re.sub(r"--[\w-]+\s*:\s*#[0-9a-fA-F]{3,8}\s*;", "", body)
         body = re.sub(r"[\w*.#-]+\s*\{\s*(?:/\*.*?\*/\s*)?\}", "", body, flags=re.DOTALL)
         body = re.sub(r"\n\s*\n+", "\n", body).strip()

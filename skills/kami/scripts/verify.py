@@ -446,6 +446,9 @@ def verify_target(name: str, source: str, max_pages: int, src_dir: Path) -> list
     except (MissingDepError, MathRenderError) as exc:
         issues.append(str(exc))
         return issues
+    except Exception as exc:  # WeasyPrint / pypdf / OS errors: report, keep the sweep going
+        issues.append(f"render failed: {exc}")
+        return issues
 
     # Resume templates share the balance gate's exact two-page contract. Keep
     # fill and gap checks in the filled-document flow: source templates contain
@@ -459,13 +462,12 @@ def verify_target(name: str, source: str, max_pages: int, src_dir: Path) -> list
             float(cfg["max_fill_pct"]),
             float(cfg["max_gap_pct"]),
         )
-        issues.extend(f"page count: {issue}" for issue in page_issues)
-    elif max_pages and n > max_pages:
-        over = n - max_pages
         hint = ""
-        if "resume" in name and over == 1:
+        if n == 3:
             hint = '; add class="resume--dense" to <body> or tighten .proj-text line-height to 1.38'
-        issues.append(f"page overflow: {n} pages (limit {max_pages}){hint}")
+        issues.extend(f"page count: {issue}{hint}" for issue in page_issues)
+    elif max_pages and n > max_pages:
+        issues.append(f"page overflow: {n} pages (limit {max_pages})")
 
     # Rendered TOC page numbers (long-doc family)
     source_html = src.read_text(encoding="utf-8")

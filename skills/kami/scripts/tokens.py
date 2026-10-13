@@ -13,7 +13,8 @@ from pathlib import Path
 from shared import ROOT, TEMPLATES, TOKENS_FILE, iter_template_files
 
 ROOT_BLOCK = re.compile(r":root\s*\{([^}]*)\}", re.DOTALL)
-CSS_VAR = re.compile(r"--([\w-]+)\s*:\s*([^;]+);")
+CSS_VAR = re.compile(r"--([\w-]+)\s*:\s*([^;}]+)(?:;|$)")
+CSS_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 
 
 def parse_root_vars(text: str) -> dict[str, str]:
@@ -24,7 +25,7 @@ def parse_root_vars(text: str) -> dict[str, str]:
     """
     found: dict[str, str] = {}
     for block in ROOT_BLOCK.finditer(text):
-        for m in CSS_VAR.finditer(block.group(1)):
+        for m in CSS_VAR.finditer(CSS_COMMENT.sub("", block.group(1))):
             found[f"--{m.group(1)}"] = m.group(2).strip()
     return found
 PY_RGB = re.compile(
