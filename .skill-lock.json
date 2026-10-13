@@ -226,6 +226,26 @@
       "skillFolderHash": "31af28d4e6e3e7d62d8c2da86abd2cdbf1117314",
       "installedAt": "2026-09-20T06:46:08.403Z",
       "updatedAt": "2026-10-13T01:14:50.467Z"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/anthropics/skills.git",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "skillFolderHash": "d79e2a5bb4df4a386c2adcdd9ab8709bba28c3f6",
+      "pluginName": "example-skills",
+      "installedAt": "2026-10-09T07:29:58.261Z",
+      "updatedAt": "2026-10-09T07:29:58.261Z"
+    },
+    "i-have-adhd": {
+      "source": "ayghri/i-have-adhd",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/ayghri/i-have-adhd.git",
+      "ref": "main",
+      "skillPath": "skills/i-have-adhd/SKILL.md",
+      "skillFolderHash": "759f1e56d0d2fdd3819d2a53b81e72767c08d914",
+      "installedAt": "2026-10-12T03:53:11.359Z",
+      "updatedAt": "2026-10-12T03:53:11.359Z"
     }
   },
   "dismissed": {
@@ -242,6 +262,7 @@
     "kilo",
     "kimi-code-cli",
     "opencode",
+    "pi",
     "warp",
     "zed"
   ]
