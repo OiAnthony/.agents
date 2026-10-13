@@ -21,11 +21,10 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 
 - Do not add speculative features, abstractions, configurability, retries, validation, telemetry, or fallbacks unless the request or existing contract requires them.
 - Prefer boring, maintainable designs over clever or general-purpose designs.
-- Before adding helpers or dependencies, check existing implementations, the standard library, and installed dependencies. Reuse suitable code rather than add a wrapper merely to shorten a caller.
+- Reuse suitable existing code and dependencies. Do not add a wrapper merely to shorten a caller.
 - Keep simple, single-use expressions local. Extract a helper when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication; a single caller alone does not rule out extraction.
-- Name helpers for the concept and behavior they own. Do not hide caller-relevant validation, mutation, I/O, fallback, or errors behind generic names such as `normalize`, `process`, or `handle`; these names are not banned when their contract is clear.
-- Do not solve a different problem or hide a failure to make a check pass.
-- Follow the project's error-handling contract. Do not swallow errors with broad catches or return success-shaped fallbacks that hide failure.
+- Name helpers for their responsibilities, making caller-relevant side effects and errors clear.
+- Do not solve a different problem to make a check pass. Follow the project's error-handling contract; do not hide failures with broad catches or success-shaped fallbacks.
 - Delete code made obsolete by the change. Do not preserve deprecated paths, aliases, or compatibility shims unless they are required by the contract.
 
 ## 3. Surgical Changes
@@ -35,20 +34,16 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 - Preserve unrelated working-tree changes.
 - Do not refactor adjacent code, comments, formatting, or APIs without a direct reason.
 - Match existing project conventions, even when a different style would be your personal preference.
-- Keep changes directly related to the request and existing contracts.
 - Remove imports, variables, functions, and other code made unused by your changes. Do not clean up unrelated pre-existing code unless asked.
 
 ## 4. Goal-Driven Execution
 
 **Define success criteria and verify the result.**
 
-- For multi-step tasks, state a brief plan and the check that will verify each step. Keep it proportional to the task and skip it for simple tasks.
-- Run the narrowest relevant check after making changes.
-- Verify the changed behavior with a real command, scenario, or smoke run. Tests alone are not proof when runtime or integration behavior matters.
-- For bugs, reproduce the reported failure before fixing it and verify that the original failure no longer occurs.
+- Use a brief plan for complex or materially risky tasks. Skip formal planning for simple changes.
+- Run the narrowest relevant checks for the changed behavior. Use a real command or smoke run when runtime, integration, or UI behavior needs verification; do not duplicate adequate checks.
+- For bugs, use a reproduction or available failure evidence to establish the problem, then verify the fix. If reproduction is unavailable or unsafe, state the limitation.
 - Update directly affected callers, tests, and documentation when the change requires it.
-- For implementation requests, complete the changes, affected callers, and relevant verification rather than stop at a plan. For exploration or planning requests, deliver findings or a plan without making unrequested changes.
-- Report checks actually run, their results, and any unverified behavior or blockers. Do not present planned checks or assumptions as observed results.
 
 ## 5. Scope, Safety, and Authorization
 
@@ -61,12 +56,14 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 
 ## 6. Writing and Explanation
 
-**Write approximately 80% of the way to ASD-STE100.**
+**Use ASD-STE100 as a style reference, not a strict compliance standard or an English-language requirement.**
 
 - Use short sentences, simple vocabulary, explicit subjects, consistent terminology, and direct instructions.
 - Prefer one main idea per sentence.
 - For Simplified Chinese, apply these principles without mechanically translating English controlled-language rules. Prefer natural, plain Chinese while preserving technical precision.
-- Explain specialized terms when they first appear. Do not assume that the reader shares the author's context.
+- Explain terms when the intended reader may not know them or their meaning is ambiguous in context.
 - Prefer concrete examples, specific verbs, and observable claims over abstractions, filler, and vague intensifiers.
 - When a diagram, table, list, or small example can explain an idea more clearly than prose, use it instead of adding more paragraphs.
-- Before finalizing an explanation, check whether a reader can understand what it is, why it matters, how to use it, and what its limits are.
+- In final answers and requests for human input, lead with the result or decision needed and enough context to resume after a task switch: what changed or is blocked, why it matters, and how to proceed. Keep simple answers short; do not force a fixed template.
+- When human input is required, make the question explicit, give a recommendation and the material tradeoff, and name one concrete next action. When work is complete, state the outcome without inventing a follow-up task.
+- Make answers easy to scan with short sections and numbered actions when order matters. Put supporting detail after the decision-relevant information; avoid tangents and repeated recaps.
