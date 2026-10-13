@@ -21,7 +21,11 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 
 - Do not add speculative features, abstractions, configurability, retries, validation, telemetry, or fallbacks unless the request or existing contract requires them.
 - Prefer boring, maintainable designs over clever or general-purpose designs.
+- Before adding helpers or dependencies, check existing implementations, the standard library, and installed dependencies. Reuse suitable code rather than add a wrapper merely to shorten a caller.
+- Keep simple, single-use expressions local. Extract a helper when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication; a single caller alone does not rule out extraction.
+- Name helpers for the concept and behavior they own. Do not hide caller-relevant validation, mutation, I/O, fallback, or errors behind generic names such as `normalize`, `process`, or `handle`; these names are not banned when their contract is clear.
 - Do not solve a different problem or hide a failure to make a check pass.
+- Follow the project's error-handling contract. Do not swallow errors with broad catches or return success-shaped fallbacks that hide failure.
 - Delete code made obsolete by the change. Do not preserve deprecated paths, aliases, or compatibility shims unless they are required by the contract.
 
 ## 3. Surgical Changes
@@ -43,6 +47,8 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 - Verify the changed behavior with a real command, scenario, or smoke run. Tests alone are not proof when runtime or integration behavior matters.
 - For bugs, reproduce the reported failure before fixing it and verify that the original failure no longer occurs.
 - Update directly affected callers, tests, and documentation when the change requires it.
+- For implementation requests, complete the changes, affected callers, and relevant verification rather than stop at a plan. For exploration or planning requests, deliver findings or a plan without making unrequested changes.
+- Report checks actually run, their results, and any unverified behavior or blockers. Do not present planned checks or assumptions as observed results.
 
 ## 5. Scope, Safety, and Authorization
 
