@@ -187,18 +187,18 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/herdrdev/herdr.git",
       "skillPath": "skills/herdr/SKILL.md",
-      "skillFolderHash": "67042ed7910d4177a9000e0679e78b0346060927",
+      "skillFolderHash": "2be0d86d481d1bb29c62e11ef37b78d27d01b478",
       "installedAt": "2026-08-02T10:19:31.736Z",
-      "updatedAt": "2026-10-03T01:40:12.272Z"
+      "updatedAt": "2026-10-14T01:02:35.761Z"
     },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "a38bc1bc9e97804aa5d23f09c357ac23e096eb54",
+      "skillFolderHash": "7e1de2b2cf3a9a91823ee5dcc2089c1d96a7e4f1",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-10-13T01:14:38.951Z"
+      "updatedAt": "2026-10-14T01:06:52.856Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",
