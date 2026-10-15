@@ -223,9 +223,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/OiAnthony/lark-suite.git",
       "skillPath": "skills/lark-suite/SKILL.md",
-      "skillFolderHash": "31af28d4e6e3e7d62d8c2da86abd2cdbf1117314",
+      "skillFolderHash": "52f0ec1914c67b09e6c6ebeec470728779125404",
       "installedAt": "2026-09-20T06:46:08.403Z",
-      "updatedAt": "2026-10-13T01:14:50.467Z"
+      "updatedAt": "2026-10-15T01:07:51.162Z"
     },
     "frontend-design": {
       "source": "anthropics/skills",
