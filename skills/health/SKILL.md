@@ -59,7 +59,7 @@ An absent map, a large file, many skills, or a high TODO count is informational 
 
 ## Step 1: Collect data
 
-Run the collection script in summary mode first. Do not interpret yet. On Windows, use the Health-owned launcher so Git for Windows tools are added only to the Bash child process:
+Set `HEALTH_SCOPE` to `instructions` for the static-only scope above, otherwise `auto`, and retain it when escalating. Run the collection script in summary mode first. Do not interpret yet. On Windows, use the Health-owned launcher so Git for Windows tools are added only to the Bash child process:
 
 ```powershell
 $HEALTH_LAUNCHER = @(
@@ -70,7 +70,7 @@ if (-not $HEALTH_LAUNCHER) {
   throw "Health launcher not found under the installed skill base; reinstall Waza."
 }
 $POWERSHELL = Join-Path ([Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe"
-& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect "$HEALTH_SCOPE"
 ```
 
 `-ExecutionPolicy Bypass` applies only to this PowerShell process; do not change
@@ -89,7 +89,7 @@ if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
   echo "health collect-data.sh not found under the installed skill base; reinstall Waza"
   exit 1
 fi
-BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT"
+BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" "$HEALTH_SCOPE"
 ```
 
 Sections may show `(unavailable)` when tools are missing:
@@ -136,7 +136,7 @@ For projects that use `/loop`, autonomous agents, or any long-running agent flow
 
 ## Step 2: Analyze
 
-Analyze locally from the summary output by default. When Budget posture escalates, re-run collection with `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep` on Windows, or `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` on Linux and macOS. Then launch only the relevant inspectors in parallel. Redact credentials to `[REDACTED]`.
+Analyze locally from the summary output by default. When Budget posture escalates, re-run collection with `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect "$HEALTH_SCOPE" deep` on Windows, or `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" "$HEALTH_SCOPE" deep` on Linux and macOS. Then launch only the relevant inspectors in parallel. Redact credentials to `[REDACTED]`.
 
 - **Deep inspector routing:**
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.

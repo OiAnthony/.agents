@@ -641,7 +641,19 @@ def display_path(path: Path, root: Path, home: Path) -> str:
     return safe_label(path.as_posix())
 
 
-def candidate_skill_files(root: Path, home: Path) -> tuple[list[Path], int]:
+def broken_symlink(path: Path) -> bool:
+    if not path.is_symlink():
+        return False
+    try:
+        path.resolve(strict=True)
+    except FileNotFoundError:
+        return True
+    except (OSError, RuntimeError):
+        pass
+    return False
+
+
+def candidate_skill_files(root: Path, home: Path) -> tuple[list[Path], int, list[Path]]:
     roots = [
         root / ".claude" / "skills",
         root / ".agents" / "skills",
@@ -651,12 +663,20 @@ def candidate_skill_files(root: Path, home: Path) -> tuple[list[Path], int]:
         home / ".codex" / "skills",
     ]
     candidates: list[Path] = []
+    broken_links: set[Path] = set()
     repository_roots: set[Path] = set()
     for skill_root in roots:
+        if broken_symlink(skill_root):
+            broken_links.add(skill_root)
         if resolve_audit_dir(skill_root) is None:
             continue
         candidates.extend(skill_root.glob("*/SKILL.md"))
         for child in skill_root.iterdir():
+            if broken_symlink(child):
+                broken_links.add(child)
+                continue
+            if resolve_audit_dir(child) is not None and broken_symlink(child / "SKILL.md"):
+                broken_links.add(child / "SKILL.md")
             if not child.is_symlink():
                 continue
             try:
@@ -682,7 +702,7 @@ def candidate_skill_files(root: Path, home: Path) -> tuple[list[Path], int]:
             mirrors_collapsed += 1
             continue
         unique[canonical] = path
-    return sorted(unique.values()), mirrors_collapsed
+    return sorted(unique.values()), mirrors_collapsed, sorted(broken_links)
 
 
 def skill_runtime(path: Path, root: Path, home: Path) -> str:
@@ -704,7 +724,7 @@ def skill_runtime(path: Path, root: Path, home: Path) -> str:
 
 def summarize_skill_duplicates(root: Path, home: Path) -> tuple[str, list[str]]:
     by_name: dict[str, list[tuple[Path, str, str]]] = defaultdict(list)
-    skill_files, mirrors_collapsed = candidate_skill_files(root, home)
+    skill_files, mirrors_collapsed, broken_links = candidate_skill_files(root, home)
     for path in skill_files:
         name = skill_name(path)
         if not name:
@@ -766,7 +786,11 @@ def summarize_skill_duplicates(root: Path, home: Path) -> tuple[str, list[str]]:
     lines.append("cross_runtime_skills:")
     lines.extend(f"  {line}" for line in (cross_runtime_lines or ["(none)"]))
     lines.append(f"cross_runtime_conflicts: {len(cross_runtime_conflicts)}")
-    return ("WARN" if duplicate_lines or cross_runtime_conflicts else "PASS"), lines
+    lines.append(f"broken_skill_links: {len(broken_links)}")
+    if broken_links:
+        lines.append("broken_skill_link_paths:")
+        lines.extend(f"  {display_path(path, root, home)}" for path in broken_links)
+    return ("WARN" if duplicate_lines or cross_runtime_conflicts or broken_links else "PASS"), lines
 
 
 def parse_codex_config(
@@ -1653,7 +1677,7 @@ def main() -> int:
     if yes(agents) == "yes" and yes(claude) == "yes" and not claude_delegates:
         conflict_findings.append("AGENTS.md and CLAUDE.md both exist; verify they do not diverge")
     if duplicate_status == "WARN":
-        conflict_findings.append("active skill names collide or diverge across routing surfaces")
+        conflict_findings.append("active skill routing has broken links, name collisions, or divergent copies")
 
     instruction_status = "FAIL" if not instruction_files else ("WARN" if instruction_findings else "PASS")
     codex_status = "WARN" if codex_findings else "PASS"
