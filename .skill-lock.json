@@ -37,15 +37,6 @@
       "installedAt": "2026-01-29T03:18:32.689Z",
       "updatedAt": "2026-01-29T03:18:32.689Z"
     },
-    "code-review-excellence": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/wshobson/agents.git",
-      "skillPath": "plugins/developer-essentials/skills/code-review-excellence/SKILL.md",
-      "skillFolderHash": "eb067e9432b526fe6a13cea53be60ad6f853fced",
-      "installedAt": "2026-01-29T14:33:14.040Z",
-      "updatedAt": "2026-10-16T01:56:37.924Z"
-    },
     "agent-browser": {
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",
