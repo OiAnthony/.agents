@@ -12,6 +12,7 @@ Thin CLI shell. Implementation lives in:
   - html_visibility.py (shared HTML/CSS evidence for content and residue checks)
   - visual.py  (check_visual)
   - deliver.py (deliver: every document gate in order, one verdict)
+  - chart.py   (render_chart, check_charts: data spec to SVG and drift check)
 
 Usage:
     python3 scripts/build.py --deliver filled.html [content.json]  # finish a document: all gates, one verdict
@@ -39,12 +40,16 @@ Usage:
     python3 scripts/build.py --check-style path/to/filled.html       # template rules against a produced document
     python3 scripts/build.py --check-docs                            # lint the CSS snippets the reference docs teach from
     python3 scripts/build.py --doctor                                # installed render/check/font capabilities
+    python3 scripts/build.py --chart spec.json -o chart.svg          # data chart from a JSON spec (bar/line/hbar/donut/candlestick/waterfall)
+    python3 scripts/build.py --check-charts path/to/doc.html         # every generated chart still matches its embedded data
 """
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
+from chart import check_charts
+from chart import main as chart_main
 from checks import (
     check_density,
     check_markdown_residue,
@@ -201,7 +206,10 @@ def main(argv: list[str]) -> int:
         palette_result = check_off_palette(verbose)
         docs_result = check_docs([])
         site_result = check_site_facts(verbose)
-        return max(css_result, sync_result, cross_result, palette_result, docs_result, site_result)
+        chart_files = [str(p) for p in sorted(DIAGRAMS.glob("*.html")) if "data-kami-chart" in p.read_text(encoding="utf-8")]
+        chart_result = check_charts(chart_files)
+        return max(css_result, sync_result, cross_result, palette_result, docs_result, site_result,
+                   chart_result)
     if args[0] == "--sync":
         unexpected = _unexpected_arg(args[1:], {"-v", "--verbose"})
         if unexpected:
@@ -219,6 +227,8 @@ def main(argv: list[str]) -> int:
         if len(args) > 1:
             return _error_unexpected(args[1])
         return run_doctor()
+    if args[0] == "--chart":
+        return chart_main(args[1:])
     # Path-taking check subcommands share one guard + dispatch table.
     path_checks = {
         "--check-orphans": check_orphans,
@@ -231,6 +241,7 @@ def main(argv: list[str]) -> int:
         "--check-fonts": check_fonts,
         "--check-style": check_style,
         "--check-docs": check_docs,
+        "--check-charts": check_charts,
         "--deliver": deliver,
     }
     handler = path_checks.get(args[0])

@@ -8,23 +8,24 @@ Every diagram is a **self-contained HTML + inline SVG**: no JS and no build step
 
 ## 1. Selection
 
-| Showing… | Use | Template |
+| Showing… | Use | Template or command |
 |---|---|---|
 | System components + connections | **Architecture** | `assets/diagrams/architecture.html` |
 | Full-system panorama: five layers, control plane, roadmap, owners | **Architecture Board** | `assets/diagrams/architecture-board.html` |
 | Decision branches, "if A then B else C" | **Flowchart** | `assets/diagrams/flowchart.html` |
 | Two-axis positioning / prioritization | **Quadrant** | `assets/diagrams/quadrant.html` |
-| Category comparison (revenue, market share, quarterly) | **Bar Chart** | `assets/diagrams/bar-chart.html` |
-| Trend over time (stock price, growth rate, time series) | **Line Chart** | `assets/diagrams/line-chart.html` |
-| Proportional breakdown (spend, user segments, share) | **Donut Chart** | `assets/diagrams/donut-chart.html` |
+| Category comparison (revenue, market share, quarterly) | **Bar Chart** | `--chart` type `bar` (section 9) |
+| Trend over time (stock price, growth rate, time series) | **Line Chart** | `--chart` type `line` (section 9) |
+| Proportional breakdown (spend, user segments, share) | **Donut Chart** | `--chart` type `donut` (section 9) |
+| Ranking, or a share split into 7+ parts | **Horizontal bar** | `--chart` type `hbar` (section 9) |
 | Finite states + directed transitions (lifecycle, state machine) | **State Machine** | `assets/diagrams/state-machine.html` |
 | Time axis + milestone events (roadmap, project progress) | **Timeline** | `assets/diagrams/timeline.html` |
 | Cross-responsibility process (multi-role, API request path) | **Swimlane** | `assets/diagrams/swimlane.html` |
 | Hierarchical relationships (org chart, module deps, directory tree) | **Tree** | `assets/diagrams/tree.html` |
 | Vertically stacked system layers (OSI, application stack) | **Layer Stack** | `assets/diagrams/layer-stack.html` |
 | Set intersections (feature overlap, audience comparison, capability map) | **Venn** | `assets/diagrams/venn.html` |
-| OHLC price action (stock price, trading days, up/down candles) | **Candlestick** | `assets/diagrams/candlestick.html` |
-| Revenue bridge, valuation decomposition, cash flow breakdown | **Waterfall** | `assets/diagrams/waterfall.html` |
+| OHLC price action (stock price, trading days, up/down candles) | **Candlestick** | `--chart` type `candlestick` (section 9) |
+| Revenue bridge, valuation decomposition, cash flow breakdown | **Waterfall** | `--chart` type `waterfall` (section 9) |
 
 Not on the list:
 - **Compare two things**: use a table. A three-column table beats any diagram of a binary contrast.
@@ -582,77 +583,43 @@ Scan for these when drawing or reviewing:
 
 ---
 
-## 9. Data charts (bar / line / donut)
+## 9. Data charts
 
-Five data-driven chart types for investment reports, financial comparisons, and market-share breakdowns. Like the first three diagram types, all are self-contained HTML + inline SVG, embeddable in any kami document.
+Six chart types for investment reports, financial comparisons, and market-share breakdowns: bar, line, hbar (horizontal bar), donut, candlestick, and waterfall. Never place bars, points, or arcs by hand. Write the numbers as a JSON spec and generate the SVG, so the geometry always comes from the data:
 
-**Choosing the chart.** When content carries numbers, pick the chart yourself and embed it without asking. Two house calls differ from the common default: a share that sums to about 100% renders as a donut only up to 6 items, and 7 or more becomes a horizontal bar; a single time series whose absolute count changes dominate (not the rate) renders as bars, not a line. When several types fit, prefer the one that shows variance most clearly. Embed every chart in a `<figure>` whose caption states the insight, not the data range.
+```bash
+python3 scripts/build.py --chart revenue.json -o revenue.svg
+```
 
-### Color palette (derived from kami warm palette)
+Paste the generated `<svg>` into a `<figure>` at the full width of its column and give it no `height` or `max-height`: the chart is sized for a document column (about 75mm tall at 170mm wide, labels near 8.5pt), and a height cap shrinks every label with it. For a chart shown small, a half-column slide or two charts side by side, add `"size": "compact"` to the spec instead of scaling the SVG down. The caption states the insight, not the data range. The SVG carries its spec in `data-kami-spec`; `--deliver` (and `--check-charts`) regenerates every chart from that spec and fails when a mark or label was edited afterwards. To change a number, edit the spec and regenerate. Styling the root `<svg>` tag for layout (width, margins) is fine; the marks inside are not.
 
-| Role | Value | Use |
+**Choosing the chart.** When content carries numbers, pick the chart yourself and embed it without asking. Two house calls differ from the common default: a share that sums to about 100% renders as a donut only up to 6 items, and 7 or more becomes an hbar; a single time series whose absolute count changes dominate (not the rate) renders as bars, not a line. When several types fit, prefer the one that shows variance most clearly.
+
+### Spec
+
+```json
+{"type": "bar", "categories": ["2022", "2023", "2024"],
+ "series": [{"name": "Revenue", "values": [44, 60, 72]},
+            {"name": "Gross profit", "values": [18, 27, 35]}],
+ "unit": "USD m", "prefix": "$", "source": "Company filings, FY2024"}
+```
+
+| Type | Data fields | Limit |
 |---|---|---|
-| Primary series | `#1B365D` ink-blue | First group / focal data |
-| Series 2 | `#504e49` olive | Second group |
-| Series 3 | `#6b6a64` stone | Third group |
-| Series 4 | `#b8b7b0` light-stone | Fourth group |
-| Series 5 | `#d4d3cd` mist | Fifth group |
-| Series 6 | `#EEF2F7` brand-tint | Sixth group |
-| Grid lines | `#e8e7e1` | Axes / reference lines |
-| Data labels | `#141413` near-black | Numeric text |
+| `bar` | `categories`, `series[].name`, `series[].values` | 8 categories, 3 series |
+| `line` | same as bar; `"zero": false` lets the axis start near the data | 12 points, 3 lines |
+| `hbar` | `items[].label`, `items[].value`; `focus` = index drawn in ink-blue (default 0, `null` for none) | 12 rows |
+| `donut` | `items[].label`, `items[].value` (raw values; shares are computed and always sum to 100%); `center_label` | 6 segments |
+| `candlestick` | `points[].label`, `open`, `high`, `low`, `close` | 30 points |
+| `waterfall` | `items[].label`, `items[].value`; `"total": true` marks an opening or closing total (a closing total may omit `value`; if given it must equal the running sum) | 8 bars |
 
-### Data limits
+Optional on every type: `size` (`full`, or `compact` for a slide or narrow column), `unit` (axis caption), `prefix` / `suffix` (value labels), `decimals`, `source` (footnote), `lang` (`cn`, `en`, `ko`; inferred from the labels otherwise, which also picks the font chain), and `title` (accessible name only; the chart draws no title, the figure caption carries it).
 
-| Chart | Max categories | Max series | Template |
-|---|---|---|---|
-| Bar chart | 8 groups | 3 series | `assets/diagrams/bar-chart.html` |
-| Line chart | 12 points | 3 lines | `assets/diagrams/line-chart.html` |
-| Donut chart | 6 segments | n/a | `assets/diagrams/donut-chart.html` |
-| Candlestick | 30 days | n/a | `assets/diagrams/candlestick.html` |
-| Waterfall | 8 segments | n/a | `assets/diagrams/waterfall.html` |
+The generator refuses data that cannot be drawn honestly: a candle whose high and low do not contain its open and close, a waterfall total that disagrees with its running sum, more items than the limit. Fix the data or ask for it; never loosen the spec to get past the error.
 
-### Editing data
+### Palette and geometry (owned by `scripts/chart.py`)
 
-Each file has `<!-- DATA START -->` / `<!-- DATA END -->` comments. Only change SVG elements between those markers (`<rect>` coordinates, `<polyline>` points, `<path>` arcs, `<text>` values). Leave surrounding structure and styles untouched.
-
-**Coordinate rules (same as the first three diagram types)**:
-- All coordinates divisible by 4
-- Bar chart corner radius `rx=2` (distinct from node radius 6-10)
-- Line chart: `<polyline>` points format `"x1,y1 x2,y2 ..."`, data points marked with `<circle>`
-- Donut chart: `<path>` arcs use `A R R 0 large-arc sweep_flag x y`; `large-arc=1` only when segment > 180°
-
-**Bar / line chart Y-axis formula** (default scale: max=140, chart-height=280, scale=2):
-```
-bar_height = value × 2
-bar_top_y  = 320 - bar_height   (baseline y = 320)
-dot_y      = 320 - value × 2
-```
-
-**Donut arc coordinates** (cx=300 cy=200 R=136 r=76, clockwise from top at -90°):
-```
-angle_start = -90 + sum_of_previous_percentages × 3.6
-angle_end   = angle_start + this_percentage × 3.6
-outer_x = 300 + 136 × cos(angle_deg × π/180)
-outer_y = 200 + 136 × sin(angle_deg × π/180)
-inner_x = 300 + 76  × cos(angle_deg × π/180)
-inner_y = 200 + 76  × sin(angle_deg × π/180)
-```
-
-**Candlestick Y-axis formula** (default: price range 100-160, chart-height=280, scale=4.67):
-```
-candle_y = 320 - (price - 100) * 4.67
-Up candle: fill=#1B365D (close > open), body from open_y to close_y
-Down candle: fill=#6b6a64 (close < open), body from close_y to open_y
-Wick: 1.2px stroke from high_y to low_y, centered on candle
-```
-
-**Waterfall formula** (default: max=200, chart-height=280, scale=1.4):
-```
-bar_y = 320 - value * 1.4
-Floating bars: top = running_total_y, height = abs(delta) * 1.4
-Positive: fill=#1B365D · Negative: fill=#6b6a64 · Total: fill=#4d4c48
-Connector: dashed 0.8px #b8b7b0 between adjacent bar edges
-```
+Series run ink-blue `#1B365D`, olive `#504e49`, stone `#6b6a64`, light-stone `#b8b7b0`, mist `#d4d3cd`, brand-tint `#EEF2F7`. Grid lines `#e8e7e1`, value labels near-black `#141413`. Up candles and increases are ink-blue, down candles and decreases stone, waterfall totals charcoal `#4d4c48`. Axes round out to a 1 / 2 / 2.5 / 5 step and bars and areas start at zero. Every chart shares one plot height and one type scale, and its tick labels start at the chart's own left edge, so charts in one document line up with each other and with the text column. The five chart files in `assets/diagrams/` are generated demos of this output; open them to preview, but fill a document through a spec.
 
 ---
 
@@ -674,6 +641,7 @@ python3 scripts/build.py diagram-layer-stack
 python3 scripts/build.py diagram-venn
 python3 scripts/build.py diagram-candlestick
 python3 scripts/build.py diagram-waterfall
+python3 scripts/build.py --chart spec.json -o chart.svg   # a data chart for a document
 
 # or all
 python3 scripts/build.py

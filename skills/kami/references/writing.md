@@ -40,6 +40,7 @@ For companies, products, people, launch dates, versions, funding, financials, ma
 - Do not write "latest", "new", version numbers, or market figures before checking them
 - If sources conflict, list the conflict and ask the user instead of choosing one
 - If only the magnitude is known, write the magnitude instead of false precision
+- A number you compute from supplied figures (a growth rate, a share, an "about 60% faster") stays next to its inputs ("23 to 9 minutes, about 61% less") or is marked as derived (推算 / derived) where it appears, in captions and tables too. Never round it into a standalone headline metric the source did not state
 
 ### 6. Materials serve recognition
 

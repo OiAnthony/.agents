@@ -151,9 +151,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "b0d31ed141a3ca5ec13ead3c882edd5f7015c318",
+      "skillFolderHash": "c349d33f32d4a18e6e2d4de3173f7a132ca54820",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-13T01:16:33.618Z"
+      "updatedAt": "2026-10-17T00:56:58.794Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",

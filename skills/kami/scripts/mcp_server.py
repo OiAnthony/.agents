@@ -17,6 +17,7 @@ Tools:
     kami_doctor      report installed render, check, PPTX, and font capabilities
     kami_render      render a filled HTML file to PDF (WeasyPrint + highlight)
     kami_check       run deterministic checks with stable findings and coverage
+    kami_deliver     finish a document: every gate in order, render, one READY verdict
     kami_screenshot  rasterize a PDF to page PNGs plus the review checklist
 
 Transport: newline-delimited JSON-RPC 2.0 on stdin/stdout (MCP stdio).
@@ -31,6 +32,7 @@ import os
 import sys
 from pathlib import Path
 
+from chart import check_charts
 from checks import (
     check_density,
     check_markdown_residue,
@@ -38,6 +40,8 @@ from checks import (
     check_placeholders,
 )
 from content import check_content
+from deliver import deliver
+from lint import check_style
 from math_render import check_latex_file
 from optional_deps import MissingDepError, doctor_report
 from render import render_pdf
@@ -57,7 +61,7 @@ from verify import check_fonts
 PROTOCOL_VERSION = "2025-11-25"
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"}
 
-CHECK_RULESET_VERSION = 3
+CHECK_RULESET_VERSION = 4
 CHECK_REGISTRY = {
     "html.placeholders": {
         "scope": "html", "severity": "error", "required_engine": "stdlib",
@@ -71,6 +75,14 @@ CHECK_REGISTRY = {
         "scope": "html", "severity": "error", "required_engine": "stdlib",
         "explanation": "Completed HTML must not expose raw or invalid LaTeX source.",
     },
+    "html.charts": {
+        "scope": "html", "severity": "error", "required_engine": "stdlib",
+        "explanation": "Every generated data chart must still match the data spec it embeds.",
+    },
+    "html.style": {
+        "scope": "html", "severity": "warning", "required_engine": "stdlib",
+        "explanation": "Document CSS must keep to the template rule set (palette, emphasis, rules).",
+    },
     "content.contract": {
         "scope": "content-ir", "severity": "error", "required_engine": "stdlib",
         "explanation": "Content IR must satisfy its document schema and optional artifact brief.",
@@ -83,6 +95,10 @@ CHECK_REGISTRY = {
         "scope": "pdf", "severity": "error", "required_engine": "pypdf",
         "explanation": "Extracted PDF text must not expose raw Markdown syntax.",
     },
+    "pdf.fonts": {
+        "scope": "pdf", "severity": "error", "required_engine": "pymupdf",
+        "explanation": "CJK text must be drawn by a serif from the template stack, not a fallback face.",
+    },
     "pdf.orphans": {
         "scope": "pdf", "severity": "warning", "required_engine": "pymupdf",
         "explanation": "Rendered text blocks must not end in short orphan lines.",
@@ -92,6 +108,25 @@ CHECK_REGISTRY = {
         "explanation": "Rendered pages must not carry excessive trailing whitespace.",
     },
 }
+
+# Every gate `--deliver` runs, and the kami_check rule that covers it on its
+# own. Gates that need the fresh render or the detected template family live
+# only in kami_deliver. test_mcp asserts this map names every deliver gate, so
+# a new gate cannot silently skip the MCP surface.
+DELIVER_GATE_RULES = {
+    "placeholders": "html.placeholders",
+    "math": "html.math",
+    "markdown residue (html)": "html.markdown-residue",
+    "data charts": "html.charts",
+    "template style": "html.style",
+    "content coverage": "content.coverage",
+    "fonts": "pdf.fonts",
+    "markdown residue (pdf)": "pdf.markdown-residue",
+    "density": "pdf.density",
+    "orphans": "pdf.orphans",
+}
+DELIVER_ONLY_GATES = {"render", "page contract", "page target", "resume balance", "page images",
+                      "screen template"}
 
 TOOLS = [
     {
@@ -133,11 +168,14 @@ TOOLS = [
     {
         "name": "kami_check",
         "description": (
-            "Run Kami's deterministic checks for a file. HTML: placeholders + "
-            "strict mathematics + markdown residue (+ content coverage when a content IR JSON is "
-            "given). PDF: markdown residue + orphans + density. JSON: content "
-            "IR schema validation. Returns the legacy report plus stable rule "
-            "IDs, findings, coverage status, and explicit degraded checks."
+            "Run Kami's deterministic checks on one existing file without "
+            "rendering. HTML: placeholders + strict mathematics + markdown "
+            "residue + data charts + template style (+ content coverage when a "
+            "content IR JSON is given). PDF: markdown residue + CJK fonts + "
+            "orphans + density. JSON: content IR schema validation. Returns the "
+            "legacy report plus stable rule IDs, findings, coverage status, and "
+            "explicit degraded checks. To finish a document use kami_deliver, "
+            "which also renders and enforces the page contract."
         ),
         "inputSchema": {
             "type": "object",
@@ -145,6 +183,27 @@ TOOLS = [
             "properties": {
                 "path": {"type": "string", "description": "File to check (.html, .pdf, or content .json)"},
                 "content": {"type": "string", "description": "Optional content IR JSON to verify coverage against an HTML file"},
+            },
+        },
+    },
+    {
+        "name": "kami_deliver",
+        "description": (
+            "Finish a filled Kami document in one call, the same gate as "
+            "`build.py --deliver`: HTML checks, strict mathematics rendered in "
+            "place, data charts, template style, content coverage, then the PDF "
+            "render, page contract, resume balance, CJK fonts, residue, "
+            "density, orphans, and page images. Writes the PDF and page PNGs "
+            "next to the HTML. Returns ready, the verdict, every check with "
+            "its findings, data gaps to report, and the review checklist; view "
+            "every page image against it before shipping."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "required": ["html"],
+            "properties": {
+                "html": {"type": "string", "description": "Path to the filled HTML file"},
+                "content": {"type": "string", "description": "Optional content IR JSON (enables coverage and the page target)"},
             },
         },
     },
@@ -243,6 +302,8 @@ def _check_plan(path: Path, content: str | None) -> list[tuple[str, object, list
             ("html.placeholders", check_placeholders, [str(path)]),
             ("html.math", check_latex_file, [str(path)]),
             ("html.markdown-residue", check_markdown_residue, [str(path)]),
+            ("html.charts", check_charts, [str(path)]),
+            ("html.style", check_style, [str(path)]),
         ]
         if content:
             content_path = str(_resolve(content))
@@ -255,6 +316,7 @@ def _check_plan(path: Path, content: str | None) -> list[tuple[str, object, list
     if suffix == ".pdf":
         return [
             ("pdf.markdown-residue", check_markdown_residue, [str(path)]),
+            ("pdf.fonts", check_fonts, [str(path)]),
             ("pdf.orphans", check_orphans, [str(path)]),
             ("pdf.density", check_density, [str(path)]),
         ]
@@ -313,6 +375,21 @@ def tool_check(args: dict) -> dict:
     }
 
 
+def tool_deliver(args: dict) -> dict:
+    html_path = _resolve(args["html"])
+    if not html_path.exists():
+        raise FileNotFoundError(f"HTML file not found: {html_path}")
+    argv = [str(html_path)]
+    if args.get("content"):
+        argv.append(str(_resolve(args["content"])))
+    result: dict = {}
+    code, report = _run_check(deliver, argv, result=result)
+    if "verdict" not in result:
+        # Usage errors and missing dependencies stop before a verdict.
+        raise ValueError(report or "deliver stopped before a verdict")
+    return {**result, "exit_code": code, "report": report}
+
+
 def tool_screenshot(args: dict) -> dict:
     pdf = _resolve(args["pdf"])
     if not pdf.exists():
@@ -344,6 +421,7 @@ TOOL_HANDLERS = {
     "kami_doctor": tool_doctor,
     "kami_render": tool_render,
     "kami_check": tool_check,
+    "kami_deliver": tool_deliver,
     "kami_screenshot": tool_screenshot,
 }
 

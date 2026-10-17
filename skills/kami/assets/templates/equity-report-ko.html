@@ -405,9 +405,9 @@
 <!-- ========== 차트 (SVG 삽입) ========== -->
 <h2>가격 추이</h2>
 <figure>
-  <!-- diagrams/에서 <svg>를 추출해 여기에 삽입 -->
+  <!-- build.py --chart로 데이터에서 <svg>(candlestick 또는 line)를 생성해 아래 자리를 교체 -->
   <div class="chart-placeholder" style="height: 60mm;">
-    [캔들스틱 / 가격 추이 차트 자리 · diagrams/에서 SVG를 추출해 삽입]
+    [캔들스틱 / 가격 추이 차트 자리, --chart로 SVG를 생성해 교체]
   </div>
   <figcaption>{{차트 제목, 예: "최근 20 거래일 가격 추이"}}</figcaption>
 </figure>
@@ -461,7 +461,7 @@
 <h2>매출 구조</h2>
 <figure>
   <div class="chart-placeholder" style="height: 50mm;">
-    [매출 분해 차트 자리 · 도넛 차트 또는 폭포 차트]
+    [매출 분해 차트 자리, --chart로 도넛 또는 폭포 차트를 생성해 교체]
   </div>
   <figcaption>{{차트 제목}}</figcaption>
 </figure>

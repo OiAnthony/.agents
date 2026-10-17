@@ -299,6 +299,8 @@
   }
   .os-item:last-child,
   .os-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+  /* A lone project spans the row so its star count meets the right edge like every date. */
+  .os-item:only-child { grid-column: span 2; }
   .os-name {
     font-family: var(--serif);
     font-size: 10pt; font-weight: 500;

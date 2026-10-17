@@ -264,26 +264,25 @@ Eighteen built-in diagram types (incl. Mermaid-sourced sequence / class / ER; se
 | Architecture Board | `assets/diagrams/architecture-board.html` | Report-scale five-layer system board (standalone page) |
 | Flowchart     | `assets/diagrams/flowchart.html`     | Decision branches and flows                     |
 | Quadrant      | `assets/diagrams/quadrant.html`      | 2×2 positioning                                 |
-| Bar Chart     | `assets/diagrams/bar-chart.html`     | Category comparison (up to 8 groups × 3 series) |
-| Line Chart    | `assets/diagrams/line-chart.html`    | Trends over time (up to 12 points × 3 lines)    |
-| Donut Chart   | `assets/diagrams/donut-chart.html`   | Proportional breakdown (up to 6 segments)       |
+| Bar Chart     | `--chart` type `bar`                 | Category comparison (up to 8 groups × 3 series) |
+| Line Chart    | `--chart` type `line`                | Trends over time (up to 12 points × 3 lines)    |
+| Donut Chart   | `--chart` type `donut`               | Proportional breakdown (up to 6 segments)       |
+| Horizontal Bar | `--chart` type `hbar`               | Ranking, or a share with 7+ parts (up to 12 rows) |
 | State Machine | `assets/diagrams/state-machine.html` | Finite states + directed transitions            |
 | Timeline      | `assets/diagrams/timeline.html`      | Time axis + milestone events                    |
 | Swimlane      | `assets/diagrams/swimlane.html`      | Cross-responsibility process flow               |
 | Tree          | `assets/diagrams/tree.html`          | Hierarchical relationships                      |
 | Layer Stack   | `assets/diagrams/layer-stack.html`   | Vertically stacked system layers                |
 | Venn          | `assets/diagrams/venn.html`          | Set intersections and overlaps                  |
-| Candlestick   | `assets/diagrams/candlestick.html`   | OHLC price history (up to 30 days)              |
-| Waterfall     | `assets/diagrams/waterfall.html`     | Revenue bridge / decomposition                  |
+| Candlestick   | `--chart` type `candlestick`         | OHLC price history (up to 30 days)              |
+| Waterfall     | `--chart` type `waterfall`           | Revenue bridge / decomposition                  |
 
 
-Usage: extract the `<svg>` block from the HTML file and paste into the template's `<figure>` container.
+Usage: extract the `<svg>` block from the HTML file and paste into the template's `<figure>` container. Data charts are generated instead: write the numbers as a JSON spec, run `python3 scripts/build.py --chart spec.json -o chart.svg`, and paste that `<svg>` (spec fields in `references/diagrams.md` section 9).
 
 **Repo-maintained diagram** (README / docs-site figure living in the user's repository): keep the trio consistent, `index.html` source + same-name PNG re-exported after every change + `prompt.md` (must preserve / suggested additions / visual direction / sister boundaries). Evidence pass before drawing; maturity encoding for shipped / in-build / future. See `references/diagrams.md` «Maintained diagram assets».
 
-**Data chart colors**: primary series `#1B365D` · secondary `#504e49` → `#6b6a64` → `#b8b7b0` → `#d4d3cd` → `#EEF2F7`.
-
-**Editing data**: only modify elements between `<!-- DATA START -->` / `<!-- DATA END -->`, leave CSS untouched. All coordinates must be divisible by 4.
+**Data charts**: colors, axes, and geometry come from `scripts/chart.py`. To change a number, edit the spec and regenerate; `--deliver` fails a chart whose marks no longer match its embedded spec.
 
 ## Verification checks
 

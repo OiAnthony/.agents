@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+import platform
 import shutil
 import struct
 import subprocess
@@ -306,6 +307,11 @@ def doctor_report() -> dict:
 def run_doctor() -> int:
     report = doctor_report()
     print(f"Kami doctor {report['version']}")
+    if platform.system() == "Windows":
+        print(
+            "NOTE: on Windows, run Kami inside WSL (Ubuntu); the helper scripts are "
+            "Bash, and native WeasyPrint needs the GTK/Pango runtime installed separately"
+        )
     for item in report["dependencies"]:
         label = "OK" if item["status"] == "available" else item["status"].upper()
         version = f" {item['version']}" if item.get("version") else ""

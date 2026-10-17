@@ -399,9 +399,9 @@
 <!-- ========== CHART (嵌入 SVG 图表) ========== -->
 <h2>价格走势</h2>
 <figure>
-  <!-- 从 candlestick.html 或 line-chart.html 提取 <svg> 嵌入此处 -->
+  <!-- 用 build.py --chart 从数据生成 <svg>（candlestick 或 line），替换下面的占位块 -->
   <div class="chart-placeholder" style="height: 60mm;">
-    [K 线图 / 价格走势图占位 · 从 diagrams/ 提取 SVG 嵌入]
+    [K 线图 / 价格走势图占位，用 --chart 生成 SVG 后替换]
   </div>
   <figcaption>{{图表标题，如 "近 20 个交易日价格走势"}}</figcaption>
 </figure>
@@ -455,7 +455,7 @@
 <h2>收入结构</h2>
 <figure>
   <div class="chart-placeholder" style="height: 50mm;">
-    [营收分解图占位 · 环形图或瀑布图]
+    [营收分解图占位，用 --chart 生成环形图或瀑布图]
   </div>
   <figcaption>{{图表标题}}</figcaption>
 </figure>

@@ -5,7 +5,8 @@ document needs all of them, in order, every time. Remembering that order is
 the part an agent drops, so this module owns it:
 
     HTML   placeholders, strict math (rendered in place when present),
-           Markdown residue, template style, content coverage (with an IR)
+           Markdown residue, data charts, template style, content coverage
+           (with an IR)
     render the PDF next to the HTML through the shared render pipeline
     PDF    page contract, resume balance, fonts, Markdown residue,
            density, orphans, page images for the perceptual pass
@@ -25,12 +26,14 @@ import json
 import re
 from pathlib import Path
 
+from chart import check_charts, find_charts
 from checks import (
     check_density,
     check_markdown_residue,
     check_orphans,
     check_placeholders,
     check_resume_balance,
+    resume_thin_source,
 )
 from content import check_content
 from lint import check_style
@@ -94,12 +97,14 @@ class Report:
         self.errors = 0
         self.warnings = 0
         self.prefix = f"{base}/"
+        self.items: list[dict] = []
 
     def line(self, status: str, label: str, detail: str = "") -> None:
         if status == "ERROR":
             self.errors += 1
         elif status == "WARN":
             self.warnings += 1
+        self.items.append({"status": status, "check": label, "detail": detail})
         print(f"{status + ':':<7}{label}{'  ' + detail if detail else ''}")
 
     def check(self, label: str, fn, argv: list[str], *, warn_only: bool = False) -> int:
@@ -119,6 +124,7 @@ class Report:
             self.line("OK", label)
         else:
             self.line("WARN" if warn_only and code == 1 else "ERROR", label)
+            self.items[-1]["findings"] = output
             for ln in output[:MAX_DETAIL_LINES]:
                 print(f"         {ln}")
             if len(output) > MAX_DETAIL_LINES:
@@ -143,7 +149,11 @@ def _page_contract(report: Report, fam: str | None, pages: int, target: int | No
         report.line("WARN", "page target", f"brief asks for {target}, rendered {pages}")
 
 
-def deliver(args: list[str]) -> int:
+def deliver(args: list[str], result: dict | None = None) -> int:
+    """Run every gate and print one verdict; `result`, when given, receives
+    the same outcome as data (the MCP server's kami_deliver reads it)."""
+    if result is None:
+        result = {}
     files = [a for a in args if not a.startswith("-")]
     if not files or len(files) > 2 or not files[0].lower().endswith((".html", ".htm")):
         print("ERROR: usage: --deliver filled.html [content.json]")
@@ -200,6 +210,8 @@ def deliver(args: list[str]) -> int:
     else:
         report.line("OK", "math", "no formulas")
     report.check("markdown residue (html)", check_markdown_residue, [str(html_path)])
+    if find_charts(raw):
+        report.check("data charts", check_charts, [str(html_path)])
     # The output path rarely keeps the template file name, so hand the style
     # gate the detected family; an unrecognized document keeps the name fallback.
     report.check("template style",
@@ -212,6 +224,7 @@ def deliver(args: list[str]) -> int:
 
     # --- Render and PDF side ---------------------------------------------
     pages_png: list[Path] = []
+    rendered_pdf: Path | None = None
     if screen:
         report.line("WARN", "screen template",
                     "no PDF; screenshot the responsive matrix per locale (design.md «Responsive screenshot verification»)")
@@ -230,10 +243,15 @@ def deliver(args: list[str]) -> int:
             report.line("ERROR", "render", str(exc))
             pages = 0
         if pages:
+            rendered_pdf = pdf
             report.line("OK", "render", f"{pdf.name} ({pages} page(s))")
             _page_contract(report, fam, pages, page_target)
             if fam == "resume":
-                report.check("resume balance", check_resume_balance, [str(pdf)])
+                thin = resume_thin_source(pdf) if pages == 2 else None
+                if thin:
+                    report.line("WARN", "resume balance", thin)
+                else:
+                    report.check("resume balance", check_resume_balance, [str(pdf)])
             report.check("fonts", check_fonts, [str(pdf)])
             report.check("markdown residue (pdf)", check_markdown_residue, [str(pdf)])
             report.check("density", check_density, [str(pdf)], warn_only=True)
@@ -249,12 +267,24 @@ def deliver(args: list[str]) -> int:
 
     for gap in gaps:
         print(f"GAP:   {gap}")
+    result.update({
+        "html": str(html_path),
+        "template": detected,
+        "content_type": ir_type,
+        "checks": report.items,
+        "gaps": gaps,
+        "page_images": [str(p) for p in pages_png],
+        "review_checklist": list(REVIEW_CHECKLIST) if pages_png else [],
+    })
+    if rendered_pdf is not None:
+        result["pdf"] = str(rendered_pdf)
 
     if report.errors:
         verdict = f"NOT READY: {report.errors} error(s), {report.warnings} warning(s)"
     else:
         verdict = f"READY: 0 errors, {report.warnings} warning(s), {len(gaps)} data gap(s) to report"
     print(verdict)
+    result.update({"ready": not report.errors, "verdict": verdict})
     if pages_png:
         print("Next: view every page image against this checklist, fix what you see, re-run --deliver:")
         for item in REVIEW_CHECKLIST:

@@ -152,3 +152,46 @@ def sync_check(verbose: bool = False) -> int:
             print(f"  {issue}")
 
     return 1
+
+
+def dtcg_tokens(canonical: dict[str, str] | None = None) -> dict:
+    """Return tokens.json as W3C Design Tokens (DTCG) JSON under a `color` group."""
+    if canonical is None:
+        canonical = json.loads(TOKENS_FILE.read_text(encoding="utf-8"))
+    return {
+        "color": {
+            name.removeprefix("--"): {"$type": "color", "$value": value.lower()}
+            for name, value in canonical.items()
+        }
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Check token drift, or export references/tokens.json as DTCG JSON."
+    )
+    parser.add_argument("--dtcg", action="store_true", help="print W3C Design Tokens JSON")
+    parser.add_argument("-o", "--output", type=Path, help="write the DTCG JSON to this file")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    args = parser.parse_args(argv)
+    if not args.dtcg:
+        if args.output:
+            parser.error("-o requires --dtcg")
+        return sync_check(args.verbose)
+    try:
+        text = json.dumps(dtcg_tokens(), indent=2) + "\n"
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"ERROR: cannot read tokens.json: {exc}")
+        return 2
+    if args.output:
+        args.output.write_text(text, encoding="utf-8")
+        print(f"OK: wrote {len(json.loads(text)['color'])} color tokens to {args.output}")
+    else:
+        print(text, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

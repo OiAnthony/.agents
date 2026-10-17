@@ -450,6 +450,30 @@ def _resume_balance_issues(
     return issues
 
 
+def resume_thin_source(path: Path) -> str | None:
+    """Explain a balance shortfall no layout can close, else None.
+
+    Two pages that each stay under the ceiling but together hold less than two
+    floors' worth of ink are short of material, not badly laid out: moving a
+    break or loosening type only trades one sparse page for another. The
+    delivery gate reports that as a data gap instead of a layout error.
+    """
+    cfg = load_checks_thresholds()["resume_balance"]
+    min_fill, max_fill = float(cfg["min_fill_pct"]), float(cfg["max_fill_pct"])
+    result = _resume_page_fills(path, int(cfg["dpi"]))
+    if result is None:
+        return None
+    fills, page_count = result
+    if page_count != 2 or len(fills) < 2 or any(f > max_fill for f in fills[:2]):
+        return None
+    total = fills[0] + fills[1]
+    if total >= 2 * min_fill:
+        return None
+    return (f"{fills[0]:.0%} / {fills[1]:.0%}, {total:.0%} in total against the "
+            f"{2 * min_fill:.0%} two balanced pages need: the source is too thin, so list the "
+            "missing material as [DATA NEEDED] gaps (resume-writing.md «Thin source»)")
+
+
 def _resume_page_fills(path: Path, dpi: int) -> tuple[list[float], int] | None:
     try:
         fitz = require_pymupdf()

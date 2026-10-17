@@ -530,14 +530,17 @@ def probe_mathjax() -> dict:
             "detail": f"MathJax probe failed: {type(exc).__name__}: {exc}",
         }
     if result.returncode:
-        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        # Keep the doctor line short: Node prints a full require stack for a
+        # missing module, and only its first line names the cause.
+        stderr = result.stderr.decode("utf-8", errors="replace").strip()
+        cause = next((line.strip() for line in stderr.splitlines() if line.strip()), "")
+        cause = cause.removeprefix("MathJax render failed:").strip()
         return {
             "status": "missing",
             "version": None,
             "detail": (
-                "locked MathJax runtime unavailable; run "
-                "'bash scripts/ensure_mathjax.sh'. "
-                + (detail[:1000] or "probe process failed")
+                f"locked MathJax runtime unavailable ({cause[:300] or 'probe process failed'}); "
+                "run 'bash scripts/ensure_mathjax.sh'"
             ),
         }
     try:

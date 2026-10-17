@@ -157,6 +157,10 @@ def _classify_cjk_font(font_name: str) -> str:
     return "other"
 
 
+class EmptyPdfError(ValueError):
+    pass
+
+
 def _cjk_font_usage(pdf_path: Path) -> dict[str, int]:
     """Return {font name: ideographs it drew} across the whole document.
 
@@ -168,6 +172,8 @@ def _cjk_font_usage(pdf_path: Path) -> dict[str, int]:
     fitz = require_pymupdf()
     per_font: dict[str, int] = {}
     with fitz.open(str(pdf_path)) as doc:
+        if doc.page_count == 0:
+            raise EmptyPdfError("PDF has no pages")
         for page in doc:
             for block in page.get_text("dict").get("blocks", []):
                 for line in block.get("lines", []):
@@ -246,6 +252,7 @@ def check_fonts(paths: list[str]) -> int:
         return 2
 
     failures = 0
+    empty = 0
     for raw in files:
         pdf = resolve_input(raw)
         rel = rel_to_root(pdf)
@@ -258,6 +265,11 @@ def check_fonts(paths: list[str]) -> int:
         except MissingDepError as exc:
             print(f"ERROR: {exc}")
             return 2
+        except EmptyPdfError:
+            # Same verdict as the other PDF gates: nothing was checked.
+            print(f"ERROR: {raw}: PDF has no pages")
+            empty += 1
+            continue
         except Exception as exc:
             print(f"ERROR: {rel}: could not read text spans: {exc}")
             failures += 1
@@ -308,6 +320,8 @@ def check_fonts(paths: list[str]) -> int:
             print(FONT_RECOVERY_HINT)
             failures += 1
 
+    if empty:
+        return 2
     return 0 if failures == 0 else 1
 
 
