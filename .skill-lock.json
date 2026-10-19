@@ -115,9 +115,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/read/SKILL.md",
-      "skillFolderHash": "2ad0970ce7abc3d3d48002f01026999a08cbe231",
+      "skillFolderHash": "c52ebf74269affd6d22ae6997ebf18f079f2641f",
       "installedAt": "2026-04-07T08:11:01.804Z",
-      "updatedAt": "2026-10-01T01:36:00.251Z"
+      "updatedAt": "2026-10-19T01:13:48.976Z"
     },
     "think": {
       "source": "tw93/Waza",
@@ -151,9 +151,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "c349d33f32d4a18e6e2d4de3173f7a132ca54820",
+      "skillFolderHash": "1cf19ecab569965473365c04bfd2d4a8f71b447c",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-17T00:56:58.794Z"
+      "updatedAt": "2026-10-19T01:14:12.288Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -187,9 +187,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "7e1de2b2cf3a9a91823ee5dcc2089c1d96a7e4f1",
+      "skillFolderHash": "39069dd190f574064fe410aa3af1b6dfd98a522c",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-10-14T01:06:52.856Z"
+      "updatedAt": "2026-10-19T01:14:25.027Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",

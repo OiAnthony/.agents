@@ -9,7 +9,7 @@ This is not a UI framework. It is a constraint system for print, designed to kee
 **The ten invariants** (each has a real cost, think before overriding):
 
 1. Default page background parchment `#f5f4ed`; the white-paper print variant in production.md is the explicit exception
-2. Single accent: ink-blue `#1B365D`, no second chromatic color
+2. Single accent, no second chromatic color: ink-blue `#1B365D` for documents; a product website takes the product's own color (Section 11 «Accent on a product site»)
 3. All grays warm-toned (yellow-brown undertone), no cool blue-grays
 4. One serif family per page for headlines and body. Add a distinct sans only for genuine UI chrome
 5. Serif weight locked at 500, no bold
@@ -79,6 +79,7 @@ Four levels: near-black (primary) > dark-warm (secondary) > olive (subtext) > st
 ```css
 --border:      #e8e6dc;   /* Primary border - section dividers, table headers, controls */
 --border-soft: #e5e3d8;   /* Secondary border - row separators, subtle dividers */
+--line:        #d8d5c8;   /* Screen hairline - nav pill, cards, hovered borders; the strongest warm rule */
 ```
 
 ### Semantic warm accent (the one sanctioned exception)
@@ -1147,6 +1148,34 @@ The landing-page template is the only kami template designed for browser deliver
 - Locale pages, FAQ, JSON-LD, `llms.txt`, `llms-full.txt`, screenshots, install copy, pricing, version, and support links are one public fact set. Keep the factual claims aligned across them.
 - Do not promote project-specific release artifacts, appcast rules, payment providers, or private local paths into the generic template.
 
+### Accent on a product site
+
+A product site keeps Kami's warm neutrals and takes its accent from the product. Ink-blue is Kami's own color and the last fallback, not a requirement.
+
+- **Choose the accent in this order.** (1) The product's own main color: the dominant hue of its app icon, its UI tint, or its existing brand assets. (2) When the product has none, or those sources disagree, ask the user to pick: show each candidate plus ink-blue as a filled button and a text link on parchment, side by side. (3) Only when the user has no preference, keep ink-blue `#1B365D`. Lock the choice before filling the template, like the five locks above.
+- **One accent, three tokens.** `--brand` for buttons, links, the version link and active rails; `--brand-light` for hover; `--brand-tint` for selected tabs and ghost-button hover fills. `--brand` must reach 4.5:1 against `--parchment` and `--ivory`, and `--ivory` text on a `--brand` fill must reach 4.5:1; darken in lightness steps until both pass (the same rule `scripts/brand_extract.py` applies). `--brand-light` is lighter but still passes 4.5:1 on parchment when it colors text. `--brand-tint` is a solid hex near the parchment, never `rgba()`.
+- **Neutrals do not follow the accent.** Surfaces, grays, and rules keep Kami's warm values, so several products from one maker read as one family while each keeps its own color. A cool or saturated product color is fine as the accent; it does not license cool-gray surfaces or a second chromatic color.
+- **One name per role.** Sites in one family use Kami's token names for shared roles. When a site needs a different value for a shared role, keep the name, change the value, and record why in the site's design notes. Do not invent synonyms: a `--paper` here and an `--ink` that means body text on one site and link color on another is how copied palettes drift apart unseen.
+
+Each token plays one role, in the order of a 12-step UI scale (background, interactive, border, solid, text):
+
+| Step | Role | Token | Value |
+|---|---|---|---|
+| 1 | Page background | `--parchment` | `#f5f4ed` |
+| 2 | Raised surface: cards, nav pill, code blocks | `--ivory` | `#faf9f5` |
+| 3 | UI element background, inline code | `--inline-code-bg` | `#f0eee6` |
+| 4 | Hovered UI background | `--warm-sand` | `#e8e6dc` |
+| 5 | Selected UI background | `--brand-tint` | follows the accent |
+| 6 | Subtle border and separator | `--border-soft` / `--border` | `#e5e3d8` / `#e8e6dc` |
+| 7 | UI border, card edge | `--line` | `#d8d5c8` |
+| 8 | Focus ring | `--brand` outline | follows the accent |
+| 9 | Solid fill | `--brand` | follows the accent |
+| 10 | Hovered solid fill | `--brand-light` | follows the accent |
+| 11 | Low-contrast text: captions, meta | `--olive` / `--stone` | 7.5:1 / 4.9:1 on parchment |
+| 12 | High-contrast text: headings, body | `--near-black` / `--dark-warm` | 16.7:1 / 9.9:1 on parchment |
+
+`--stone` is the lightest gray allowed for text. Anything lighter is a border or a surface, never copy.
+
 ### Product screenshot slots
 
 Use a small slot matrix before filling a landing page or product site. This keeps the default beautiful without adding a new template system:
@@ -1169,6 +1198,7 @@ Every screenshot path must resolve from the repo or a stable public URL. Never r
 - Each section opens with `section-title` and an optional `section-lede`. No numbered label above the title: gallery, features, pricing, and FAQ are not a sequence, and a counter over every heading is template chrome rather than information (one eyebrow on the hero is enough)
 - Two responsive breakpoints: `880px` (tablet) and `480px` (phone)
 - Section rhythm is a system, not per-gap. Run section spacing as one responsive ladder (e.g. desktop 96/72, tablet 72/54, phone 56/42). When a page reads too airy or too tight, scale the *whole* set by a single factor (about 0.75) across all breakpoints at once; nudging one gap leaves asymmetry, and asymmetry that survives tuning is structural. At the phone breakpoint step gutters down (64px to 16px) and shrink display sizes (hero title, price amount) in the same pass.
+- One type ladder per site. Every `font-size` comes from a short declared list (for example 96/64 hero, 32/26 section title, 16 lede, 15 body, 14 secondary, 13 meta, 12 floor, plus the sizes this section names for a component); a component that wants a new value takes the nearest step instead. Monospace may sit half a step off the serif (code at 13.5px beside 15px body, as in «Code Block»), because its x-height differs; that is part of the list, not drift. Vertical margins and row gaps are multiples of 4. One-off values creep in one component at a time and read as noise long before anyone can name them; after editing type, list the distinct sizes in the stylesheet and confirm each is on the ladder.
 
 ### Single-line surfaces
 
@@ -1357,7 +1387,12 @@ No template ships this section; build it only from real, attributed quotes (name
 ### Cross-lang typography hardening
 
 - **Numeric alignment across CJK and Latin runs.** Use `font-variant-numeric: lining-nums tabular-nums` on every node that displays numbers (prices, metrics, version strings, tabular data). Lining keeps digit height uniform; tabular keeps digit width uniform. Without lining-nums, oldstyle fonts drop descenders on 3, 4, 5, 7, 9 and break vertical rhythm.
-- **CJK families lead the serif stack on Chinese pages, Latin faces trail.** Keep `html[lang="zh-CN"] { --serif: "TsangerJinKai02", "Source Han Serif SC", ..., Georgia, serif; }` in that order; a leading Latin serif sends each ideograph to fallback separately and splits words across two faces (`production.md` pitfall 4.1). Mixed runs like "Mac/22/$19" align through the `lining-nums tabular-nums` rule above, not through font order.
+- **Font order on Chinese pages depends on where the text renders.** In a PDF and in inline SVG, CJK families lead and Latin faces trail: `--serif: "TsangerJinKai02", "Source Han Serif SC", ..., Georgia, serif;`, because a leading Latin serif there sends each ideograph to fallback separately and splits words across two faces (`production.md` pitfall 4.1). On a website that self-hosts its CJK subset with a CJK-only `unicode-range`, put the Latin face first instead: `--serif: Charter, Georgia, "Site Serif SC", "Songti SC", serif;`. The browser walks the list per character, so Han reaches the subset and Latin and digits stay in Charter; with the CJK face first, Latin falls to that face's own Latin glyphs, or to Songti's Times-like ones wherever the subset is not installed. A face whose Latin is designed to match its Han (TsangerJinKai02) may still lead on purpose. Mixed runs like "Mac/22/$19" align through the `lining-nums tabular-nums` rule above, not through font order.
+- **Ship the Chinese serif on a website.** iOS has no Chinese serif at all (PingFang, a sans, is its only Han face), so a stack of system names such as `"Songti SC"` sets Charter Latin beside sans Han in one sentence on every iPhone. Self-host a subset of the CJK face the stack leads with: regular plus one heavier weight as WOFF2, `unicode-range` limited to CJK and full-width punctuation so Latin pages never download it, and `font-display: swap`. Never put PingFang in a `--serif` stack; it is the bug, not a fallback.
+- **TsangerJinKai02 is for non-commercial sites only.** Its free license covers personal use; commercial use needs a license from tsanger.cn. The landing templates lead the Chinese stack with it, so for a paid product or its website, replace it with Source Han Serif (OFL) before shipping, both in the stack and in the subset. A free, open-source product may keep it.
+- **Keep the subset in step with the copy.** A character missing from the subset silently falls back to the system sans. Build the subset from every rendered string, including attribute text that script paints into the DOM (`data-*`, `alt`, `aria-label`, `placeholder`), and keep a check mode that fails when a page uses a character the font file lacks: `pyftsubset Source.otf --text-file=chars.txt --flavor=woff2 --output-file=serif-sc-regular.woff2`.
+- **`lining-nums` does nothing on Georgia.** Windows has no Charter, so Latin falls to Georgia, whose figures are old-style and which has no `lnum` feature. When digit height matters (prices, versions, numbers beside Han), put a digits-only face first in the stack: `@font-face { font-family: "Site Digits"; src: local("Charter"), local("Palatino Linotype"), local("Cambria"); unicode-range: U+0030-0039; }`.
+- **No `&nbsp;` between words in Charter.** It renders about twice the width of an ordinary space. Use ordinary spaces and let the line wrap.
 - **Avoid scaling the currency glyph with super.** Do not write `.price-currency { font-size: 0.5em; vertical-align: super }`. That trick makes `$` and the digit visually unequal. Prefer `font-size: 0.74em; line-height: 1; transform: translateY(0.015em);`.
 - **Language menu items need vertical room for descenders.** When `<a>` inside `.lang-menu` has `line-height: 1`, the descender of 'g' / 'y' / 'p' is clipped. Use `min-height: 32px; padding: 6px 10px; line-height: 1.35;`. Add an invisible `::before` bridge between trigger and menu so the cursor can cross the gap without dismissing the menu.
 

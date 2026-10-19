@@ -34,6 +34,19 @@ bash "$READ_SCRIPT_DIR/fetch.sh" --use-proxy "{url}"
 
 Do not send authenticated, internal, or otherwise sensitive URLs to third-party extraction services or reader plugins. An installed plugin is an optional reader under the same privacy boundary, not automatic permission to disclose a URL. If a reader returns JSON, extract its Markdown-bearing field before answering or saving.
 
+## DeepSeek Search and Fetch
+
+Needs `DEEPSEEK_API_KEY` from the DeepSeek platform, exported in the shell profile. Without it the script exits 2 and sends nothing.
+
+```bash
+python3 "$READ_SCRIPT_DIR/deepseek.py" search "{query}" --count 10
+python3 "$READ_SCRIPT_DIR/deepseek.py" fetch "{url}"
+```
+
+- `search` prints numbered results with URL, site, date, `authority` (0-4, 3+ is highly authoritative) and `score` (0-3, 1.5+ is a strong match), plus a 600-800 character summary. Summaries are DeepSeek's index-time snapshot, so read the page before quoting a fact from it.
+- The query is 1-128 characters and supports operators such as `site:`, `lang:` and `after:`. `--content` adds page bodies; `--json` returns the raw response.
+- Each successful request is billed; failed, empty and timed-out requests are not. Plan the query set before running a batch.
+
 ## GitHub URLs
 
 GitHub file URLs (`github.com/user/repo/blob/...`) render heavy HTML. The proxy cascade often returns partial or nav-heavy content. Prefer:

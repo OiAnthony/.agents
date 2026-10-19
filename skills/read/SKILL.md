@@ -1,7 +1,7 @@
 ---
 name: read
-description: "Fetches URLs and PDFs, then summarizes or returns clean Markdown. Use when asked to read, fetch, quote, cite, convert, or save a URL or PDF. Not for local text files already in the repo."
-when_to_use: "看这个链接, 读一下, 看看这个网页, 抓取网页, read this, check this URL, fetch this page"
+description: "Fetches URLs and PDFs, then summarizes or returns clean Markdown; can also search the web through DeepSeek when built-in search is thin. Use when asked to read, fetch, quote, cite, convert, or save a URL or PDF. Not for local text files already in the repo."
+when_to_use: "看这个链接, 读一下, 看看这个网页, 抓取网页, 搜不到, 换个搜索, DeepSeek 搜索, read this, check this URL, fetch this page, search with DeepSeek"
 dispatch_intent: "Any URL or PDF to fetch, read this, fetch this page"
 ---
 
@@ -33,6 +33,7 @@ Fetch any URL or local PDF.
 | GitHub URLs (`github.com`, `raw.githubusercontent.com`) | Prefer raw content or `gh` first; built-in fetcher for public-page fallback |
 | `x.com`, `twitter.com` | Built-in fetcher; third-party fallback only with user opt-in |
 | Everything else | Built-in fetcher |
+| A query, no URL, and the built-in web search is thin, stale, or missing Chinese sources | DeepSeek search, then fetch the results worth reading |
 
 After routing, load `references/read-methods.md` and run the commands for the chosen method.
 
@@ -42,6 +43,8 @@ After routing, load `references/read-methods.md` and run the commands for the ch
 
 - **Default (`fetch.sh URL`)**: fetch from the source site and extract locally, without sending the URL to a third-party extraction service. Best quality requires `pip install --user readability-lxml html2text`; without those, falls back to a stdlib HTML stripper (works but messier output).
 - **Opt-in (`fetch.sh --use-proxy URL`)**: local first, then `defuddle.md`, then `r.jina.ai`. Those third-party services receive the URL and may cache or log it. Reserve `--use-proxy` for JS-heavy pages (X/Twitter), paywalls, or anything the local extractor cannot reach.
+
+- **DeepSeek (`scripts/deepseek.py`)**: runs only when `DEEPSEEK_API_KEY` is set, otherwise exits 2 with nothing sent. `search` is the fallback when built-in search is thin; with `--use-proxy`, `fetch.sh` also tries its Fetch API before defuddle. The query or URL goes to DeepSeek and each successful request is billed, so batch queries deliberately and keep private names, internal URLs, and credentials out of them.
 
 Every tier emits a structured stderr line: `[fetch] tier=<name> status=<ok|fail> reason="..."`. Read the stderr if a fetch fails; it names the specific tier and reason.
 
