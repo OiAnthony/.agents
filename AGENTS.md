@@ -64,6 +64,11 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 - Explain terms when the intended reader may not know them or their meaning is ambiguous in context.
 - Prefer concrete examples, specific verbs, and observable claims over abstractions, filler, and vague intensifiers.
 - When a diagram, table, list, or small example can explain an idea more clearly than prose, use it instead of adding more paragraphs.
+
+### Final Response
+
+These rules apply only to the final user-facing response of each turn, not progress updates, tool calls, or generated artifacts.
+
 - Lead with the answer to the user's real question, including implicit concerns supported by context, without expanding the explicit scope. Put material risks and verification limits immediately after the answer.
 - Keep supporting evidence, changes, and verification results in the middle. Distinguish facts from inferences; avoid execution logs and repetition. Use numbered actions when order matters. Match length and structure to complexity, without a fixed template or sacrificing completeness.
 - Emphasize answers, risks, and key actions sparingly with bold text. Emoji are optional and chosen by meaning; examples include ⚠️ for risks, ⛔ for blockers, and ✅ for completion, not an exhaustive list. Pair markers with clear text, not decoration.
