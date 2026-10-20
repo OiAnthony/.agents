@@ -237,6 +237,16 @@
       "skillFolderHash": "759f1e56d0d2fdd3819d2a53b81e72767c08d914",
       "installedAt": "2026-10-12T03:53:11.359Z",
       "updatedAt": "2026-10-12T03:53:11.359Z"
+    },
+    "apifox-cli": {
+      "source": "apifox.com",
+      "sourceType": "well-known",
+      "sourceUrl": "https://apifox.com/.well-known/agent-skills/apifox-cli/SKILL.md",
+      "skillFolderHash": "",
+      "sourceBaseUrl": "https://apifox.com",
+      "wellKnownDigest": "sha256:a3518a5ea5dc111285babd17623615b3b18bb5fc73bc91ff369d35424114e56b",
+      "installedAt": "2026-10-20T06:33:56.350Z",
+      "updatedAt": "2026-10-20T06:33:56.350Z"
     }
   },
   "dismissed": {
