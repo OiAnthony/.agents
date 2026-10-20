@@ -7,7 +7,7 @@
 #   trusted Python missing  -> conversation, MCP/hooks/allowedTools, and skill-security sections print "(unavailable)"
 #   settings.local.json absent -> hooks, MCP, allowedTools all show "(unavailable)"; normal for global-settings-only projects
 #   MEMORY.md path          -> built via sed on pwd; unusual chars produce wrong project key; verify manually if (none) seems wrong
-#   Conversation scope      -> summary scans up to 3 recent prior Claude/Codex files and current-project OMP sessions/workers; deep streams prior project history; live/changed/partial files are coverage gaps
+#   Conversation scope      -> summary scans 3 recent previous project files across Claude/Codex; deep streams all previous project files; every file modified in the live window is excluded
 #   MCP token estimate      -> assumes ~25 tools/server, ~200 tokens/tool; treat as directional, not precise
 set -euo pipefail
 
@@ -1042,7 +1042,6 @@ if [ "$AUDIT_HINT" = "instructions" ]; then
   echo "=== CONVERSATION SIGNALS ==="
   echo "(out of scope)"
 elif [ -n "$CONVERSATION_AUDIT_SCRIPT" ] && [ -n "$PYTHON_BIN" ]; then
-  # OMP session discovery uses --project-root and the fixed ~/.omp/agent/sessions root; it emits aggregates only.
   "$PYTHON_BIN" -I "$CONVERSATION_AUDIT_SCRIPT" "$CONVO_DIR" "$MODE" \
     --codex-root "$HOME/.codex/sessions" --project-root "$P"
 else

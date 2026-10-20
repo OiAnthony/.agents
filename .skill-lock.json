@@ -62,8 +62,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
       "skillFolderHash": "f2408eb9028ec938ecbc5a36b5d727d7e1fceccc",
+      "pluginName": "waza-health",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-10-16T01:57:20.343Z"
+      "updatedAt": "2026-10-20T08:51:34.615Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -98,8 +99,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
       "skillFolderHash": "9ddc690e1f976cc0d808e5d2dbfca0f654e18d99",
+      "pluginName": "waza-check",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-10-16T01:57:34.070Z"
+      "updatedAt": "2026-10-20T08:51:34.608Z"
     },
     "hunt": {
       "source": "tw93/Waza",
@@ -107,8 +109,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/hunt/SKILL.md",
       "skillFolderHash": "d62b8a89b441d0aa0e48ebf17b0fa8ead0e5faf6",
+      "pluginName": "waza-hunt",
       "installedAt": "2026-04-07T08:11:00.749Z",
-      "updatedAt": "2026-09-30T01:40:04.748Z"
+      "updatedAt": "2026-10-20T08:51:34.617Z"
     },
     "read": {
       "source": "tw93/Waza",
@@ -116,8 +119,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/read/SKILL.md",
       "skillFolderHash": "c52ebf74269affd6d22ae6997ebf18f079f2641f",
+      "pluginName": "waza-read",
       "installedAt": "2026-04-07T08:11:01.804Z",
-      "updatedAt": "2026-10-19T01:13:48.976Z"
+      "updatedAt": "2026-10-20T08:51:34.624Z"
     },
     "think": {
       "source": "tw93/Waza",
@@ -125,8 +129,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/think/SKILL.md",
       "skillFolderHash": "8df90ff2ccd7a95d378d9e6985f439628030adb9",
+      "pluginName": "waza-think",
       "installedAt": "2026-04-07T08:11:02.357Z",
-      "updatedAt": "2026-10-10T01:37:46.463Z"
+      "updatedAt": "2026-10-20T08:51:34.626Z"
     },
     "write": {
       "source": "tw93/Waza",
@@ -134,8 +139,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/write/SKILL.md",
       "skillFolderHash": "5e97a65e9be3a1943cbf1b1b27fbc79cad3e7da6",
+      "pluginName": "waza-write",
       "installedAt": "2026-04-07T08:11:02.881Z",
-      "updatedAt": "2026-10-13T01:08:40.852Z"
+      "updatedAt": "2026-10-20T08:51:34.628Z"
     },
     "learn": {
       "source": "tw93/Waza",
@@ -143,8 +149,9 @@
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/learn/SKILL.md",
       "skillFolderHash": "494f6574a07645561156222a0c98364ce81b94e4",
+      "pluginName": "waza-learn",
       "installedAt": "2026-04-18T09:53:21.848Z",
-      "updatedAt": "2026-10-13T01:09:01.632Z"
+      "updatedAt": "2026-10-20T08:51:34.618Z"
     },
     "kami": {
       "source": "tw93/kami",
@@ -247,6 +254,16 @@
       "wellKnownDigest": "sha256:a3518a5ea5dc111285babd17623615b3b18bb5fc73bc91ff369d35424114e56b",
       "installedAt": "2026-10-20T06:33:56.350Z",
       "updatedAt": "2026-10-20T06:33:56.350Z"
+    },
+    "ui": {
+      "source": "tw93/Waza",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/tw93/Waza.git",
+      "skillPath": "skills/ui/SKILL.md",
+      "skillFolderHash": "55b8655a19cdf46fadf67dc68f1a74b38fd4666a",
+      "pluginName": "waza-ui",
+      "installedAt": "2026-10-20T08:51:34.627Z",
+      "updatedAt": "2026-10-20T08:51:34.627Z"
     }
   },
   "dismissed": {
@@ -258,6 +275,7 @@
     "codex",
     "cursor",
     "droid",
+    "fx",
     "gemini-cli",
     "github-copilot",
     "kilo",
