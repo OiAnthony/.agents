@@ -65,7 +65,7 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 - Prefer concrete examples, specific verbs, and observable claims over abstractions, filler, and vague intensifiers.
 - When a diagram, table, list, or small example can explain an idea more clearly than prose, use it instead of adding more paragraphs.
 
-### Final Response
+### 6.1 Final Response
 
 These rules apply only to the final user-facing response of each turn, not progress updates, tool calls, or generated artifacts.
 
