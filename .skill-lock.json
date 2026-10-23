@@ -71,9 +71,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/github/awesome-copilot.git",
       "skillPath": "skills/git-commit/SKILL.md",
-      "skillFolderHash": "883a6a7466f55a9cd9f22cf1cce2d9333fc9b998",
+      "skillFolderHash": "266a4c3fbaa9f5441b5d1a96b786b6aa634c19e6",
       "installedAt": "2026-04-01T03:52:21.894Z",
-      "updatedAt": "2026-04-01T03:52:21.894Z"
+      "updatedAt": "2026-10-23T01:26:59.100Z"
     },
     "changelog-generator": {
       "source": "composiohq/awesome-claude-skills",
@@ -158,9 +158,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "1cf19ecab569965473365c04bfd2d4a8f71b447c",
+      "skillFolderHash": "42cf5cca89d00fc10d573ce8eda44af06ddb693d",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-19T01:14:12.288Z"
+      "updatedAt": "2026-10-23T01:27:57.746Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",

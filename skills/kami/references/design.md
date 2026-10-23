@@ -1153,7 +1153,7 @@ The landing-page template is the only kami template designed for browser deliver
 A product site keeps Kami's warm neutrals and takes its accent from the product. Ink-blue is Kami's own color and the last fallback, not a requirement.
 
 - **Choose the accent in this order.** (1) The product's own main color: the dominant hue of its app icon, its UI tint, or its existing brand assets. (2) When the product has none, or those sources disagree, ask the user to pick: show each candidate plus ink-blue as a filled button and a text link on parchment, side by side. (3) Only when the user has no preference, keep ink-blue `#1B365D`. Lock the choice before filling the template, like the five locks above.
-- **One accent, three tokens.** `--brand` for buttons, links, the version link and active rails; `--brand-light` for hover; `--brand-tint` for selected tabs and ghost-button hover fills. `--brand` must reach 4.5:1 against `--parchment` and `--ivory`, and `--ivory` text on a `--brand` fill must reach 4.5:1; darken in lightness steps until both pass (the same rule `scripts/brand_extract.py` applies). `--brand-light` is lighter but still passes 4.5:1 on parchment when it colors text. `--brand-tint` is a solid hex near the parchment, never `rgba()`.
+- **One accent, three tokens.** `--brand` for buttons, links, the version link and active rails; `--brand-light` for hover; `--brand-tint` for selected tabs and other selected fills. `--brand` must reach 4.5:1 against `--parchment` and `--ivory`, and `--ivory` text on a `--brand` fill must reach 4.5:1; darken in lightness steps until both pass (the same rule `scripts/brand_extract.py` applies). `--brand-light` is lighter but still passes 4.5:1 on parchment when it colors text. `--brand-tint` is a solid hex near the parchment, never `rgba()`.
 - **Neutrals do not follow the accent.** Surfaces, grays, and rules keep Kami's warm values, so several products from one maker read as one family while each keeps its own color. A cool or saturated product color is fine as the accent; it does not license cool-gray surfaces or a second chromatic color.
 - **One name per role.** Sites in one family use Kami's token names for shared roles. When a site needs a different value for a shared role, keep the name, change the value, and record why in the site's design notes. Do not invent synonyms: a `--paper` here and an `--ink` that means body text on one site and link color on another is how copied palettes drift apart unseen.
 
@@ -1238,7 +1238,7 @@ Below the phone breakpoint, the information diet reverses: images first, words s
 - No entrance effect on the title. The product name should be immediately readable, not revealed through blur or staged motion
 - Tagline: 21px (EN) / 20px (CN), olive color, letter-spacing 0.2px (EN) / 0.4px (CN), max-width 820px
 - Tokens row: a few small chips as `<span>quality</span>`, 13px stone, `--latin-ui` font
-- CTA: pill buttons (border-radius 999px), primary filled + ghost outlined, 15px, 13px 28px padding
+- CTA: pill buttons (border-radius 999px), primary filled + quiet ghost, 15px, 13px 28px padding. The primary is the action most visitors take first; on a paid app with a free trial that is the download, with buying as the ghost (the pricing card carries the filled buy button)
 - Quality chips, not a facts list. The tokens row should carry product *qualities* (good-looking, lightweight, AI-friendly), not an inventory (license, package manager, OS version). Push every hard fact to the footer or docs where it is referenceable. Pick about three.
 - No chip may repeat the tagline. Read tagline and chips together and cut any concept stated twice. If trimming a chip leaves an orphaned separator, the row should collapse to one clean line, not a dangling dot.
 - Wrap-safe chip separator. Put the middot on `span:not(:last-child)::after`, never on `::before` of the following item, so a chip that wraps to the next line never carries a leading dot. Use `color-mix(... 58%, transparent)` so the dot stays quieter than the text.
@@ -1269,11 +1269,13 @@ Two variants only:
 | Variant | Background | Border | Text | Hover |
 |---|---|---|---|---|
 | `.btn-primary` | `--brand` | `--brand` | `--ivory` | `--brand-light`, translateY(-1px) |
-| `.btn-ghost` | transparent | `--brand` | `--brand` | `--brand-tint` bg, translateY(-1px) |
+| `.btn-ghost` | `--ivory` | `--line` | `--near-black` | `--warm-sand` bg, translateY(-1px) |
 
-Both: pill shape (999px radius), 15px `--latin-ui`, weight 500, 1.5px border, min-width 158px.
+Both: pill shape (999px radius), 15px `--latin-ui`, weight 500, line-height 1.55, 1px border, 13px 28px padding, min-width 158px. A brand-outlined ghost beside a brand-filled primary reads as a second offer, and weight 600 sets Latin in Bold beside CJK that stays at its one semibold, so neither returns.
 
-Mobile resting state: natural width, left-aligned to the hero text edge, height unchanged. Do not center them (reads as floating), do not stretch edge-to-edge with `flex: 1` (reads heavy), and never drop button height to relieve a "too full" feel; fullness is a width and spacing problem, not a height one. A left edge that does not line up with the text and chips reads as an accidental gap. Verify at 320px and 375px with no overflow.
+Labels are verb plus object: `Buy {{PRODUCT}}` (no price), `Download for Mac`; a compact nav pill keeps the verb alone. Avoid urgency forms such as "Buy now".
+
+Mobile resting state: the two hero buttons share one row starting at the hero text edge, each as wide as its label plus an equal share of the rest (`flex: 1 1 auto`, 8px gap), and wrap to two full-width rows when a long label does not fit; height unchanged. Never force equal halves (`flex: 1 1 0`): a German "Für Windows herunterladen" overflowed its half at 375px. Do not center a natural-width pair (reads as floating), and never drop button height to relieve a "too full" feel; fullness is a width and spacing problem, not a height one. Verify at 320px and 375px in the longest language with no overflow.
 
 ### Pricing
 

@@ -154,7 +154,7 @@ a:hover { color: var(--brand-light); }
   letter-spacing: 0.2px;
   padding: 13px 28px;
   border-radius: 999px;
-  border: 1.5px solid var(--brand);
+  border: 1px solid var(--brand);
   transition: background 0.15s, border-color 0.15s, transform 0.15s;
   cursor: pointer;
   min-width: 158px;
@@ -174,18 +174,18 @@ a:hover { color: var(--brand-light); }
   font-family: var(--serif);
   font-weight: 500;
   font-size: 15px;
-  color: var(--brand);
-  background: transparent;
+  color: var(--near-black);
+  background: var(--ivory);
   padding: 13px 28px;
   border-radius: 999px;
-  border: 1.5px solid var(--brand);
+  border: 1px solid var(--line);
   transition: background 0.15s, color 0.15s, transform 0.15s;
   cursor: pointer;
   min-width: 158px;
 }
 .btn-ghost:hover {
-  background: var(--brand-tint);
-  color: var(--brand);
+  background: var(--warm-sand);
+  color: var(--near-black);
   transform: translateY(-1px);
 }
 
@@ -870,21 +870,19 @@ footer.foot {
 @media (max-width: 480px) {
   .hero h1 { font-size: 56px; }
   .hero .tagline { font-size: 17px; }
-  .hero-cta { flex-direction: row; align-items: center; gap: 12px; }
+  .hero-cta { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
   .btn-primary,
   .btn-ghost { min-width: 0; padding: 13px 16px; justify-content: center; }
+  /* The two hero buttons share one row, each as wide as its label plus an equal
+     share of the rest, and wrap to two full rows when a long label does not fit. */
+  .hero-cta .btn-primary,
+  .hero-cta .btn-ghost { flex: 1 1 auto; white-space: nowrap; }
   .gallery-caption {
     min-height: auto;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-}
-
-@media (max-width: 360px) {
-  .hero-cta { flex-direction: column; align-items: stretch; gap: 10px; }
-  .btn-primary,
-  .btn-ghost { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
