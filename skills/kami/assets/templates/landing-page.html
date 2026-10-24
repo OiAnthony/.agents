@@ -883,11 +883,11 @@ footer.foot {
   .hero .tagline { font-size: 16px; }
   .hero-cta { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
   .btn-primary,
-  .btn-ghost { min-width: 0; padding: 13px 16px; justify-content: center; }
-  /* The two hero buttons share one row, each as wide as its label plus an equal
-     share of the rest, and wrap to two full rows when a long label does not fit. */
+  .btn-ghost { min-width: 0; padding: 10px 24px; justify-content: center; }
+  /* The two hero buttons keep their label's width with 24px sides and wrap to a
+     second row when a long label does not fit; 44px tall, the touch minimum. */
   .hero-cta .btn-primary,
-  .hero-cta .btn-ghost { flex: 1 1 auto; white-space: nowrap; }
+  .hero-cta .btn-ghost { flex: 0 0 auto; white-space: nowrap; }
   .gallery-caption {
     min-height: auto;
     flex-direction: column;
