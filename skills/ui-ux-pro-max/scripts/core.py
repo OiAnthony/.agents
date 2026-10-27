@@ -856,7 +856,7 @@ def _stack_query_requests_legacy(query, stack):
     if current_version is not None and stack_name is not None:
         matches = re.finditer(
             rf"\b(?:{stack_name})\s*(?:sdk|ui)?\s*(?:[@(]\s*)?(?:v(?:ersion)?\s*)?"
-            rf"(\d+)(?:\.(\d+))?\s*\)?",
+            rf"(\d+)(?:\.(\d+))?(?!\w)\s*\)?",
             normalized,
         )
         requested_versions = [

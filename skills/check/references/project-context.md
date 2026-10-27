@@ -126,5 +126,10 @@ Any diff that touches one of these sinks needs explicit validation and rollback 
 - Building shell, AppleScript, SQL, URL, or filesystem paths from user input.
 - Changing cwd handling, symlink resolution, path traversal guards, sandbox permissions, approval checks, or auth prompts.
 - Changing signing, notarization, appcast, update, license, payment, or release asset generation.
+- Changing CI workflows, release or publish scripts, installers, or anything that runs with elevated privilege.
 
 Review the smallest entry point that reaches the sink, then the downstream call. If validation is missing or rollback is unclear, treat it as a hard stop.
+
+### Risk tiers by path
+
+The tier follows the paths a change touches, not its size or author. A one-line change to a workflow, updater, license check, installer, privilege helper, or deletion path gets the project's heaviest gate (its full or native test run, a security pass, and a human maintainer's review), and an agent's, bot's, or automated reviewer's approval never stands in for that human. Extract the project's tiers from its docs; when it keeps a table-driven script that prints the gates for the changed paths, run it and paste its lines. Such a script is advice, not a pass: the gates it names may run where this session cannot prove they ran. Commits and PRs in a tier also state how they were verified and how to revert them (`mode-ship.md` step 4).

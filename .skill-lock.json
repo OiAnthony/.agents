@@ -61,10 +61,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "f2408eb9028ec938ecbc5a36b5d727d7e1fceccc",
-      "pluginName": "waza-health",
+      "skillFolderHash": "3ccf734a33ec2920095248c0e75f502c48444533",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-10-20T08:51:34.615Z"
+      "updatedAt": "2026-10-27T01:05:18.053Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -98,10 +97,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "9ddc690e1f976cc0d808e5d2dbfca0f654e18d99",
-      "pluginName": "waza-check",
+      "skillFolderHash": "ebe2c131ae350557930dc4d52f9ec7fb59a4a7df",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-10-20T08:51:34.608Z"
+      "updatedAt": "2026-10-27T01:05:55.064Z"
     },
     "hunt": {
       "source": "tw93/Waza",
@@ -158,9 +156,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "7bce03f77d39b14cac4f75b353d0193584bfd0e3",
+      "skillFolderHash": "37cc9a6f6c6e27dcdec984b891af172f21714f07",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-24T01:01:52.970Z"
+      "updatedAt": "2026-10-27T01:08:22.562Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -176,9 +174,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
       "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
-      "skillFolderHash": "0b6619c11598d7ce32041044cb2e6fc6adea1efc",
+      "skillFolderHash": "829c4dab53f10cde51f0ff58b0bb13fe870f7e94",
       "installedAt": "2026-05-19T08:03:23.597Z",
-      "updatedAt": "2026-10-13T01:14:14.015Z"
+      "updatedAt": "2026-10-27T01:08:29.393Z"
     },
     "herdr": {
       "source": "herdrdev/herdr",

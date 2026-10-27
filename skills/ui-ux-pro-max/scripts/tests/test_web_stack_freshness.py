@@ -116,6 +116,20 @@ class TestWebStackFreshness(unittest.TestCase):
                     {row["Status"] for row in result["results"]}, {"deprecated"}
                 )
 
+    def test_number_starting_a_word_is_not_a_version(self):
+        cases = {
+            "react": "react 3d canvas effect cleanup",
+            "html-tailwind": "tailwind 2xl breakpoint",
+            "angular": "angular 2fa login form",
+        }
+        for stack, query in cases.items():
+            with self.subTest(stack=stack, query=query):
+                result = search_stack(query, stack)
+                self.assertGreater(result["count"], 0)
+                self.assertNotIn(
+                    "deprecated", {row["Status"] for row in result["results"]}
+                )
+
     def test_old_major_without_curated_legacy_guidance_abstains(self):
         result = search_stack("Astro 5 content collections", "astro")
         self.assertEqual(result["count"], 0)
