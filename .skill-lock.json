@@ -191,9 +191,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "39069dd190f574064fe410aa3af1b6dfd98a522c",
+      "skillFolderHash": "d5fc699feb186e8be4e2d9e86f850a8ea1b6959e",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-10-19T01:14:25.027Z"
+      "updatedAt": "2026-10-26T01:07:00.838Z"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",
@@ -257,10 +257,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/ui/SKILL.md",
-      "skillFolderHash": "55b8655a19cdf46fadf67dc68f1a74b38fd4666a",
-      "pluginName": "waza-ui",
+      "skillFolderHash": "6cc1090792cbde7811ac3e6dd7f3dde26dc6cf59",
       "installedAt": "2026-10-20T08:51:34.627Z",
-      "updatedAt": "2026-10-20T08:51:34.627Z"
+      "updatedAt": "2026-10-26T01:01:33.123Z"
     }
   },
   "dismissed": {

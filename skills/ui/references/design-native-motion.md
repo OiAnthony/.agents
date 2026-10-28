@@ -1,6 +1,6 @@
 # Native Motion Mapping
 
-Load when the surface is a native app (SwiftUI, UIKit, Jetpack Compose) rather than a web page. The motion judgment in `design-reference.md` is platform-independent: frequency decides whether something animates, duration follows the element, enter and exit use ease-out, press gets acknowledged. The idioms are not, and the platform defaults actively pull the other way. Native frameworks ship a symmetric ease-in-out as the reflex curve and no press feedback at all, which is the opposite of both rules.
+Load when the surface is a native app (SwiftUI, UIKit, Jetpack Compose) rather than a web page. The motion judgment in `design-reference.md` is platform-independent: frequency decides whether something animates, duration follows the element, and activation gets acknowledged. Native idioms differ; inspect the control's actual state feedback before adding motion.
 
 ## Translating the web idioms
 
@@ -20,9 +20,9 @@ Interruptibility inverts between the two. On the web you reach for transitions o
 
 ## Where native surfaces actually break
 
-- **Press is unacknowledged.** Hover states are cheap to add and read as polish, so native apps accumulate them while the pressed state stays empty. Count both: if a codebase has hover feedback in far more places than press feedback, every one of those controls swallows the click.
+- **Press is unacknowledged.** Hover cannot confirm activation. An immediate selected, open, or loading state can; inspect the result before adding a press effect. A hover/press count mismatch alone proves no defect, and instant or high-frequency controls need no extra movement.
 - **The reflex curve is symmetric.** `.easeInOut` is what gets typed when no decision was made. It is correct for something moving or morphing in place and wrong for anything entering, exiting, or responding to input, which is most of an app.
-- **Reduced motion deletes the signal.** Returning no animation is right for movement and scale; it is wrong when the animation *was* the liveness cue. A pulsing or sliding progress indicator that simply freezes reads as a hang. Keep a still form of the same signal (a determinate step, a text state) instead of removing it.
+- **Reduced motion deletes the signal.** Disable the movement or scale itself, not only its interpolation; a transform with no animation still jumps. A pulsing or sliding progress indicator that simply freezes reads as a hang. Keep a still form of the same signal (a determinate step, a text state) instead of removing it.
 - **Literals outlive the token layer.** Named motion constants get added, then new views keep typing `0.18` inline because it is one character shorter than reaching for the token. Grep for raw curve constructors outside the token file; the count going up is the drift signal. The point is not tidiness, it is that retuning the app's feel should be one edit rather than a survey.
 - **A motion token is a sentence, not a number.** `expandCollapse` says where it is allowed; `0.15` says nothing and gets copied into places it does not fit. Name each token for the interaction and record why the value cannot be faster or slower, because that reason is what a later reader needs in order to change it safely.
 
