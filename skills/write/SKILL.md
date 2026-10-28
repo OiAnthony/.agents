@@ -54,6 +54,7 @@ Default is a line-level rewrite of the supplied text. Take a mode only when its 
 | Maintainer reply on a public issue or PR | load `references/mode-public-reply.md` |
 | Installation steps, operating instructions, error text, or tool descriptions to clarify; wording-only edits to agent instructions | load `references/write-technical.md` for those passages, alongside the language reference; prompt design and code behavior stay outside this mode |
 | Long draft with several sections, tables, or images that needs structural work | load `references/mode-long-form.md` |
+| Before/after versions of the same text (a diff, two drafts, another editor's polish pass) and "is the new one better?" | load `references/mode-revision-review.md` |
 | EN/CN pair or mixed Chinese/English copy to check for drift | load `references/write-zh-bilingual.md`, which owns the judgment the Punctuation Gate does not check |
 | Product, site, or app copy across locales ("本地化文案", "多语言文案", "localization copy", "i18n copy", runtime catalog, release feed copy) | load `references/write-product-localization.md` and follow its review procedure; add `references/write-zh-bilingual.md` when Chinese is a locale |
 | Document, PDF, or white paper to review | [Document Review](#document-review-mode) |

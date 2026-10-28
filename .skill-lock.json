@@ -136,10 +136,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/write/SKILL.md",
-      "skillFolderHash": "5e97a65e9be3a1943cbf1b1b27fbc79cad3e7da6",
-      "pluginName": "waza-write",
+      "skillFolderHash": "a686946904b0573934ea3b7867091cf7cf188ac6",
       "installedAt": "2026-04-07T08:11:02.881Z",
-      "updatedAt": "2026-10-20T08:51:34.628Z"
+      "updatedAt": "2026-10-28T01:05:06.528Z"
     },
     "learn": {
       "source": "tw93/Waza",
