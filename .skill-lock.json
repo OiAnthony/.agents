@@ -168,15 +168,6 @@
       "installedAt": "2026-05-14T09:21:05.859Z",
       "updatedAt": "2026-05-14T16:19:02.680Z"
     },
-    "ui-ux-pro-max": {
-      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git",
-      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
-      "skillFolderHash": "829c4dab53f10cde51f0ff58b0bb13fe870f7e94",
-      "installedAt": "2026-05-19T08:03:23.597Z",
-      "updatedAt": "2026-10-27T01:08:29.393Z"
-    },
     "herdr": {
       "source": "herdrdev/herdr",
       "sourceType": "github",
@@ -230,7 +221,7 @@
       "skillFolderHash": "d79e2a5bb4df4a386c2adcdd9ab8709bba28c3f6",
       "pluginName": "example-skills",
       "installedAt": "2026-10-09T07:29:58.261Z",
-      "updatedAt": "2026-10-09T07:29:58.261Z"
+      "updatedAt": "2026-10-28T14:04:37.407Z"
     },
     "i-have-adhd": {
       "source": "ayghri/i-have-adhd",
@@ -260,6 +251,34 @@
       "skillFolderHash": "6cc1090792cbde7811ac3e6dd7f3dde26dc6cf59",
       "installedAt": "2026-10-20T08:51:34.627Z",
       "updatedAt": "2026-10-26T01:01:33.123Z"
+    },
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/blader/humanizer.git",
+      "skillPath": "SKILL.md",
+      "skillFolderHash": "0ef9fe5bc3572734fd3ae6c448fe00a30cd5dcf0",
+      "pluginName": "humanizer",
+      "installedAt": "2026-10-28T09:39:56.218Z",
+      "updatedAt": "2026-10-28T09:39:56.218Z"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "skillFolderHash": "91e4d3bb254cbd91a8951f74c80af23a666f5714",
+      "installedAt": "2026-10-28T12:11:34.745Z",
+      "updatedAt": "2026-10-28T14:04:33.486Z"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/emilkowalski/skills.git",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "skillFolderHash": "db7a20dc1d8ad26a0307dcb45ebc79fc372f5c69",
+      "installedAt": "2026-10-28T12:11:57.463Z",
+      "updatedAt": "2026-10-28T14:04:41.597Z"
     }
   },
   "dismissed": {
