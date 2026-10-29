@@ -97,9 +97,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "ebe2c131ae350557930dc4d52f9ec7fb59a4a7df",
+      "skillFolderHash": "3136da3f7e2325288614b0fb3f13211e0689ead2",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-10-27T01:05:55.064Z"
+      "updatedAt": "2026-10-29T01:02:44.222Z"
     },
     "hunt": {
       "source": "tw93/Waza",
@@ -267,9 +267,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "91e4d3bb254cbd91a8951f74c80af23a666f5714",
+      "skillFolderHash": "d5694e67243eec4c3cf2587ac0e1f8cecddfaab4",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-10-28T14:04:33.486Z"
+      "updatedAt": "2026-10-29T01:02:53.396Z"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
