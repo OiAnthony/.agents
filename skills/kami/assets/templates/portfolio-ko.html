@@ -131,6 +131,13 @@
     line-height: 1.4;
     max-width: 80%;
   }
+  .cover-intro {
+    font-family: var(--serif);
+    font-size: 11pt;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    max-width: 80%;
+  }
   .cover-meta {
     display: flex;
     justify-content: space-between;
@@ -143,7 +150,7 @@
     font-weight: 500;
   }
 
-  /* ========== ABOUT ========== */
+  /* ========== ABOUT (optional, commented out by default) ========== */
   section.about {
     break-after: page;
     padding: 10mm 0;
@@ -157,35 +164,57 @@
   }
   .about-title {
     font-family: var(--serif);
-    font-size: 32pt;
+    font-size: 22pt;
     font-weight: 500;
     line-height: 1.2;
-    margin-bottom: 20pt;
+    margin-bottom: 14pt;
   }
   .about-lead {
     font-family: var(--serif);
-    font-size: 15pt;
-    line-height: 1.5;
+    font-size: 11pt;
+    line-height: 1.55;
     color: var(--dark-warm);
-    margin-bottom: 24pt;
-    max-width: 90%;
+    margin-bottom: 22pt;
   }
-  .about-body {
+  .about-metrics {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24pt;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12pt;
+    padding: 16pt 0;
+    margin-bottom: 28pt;
+    border-top: 0.5pt solid var(--border);
+    border-bottom: 0.5pt solid var(--border);
   }
-  .about-body p {
-    line-height: 1.45;
-    margin-bottom: 10pt;
+  .about-metric-value {
+    font-family: var(--serif);
+    font-size: 16pt;
+    font-weight: 500;
+    color: var(--brand);
+    line-height: 1.2;
   }
-  .about-body h3 {
+  .about-metric-label { font-size: 9pt; color: var(--stone); margin-top: 3pt; }
+  .about-stack h3, .about-index h3 {
     font-family: var(--serif);
     font-size: 13pt;
     font-weight: 500;
     color: var(--near-black);
-    margin-bottom: 6pt;
+    margin: 26pt 0 8pt;
   }
+  .about-stack h3:first-child { margin-top: 0; }
+  .about-stack p { line-height: 1.5; }
+  .about-timeline {
+    display: grid;
+    grid-template-columns: 62pt 1fr;
+    column-gap: 10pt;
+    row-gap: 7pt;
+  }
+  .about-timeline dt { color: var(--brand); white-space: nowrap; line-height: 1.45; }
+  .about-timeline dd { margin: 0; line-height: 1.45; }
+  .about-index { margin-top: 34pt; break-inside: avoid; }
+  .about-index h3 { margin-top: 0; }
+  .about-index .kami-table td { padding-top: 11pt; padding-bottom: 11pt; }
+  .about-index td:first-child { white-space: nowrap; color: var(--brand); }
+  .about-index td:nth-child(2) { white-space: nowrap; color: var(--stone); }
 
   /* ========== PROJECT PAGE ========== */
   .project {
@@ -459,6 +488,10 @@
   table .total td, .kami-table .total td {
     font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
+  /* Outer columns sit on the text edge, so a table lines up with the heading above it.
+     Striped rows keep their inset: the ivory fill needs room around the text. */
+  table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+  table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 </style>
 </head>
 <body>
@@ -475,6 +508,7 @@
   <div class="cover-center">
     <div class="cover-name">{{이름<br>포트폴리오}}</div>
     <div class="cover-tagline">{{한 줄 자기 설명 / 포트폴리오 주제}}</div>
+    <div class="cover-intro">{{두세 줄 자기소개: 누구인지, 무슨 일을 하는지, 이 포트폴리오에 어떤 프로젝트가 있는지. 경력과 역량은 이력서에 쓰고 여기에는 쓰지 않는다.}}</div>
   </div>
 
   <div class="cover-meta">
@@ -489,25 +523,45 @@
   </div>
 </div>
 
-<!-- ========== ABOUT ========== -->
+<!-- ========== ABOUT (optional) ========== -->
+<!-- Off by default: the introduction sits on the cover and experience and skills belong in the resume.
+     Uncomment only when the user supplies experience, focus, skills and a project index that fill a whole
+     page; with less than a page, delete this section rather than leave it half empty.
 <section class="about">
   <div class="about-eyebrow">About</div>
-  <div class="about-title">{{자기 정의를 담은 한 문장 headline}}</div>
-  <div class="about-lead">
-    {{2-3줄의 자기소개 인트로. serif 서체, 너무 홍보성이 되지 않게.
-    자신이 무엇에 관심을 갖고 무엇을 잘하는지 자신의 언어로 기술한다.}}
+  <div class="about-title">{{한 줄 자기 정의}}</div>
+  <div class="about-lead">{{두세 줄 자기소개}}</div>
+  <div class="about-metrics">
+    <div><div class="about-metric-value">{{숫자}}</div><div class="about-metric-label">{{무엇을 나타내는지}}</div></div>
+    <div><div class="about-metric-value">{{숫자}}</div><div class="about-metric-label">{{무엇을 나타내는지}}</div></div>
+    <div><div class="about-metric-value">{{숫자}}</div><div class="about-metric-label">{{무엇을 나타내는지}}</div></div>
+    <div><div class="about-metric-value">{{숫자}}</div><div class="about-metric-label">{{무엇을 나타내는지}}</div></div>
   </div>
-  <div class="about-body">
-    <div>
-      <h3>경력</h3>
-      <p>{{과거 경력에 대한 개요.}}</p>
-    </div>
-    <div>
-      <h3>관심사</h3>
-      <p>{{현재의 관심사 / 방법론 / 접근 방식.}}</p>
-    </div>
+  <div class="about-stack">
+    <h3>경력</h3>
+    <dl class="about-timeline">
+      <dt>{{2023-현재}}</dt><dd>{{회사, 직무, 담당 업무를 한 줄로}}</dd>
+      <dt>{{2020-2023}}</dt><dd>{{회사, 직무, 담당 업무를 한 줄로}}</dd>
+    </dl>
+    <h3>관심사</h3>
+    <p>{{지금 관심을 두는 방향과 일하는 방식 한두 문장}}</p>
+    <h3>역량</h3>
+    <dl class="about-timeline">
+      <dt>강점</dt><dd>{{서너 가지, 쉼표로 구분}}</dd>
+      <dt>도구</dt><dd>{{자주 쓰는 도구}}</dd>
+    </dl>
+  </div>
+  <div class="about-index">
+    <h3>프로젝트 목록</h3>
+    <table class="kami-table">
+      <thead><tr><th>프로젝트</th><th>기간</th><th>담당 범위</th><th>핵심 결과</th></tr></thead>
+      <tbody>
+        <tr><td>01 {{프로젝트명}}</td><td>{{기간}}</td><td>{{담당 범위}}</td><td>{{핵심 결과 한 줄}}</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
+-->
 
 <!-- ========== 프로젝트 01 ========== -->
 <section class="project">

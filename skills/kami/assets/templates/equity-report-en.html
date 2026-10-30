@@ -172,6 +172,9 @@
     margin: 18pt 0 6pt 0;
     break-after: avoid;
   }
+  h2.with-rating { display: flex; justify-content: space-between; align-items: baseline; }
+  .h2-rating { font-size: 9pt; font-weight: 400; color: var(--stone); }
+  .h2-rating b { font-size: 15pt; font-weight: 500; color: var(--brand); margin-left: 5pt; }
 
   h3 {
     font-size: 13pt;
@@ -240,6 +243,10 @@
   table .total td, .kami-table .total td {
     font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
+  /* Outer columns sit on the text edge, so a table lines up with the heading above it.
+     Striped rows keep their inset: the ivory fill needs room around the text. */
+  table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+  table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 
   /* CALLOUT */
   .callout {
@@ -265,13 +272,10 @@
   .risk-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10pt;
-    margin: 8pt 0;
+    gap: 10pt 24pt;
+    margin: 8pt 0 14pt;
   }
   .risk-item {
-    padding: 6pt 10pt;
-    background: var(--ivory);
-    border-radius: 3pt;
     break-inside: avoid;
   }
   .risk-label {
@@ -296,14 +300,14 @@
     gap: 16pt;
   }
 
-  /* ANALYST SUMMARY */
-  .analyst-box {
-    background: var(--ivory);
-    border-radius: 4pt;
-    padding: 10pt 14pt;
-    margin: 12pt 0;
-    break-inside: avoid;
-  }
+  /* SUMMARY */
+  /* A hairline and type carry the closing summary; the page already has its fills. */
+  .verdict { border-top: 0.6pt solid var(--border); padding-top: 8pt; margin-top: 14pt; break-inside: avoid; }
+  .verdict h3 { margin-top: 0; }
+  .verdict-lead { font-family: var(--serif); font-size: 11pt; color: var(--near-black); line-height: 1.5; margin-bottom: 6pt; }
+  .verdict-list { display: grid; grid-template-columns: 62pt 1fr; column-gap: 10pt; row-gap: 4pt; line-height: 1.45; }
+  .verdict-list dt { font-family: var(--sans); font-size: 9pt; font-weight: 500; color: var(--brand); letter-spacing: 0.3pt; text-transform: uppercase; padding-top: 1pt; }
+  .verdict-list dd { margin: 0; }
 
   /* CHART PLACEHOLDER */
   .chart-placeholder {
@@ -314,15 +318,6 @@
     justify-content: center;
     color: var(--stone);
     font-size: 9pt;
-  }
-  .analyst-label {
-    font-family: var(--sans);
-    font-size: 9pt;
-    color: var(--brand);
-    letter-spacing: 1pt;
-    text-transform: uppercase;
-    font-weight: 500;
-    margin-bottom: 4pt;
   }
 
   /* FOOTER */
@@ -377,12 +372,10 @@
 </div>
 
 <!-- INVESTMENT THESIS -->
-<h2>Investment Thesis</h2>
+<h2 class="with-rating">Investment Thesis<span class="h2-rating">Rating<b>{{Buy / Hold / Sell}}</b></span></h2>
 <p>{{Two or three sentences laying out the core thesis. Use <span class="hl">key figures</span> to support the argument. This paragraph is the soul of the report.}}</p>
 
-<div class="callout">
-  {{One-line verdict: buy / hold / watch, and the single strongest reason.}}
-</div>
+<p><strong>{{Rating}}.</strong> {{One or two sentences: the figure that supports the rating, and what would change it.}}</p>
 
 <!-- CHART -->
 <h2>Price Action</h2>
@@ -466,10 +459,16 @@
   </div>
 </div>
 
-<!-- ANALYST SUMMARY -->
-<div class="analyst-box">
-  <div class="analyst-label">Analyst Summary</div>
-  {{Three to five sentences summarizing the position. Include target price (if applicable), rating, key catalysts, and core assumptions.}}
+<!-- SUMMARY -->
+<div class="verdict">
+  <h3>Summary</h3>
+  <p class="verdict-lead">{{One-sentence conclusion: rating, price target if any, and the assumption it rests on.}}</p>
+  <dl class="verdict-list">
+    <dt>Bull case</dt><dd>{{The catalyst most likely to drive the stock up}}</dd>
+    <dt>Bear case</dt><dd>{{The risk most likely to break the thesis}}</dd>
+    <dt>If holding</dt><dd>{{Hold, add or trim, and which data to wait for}}</dd>
+    <dt>New money</dt><dd>{{Buy now or wait, and until what}}</dd>
+  </dl>
 </div>
 
 <!-- FOOTER -->

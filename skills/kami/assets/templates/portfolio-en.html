@@ -107,6 +107,13 @@
     line-height: 1.4;
     max-width: 80%;
   }
+  .cover-intro {
+    font-family: var(--serif);
+    font-size: 11pt;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    max-width: 80%;
+  }
   .cover-meta {
     display: flex;
     justify-content: space-between;
@@ -120,7 +127,7 @@
     font-weight: 500;
   }
 
-  /* ABOUT */
+  /* ABOUT (optional, commented out by default) */
   section.about {
     break-after: page;
     padding: 10mm 0;
@@ -136,33 +143,57 @@
   }
   .about-title {
     font-family: var(--serif);
-    font-size: 34pt;
+    font-size: 24pt;
     font-weight: 500;
-    line-height: 1.15;
-    letter-spacing: -0.5pt;
-    margin-bottom: 20pt;
+    line-height: 1.2;
+    margin-bottom: 14pt;
   }
   .about-lead {
     font-family: var(--serif);
-    font-size: 15pt;
-    line-height: 1.5;
+    font-size: 11pt;
+    line-height: 1.55;
     color: var(--dark-warm);
-    margin-bottom: 24pt;
-    max-width: 90%;
+    margin-bottom: 22pt;
   }
-  .about-body {
+  .about-metrics {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24pt;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12pt;
+    padding: 16pt 0;
+    margin-bottom: 28pt;
+    border-top: 0.5pt solid var(--border);
+    border-bottom: 0.5pt solid var(--border);
   }
-  .about-body p { line-height: 1.45; margin-bottom: 10pt; }
-  .about-body h3 {
+  .about-metric-value {
+    font-family: var(--serif);
+    font-size: 16pt;
+    font-weight: 500;
+    color: var(--brand);
+    line-height: 1.2;
+  }
+  .about-metric-label { font-size: 9pt; color: var(--stone); margin-top: 3pt; }
+  .about-stack h3, .about-index h3 {
     font-family: var(--serif);
     font-size: 13pt;
     font-weight: 500;
     color: var(--near-black);
-    margin-bottom: 6pt;
+    margin: 26pt 0 8pt;
   }
+  .about-stack h3:first-child { margin-top: 0; }
+  .about-stack p { line-height: 1.5; }
+  .about-timeline {
+    display: grid;
+    grid-template-columns: 62pt 1fr;
+    column-gap: 10pt;
+    row-gap: 7pt;
+  }
+  .about-timeline dt { color: var(--brand); white-space: nowrap; line-height: 1.45; }
+  .about-timeline dd { margin: 0; line-height: 1.45; }
+  .about-index { margin-top: 34pt; break-inside: avoid; }
+  .about-index h3 { margin-top: 0; }
+  .about-index .kami-table td { padding-top: 11pt; padding-bottom: 11pt; }
+  .about-index td:first-child { white-space: nowrap; color: var(--brand); }
+  .about-index td:nth-child(2) { white-space: nowrap; color: var(--stone); }
 
   /* PROJECT PAGE */
   .project {
@@ -438,6 +469,10 @@
   table .total td, .kami-table .total td {
     font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
+  /* Outer columns sit on the text edge, so a table lines up with the heading above it.
+     Striped rows keep their inset: the ivory fill needs room around the text. */
+  table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+  table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 </style>
 </head>
 <body>
@@ -454,6 +489,7 @@
   <div class="cover-center">
     <div class="cover-name">{{NAME}}<br>Portfolio</div>
     <div class="cover-tagline">{{One-line self-description or portfolio theme.}}</div>
+    <div class="cover-intro">{{Two or three lines on who you are, what you do, and which projects this portfolio holds. Experience and skills belong in the resume, not here.}}</div>
   </div>
 
   <div class="cover-meta">
@@ -468,24 +504,45 @@
   </div>
 </div>
 
-<!-- ABOUT -->
+<!-- ABOUT (optional) -->
+<!-- Off by default: the introduction sits on the cover and experience and skills belong in the resume.
+     Uncomment only when the user supplies experience, focus, skills and a project index that fill a whole
+     page; with less than a page, delete this section rather than leave it half empty.
 <section class="about">
   <div class="about-eyebrow">About</div>
-  <div class="about-title">{{Single-line positioning headline.}}</div>
-  <div class="about-lead">
-    {{Two or three lines of introduction in serif. Not sales-y. Describe in your own words what you care about and what you do well.}}
+  <div class="about-title">{{One-line positioning}}</div>
+  <div class="about-lead">{{Two or three lines of introduction}}</div>
+  <div class="about-metrics">
+    <div><div class="about-metric-value">{{NUMBER}}</div><div class="about-metric-label">{{What it measures}}</div></div>
+    <div><div class="about-metric-value">{{NUMBER}}</div><div class="about-metric-label">{{What it measures}}</div></div>
+    <div><div class="about-metric-value">{{NUMBER}}</div><div class="about-metric-label">{{What it measures}}</div></div>
+    <div><div class="about-metric-value">{{NUMBER}}</div><div class="about-metric-label">{{What it measures}}</div></div>
   </div>
-  <div class="about-body">
-    <div>
-      <h3>Background</h3>
-      <p>{{A paragraph on your past experience.}}</p>
-    </div>
-    <div>
-      <h3>Focus</h3>
-      <p>{{A paragraph on your current focus or methodology.}}</p>
-    </div>
+  <div class="about-stack">
+    <h3>Background</h3>
+    <dl class="about-timeline">
+      <dt>{{2023-now}}</dt><dd>{{Company, role, what you owned, on one line}}</dd>
+      <dt>{{2020-2023}}</dt><dd>{{Company, role, what you owned, on one line}}</dd>
+    </dl>
+    <h3>Focus</h3>
+    <p>{{One or two sentences on what you focus on now and how you work}}</p>
+    <h3>Skills</h3>
+    <dl class="about-timeline">
+      <dt>Strengths</dt><dd>{{Three or four, comma separated}}</dd>
+      <dt>Tools</dt><dd>{{Tools you use daily}}</dd>
+    </dl>
+  </div>
+  <div class="about-index">
+    <h3>Projects</h3>
+    <table class="kami-table">
+      <thead><tr><th>Project</th><th>Period</th><th>Scope</th><th>Key result</th></tr></thead>
+      <tbody>
+        <tr><td>01 {{Project}}</td><td>{{Period}}</td><td>{{Scope}}</td><td>{{One key result}}</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
+-->
 
 <!-- PROJECT 01 -->
 <section class="project">

@@ -215,6 +215,9 @@ table.compact th { padding: 3pt 6pt; font-size: 8pt; }
 table.compact td { padding: 2.5pt 6pt; font-size: 8pt; line-height: 1.4; }
 table .total td { font-weight: 500; border-top: 0.6pt solid var(--border);
   border-bottom: none; }
+/* Outer columns sit on the text edge; striped rows keep their inset */
+table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 ```
 
 
@@ -228,7 +231,7 @@ table .total td { font-weight: 500; border-top: 0.6pt solid var(--border);
 
 Start without striping. Add it only after the rendered 8+ row table fails the row-tracking check: `<table class="kami-table financial striped">`.
 
-Table acceptance: all rules use `--border`; header and total rules are 0.6pt, body rules are 0.25pt; normal vertical padding is at least 6pt / 5pt, compact padding is at least 3pt / 2.5pt. No tinted header, category-colored value, brand-colored rule, vertical grid, or framed box.
+Table acceptance: all rules use `--border`; header and total rules are 0.6pt, body rules are 0.25pt; normal vertical padding is at least 6pt / 5pt, compact padding is at least 3pt / 2.5pt; the outer columns sit flush with the text edge unless the table is striped. No tinted header, category-colored value, brand-colored rule, vertical grid, or framed box.
 
 ### Metric (data card)
 

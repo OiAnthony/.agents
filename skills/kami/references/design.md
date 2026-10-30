@@ -462,6 +462,8 @@ table .total td, .kami-table .total td {
   font-weight: 500; border-top: 0.6pt solid var(--border);
   border-bottom: none; color: var(--near-black);
 }
+table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 ```
 
 **Variants** (combine freely on the same element):
@@ -474,7 +476,7 @@ table .total td, .kami-table .total td {
 
 **Total row**: add `.total` to the final `<tr>` for a bold summary row with the same `0.6pt` neutral rule as the header. A total gains hierarchy from weight and placement, not a second color.
 
-**Acceptance rule**: every table rule uses `var(--border)`. Header and total rules are `0.6pt`; body rules are `0.25pt`. Normal tables keep at least `6pt` header and `5pt` cell vertical padding. Fixed-length one-pagers and resumes may step down once to `5pt` / `4pt`; compact tables never go below `3pt` / `2.5pt`. Start without striping. No category-colored values, brand-colored rules, tinted headers, vertical grid, or framed table. At normal viewing size, row separation must come from whitespace before line weight. Add neutral striping only when an 8+ row render still fails the row-tracking check.
+**Acceptance rule**: every table rule uses `var(--border)`. Header and total rules are `0.6pt`; body rules are `0.25pt`. Normal tables keep at least `6pt` header and `5pt` cell vertical padding. The first and last columns carry no outer horizontal padding, so the table's text edge lines up with the heading and body text above it; a striped table keeps the inset because its ivory fill needs room around the text. Fixed-length one-pagers and resumes may step down once to `5pt` / `4pt`; compact tables never go below `3pt` / `2.5pt`. Start without striping. No category-colored values, brand-colored rules, tinted headers, vertical grid, or framed table. At normal viewing size, row separation must come from whitespace before line weight. Add neutral striping only when an 8+ row render still fails the row-tracking check.
 
 ```html
 <table class="kami-table financial">

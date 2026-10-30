@@ -120,15 +120,16 @@ paragraphs.
 ### Portfolio
 
 **Structure**:
-1. **Cover** (name + one-line positioning + contact)
-2. **About** (half-page introduction)
-3. **Per-project 1-2 pages**:
+1. **Cover** (name + one-line positioning + a two or three line introduction + contact)
+2. **Per-project 1-2 pages**:
  - Project title + type tag + date range
  - One-line description
  - 2-3 hero images (if applicable)
  - Role + challenge + outcome
-4. **Selected works list** (additional projects as a short list)
-5. **Contact** (return to contact details)
+3. **Selected works list** (additional projects as a short list)
+4. **Contact** (return to contact details)
+
+The introduction lives on the cover. Experience, skills and tools are the resume's job, so the template's About page ships commented out: uncomment it only when the user supplies enough experience, focus, skills and project index to fill a whole page. An About page that would render under half full is deleted, not padded.
 
 **Rules**:
 - Visuals first, text supports

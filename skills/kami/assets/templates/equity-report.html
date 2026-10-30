@@ -183,6 +183,9 @@
     margin: 18pt 0 6pt 0;
     break-after: avoid;
   }
+  h2.with-rating { display: flex; justify-content: space-between; align-items: baseline; }
+  .h2-rating { font-size: 9pt; font-weight: 400; color: var(--stone); }
+  .h2-rating b { font-size: 15pt; font-weight: 500; color: var(--brand); margin-left: 5pt; }
 
   h3 {
     font-size: 13pt;
@@ -247,6 +250,10 @@
   table .total td, .kami-table .total td {
     font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
+  /* Outer columns sit on the text edge, so a table lines up with the heading above it.
+     Striped rows keep their inset: the ivory fill needs room around the text. */
+  table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+  table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 
   /* ========== CALLOUT ========== */
   .callout {
@@ -283,13 +290,10 @@
   .risk-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10pt;
-    margin: 8pt 0;
+    gap: 10pt 24pt;
+    margin: 8pt 0 14pt;
   }
   .risk-item {
-    padding: 6pt 10pt;
-    background: var(--ivory);
-    border-radius: 3pt;
     break-inside: avoid;
   }
   .risk-label {
@@ -311,14 +315,14 @@
     gap: 16pt;
   }
 
-  /* ========== ANALYST SUMMARY ========== */
-  .analyst-box {
-    background: var(--ivory);
-    border-radius: 4pt;
-    padding: 10pt 14pt;
-    margin: 12pt 0;
-    break-inside: avoid;
-  }
+  /* ========== SUMMARY ========== */
+  /* A hairline and type carry the closing summary; the page already has its fills. */
+  .verdict { border-top: 0.6pt solid var(--border); padding-top: 8pt; margin-top: 14pt; break-inside: avoid; }
+  .verdict h3 { margin-top: 0; }
+  .verdict-lead { font-family: var(--serif); font-size: 11pt; color: var(--near-black); line-height: 1.5; margin-bottom: 6pt; }
+  .verdict-list { display: grid; grid-template-columns: 50pt 1fr; column-gap: 10pt; row-gap: 4pt; line-height: 1.45; }
+  .verdict-list dt { color: var(--brand); font-weight: 500; }
+  .verdict-list dd { margin: 0; }
 
   /* ========== CHART PLACEHOLDER ========== */
   .chart-placeholder {
@@ -329,13 +333,6 @@
     justify-content: center;
     color: var(--stone);
     font-size: 9pt;
-  }
-  .analyst-label {
-    font-size: 9pt;
-    color: var(--brand);
-    letter-spacing: 0.5pt;
-    text-transform: uppercase;
-    margin-bottom: 4pt;
   }
 
   /* ========== FOOTER ========== */
@@ -389,12 +386,10 @@
 </div>
 
 <!-- ========== INVESTMENT THESIS ========== -->
-<h2>投资逻辑</h2>
+<h2 class="with-rating">投资逻辑<span class="h2-rating">评级<b>{{买入 / 持有 / 观望}}</b></span></h2>
 <p>{{2-3 句核心投资论点。用 <span class="hl">关键数据</span> 支撑判断。这段是整份研报的灵魂。}}</p>
 
-<div class="callout">
-  {{一句话总结：买入/持有/观望的核心理由。}}
-</div>
+<p><strong>{{评级}}。</strong>{{一两句核心理由：哪项数据支撑这个评级，什么条件下会改变。}}</p>
 
 <!-- ========== CHART (嵌入 SVG 图表) ========== -->
 <h2>价格走势</h2>
@@ -528,10 +523,16 @@
   </div>
 </div>
 
-<!-- ========== ANALYST SUMMARY ========== -->
-<div class="analyst-box">
-  <div class="analyst-label">分析师总结</div>
-  {{3-5 句总结。包含目标价（如有）、评级建议、核心催化剂、关键假设。}}
+<!-- ========== SUMMARY ========== -->
+<div class="verdict">
+  <h3>总结</h3>
+  <p class="verdict-lead">{{一句话结论：评级、目标价（如有）和最关键的那个假设。}}</p>
+  <dl class="verdict-list">
+    <dt>多头核心</dt><dd>{{最可能推动上涨的催化剂}}</dd>
+    <dt>空头核心</dt><dd>{{最可能推翻论点的风险}}</dd>
+    <dt>已持有者</dt><dd>{{持有、加仓还是减仓，以及等什么数据}}</dd>
+    <dt>新建仓</dt><dd>{{现在买还是等，等到什么条件}}</dd>
+  </dl>
 </div>
 
 <!-- ========== FOOTER ========== -->

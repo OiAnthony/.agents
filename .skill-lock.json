@@ -42,9 +42,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/vercel-labs/agent-browser.git",
       "skillPath": "skills/agent-browser/SKILL.md",
-      "skillFolderHash": "82def67855a0d2aad7794207951820fa5422fdb0",
+      "skillFolderHash": "aee3afd3dd9c879a14816dd6dca77c938f8c9c10",
       "installedAt": "2026-02-11T16:00:19.711Z",
-      "updatedAt": "2026-08-25T01:04:10.771Z"
+      "updatedAt": "2026-10-30T01:59:46.857Z"
     },
     "skill-creator": {
       "source": "anthropics/skills",
@@ -61,9 +61,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "3ccf734a33ec2920095248c0e75f502c48444533",
+      "skillFolderHash": "610bb268c5ff2e18250b849c13cafa9b750eb57d",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-10-27T01:05:18.053Z"
+      "updatedAt": "2026-10-30T01:59:51.367Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -155,9 +155,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "37cc9a6f6c6e27dcdec984b891af172f21714f07",
+      "skillFolderHash": "cbeafb62e7addbf73562c60a7550818639c899b6",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-10-27T01:08:22.562Z"
+      "updatedAt": "2026-10-30T02:00:42.411Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",

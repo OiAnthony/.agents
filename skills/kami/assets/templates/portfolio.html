@@ -128,6 +128,13 @@
     line-height: 1.4;
     max-width: 80%;
   }
+  .cover-intro {
+    font-family: var(--serif);
+    font-size: 11pt;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    max-width: 80%;
+  }
   .cover-meta {
     display: flex;
     justify-content: space-between;
@@ -140,7 +147,7 @@
     font-weight: 500;
   }
 
-  /* ════════════ ABOUT ════════════ */
+  /* ════════════ ABOUT（可选，默认注释） ════════════ */
   section.about {
     break-after: page;
     padding: 10mm 0;
@@ -154,35 +161,57 @@
   }
   .about-title {
     font-family: var(--serif);
-    font-size: 32pt;
+    font-size: 22pt;
     font-weight: 500;
     line-height: 1.2;
-    margin-bottom: 20pt;
+    margin-bottom: 14pt;
   }
   .about-lead {
     font-family: var(--serif);
-    font-size: 15pt;
-    line-height: 1.5;
+    font-size: 11pt;
+    line-height: 1.55;
     color: var(--dark-warm);
-    margin-bottom: 24pt;
-    max-width: 90%;
+    margin-bottom: 22pt;
   }
-  .about-body {
+  .about-metrics {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24pt;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12pt;
+    padding: 16pt 0;
+    margin-bottom: 28pt;
+    border-top: 0.5pt solid var(--border);
+    border-bottom: 0.5pt solid var(--border);
   }
-  .about-body p {
-    line-height: 1.45;
-    margin-bottom: 10pt;
+  .about-metric-value {
+    font-family: var(--serif);
+    font-size: 16pt;
+    font-weight: 500;
+    color: var(--brand);
+    line-height: 1.2;
   }
-  .about-body h3 {
+  .about-metric-label { font-size: 9pt; color: var(--stone); margin-top: 3pt; }
+  .about-stack h3, .about-index h3 {
     font-family: var(--serif);
     font-size: 13pt;
     font-weight: 500;
     color: var(--near-black);
-    margin-bottom: 6pt;
+    margin: 26pt 0 8pt;
   }
+  .about-stack h3:first-child { margin-top: 0; }
+  .about-stack p { line-height: 1.5; }
+  .about-timeline {
+    display: grid;
+    grid-template-columns: 62pt 1fr;
+    column-gap: 10pt;
+    row-gap: 7pt;
+  }
+  .about-timeline dt { color: var(--brand); white-space: nowrap; line-height: 1.45; }
+  .about-timeline dd { margin: 0; line-height: 1.45; }
+  .about-index { margin-top: 34pt; break-inside: avoid; }
+  .about-index h3 { margin-top: 0; }
+  .about-index .kami-table td { padding-top: 11pt; padding-bottom: 11pt; }
+  .about-index td:first-child { white-space: nowrap; color: var(--brand); }
+  .about-index td:nth-child(2) { white-space: nowrap; color: var(--stone); }
 
   /* ════════════ PROJECT PAGE ════════════ */
   .project {
@@ -456,6 +485,10 @@
   table .total td, .kami-table .total td {
     font-weight: 500; border-top: 0.6pt solid var(--border); border-bottom: none; color: var(--near-black);
   }
+  /* Outer columns sit on the text edge, so a table lines up with the heading above it.
+     Striped rows keep their inset: the ivory fill needs room around the text. */
+  table:not(.striped) th:first-child, table:not(.striped) td:first-child { padding-left: 0; }
+  table:not(.striped) th:last-child, table:not(.striped) td:last-child { padding-right: 0; }
 </style>
 </head>
 <body>
@@ -472,6 +505,7 @@
   <div class="cover-center">
     <div class="cover-name">{{名字<br>作品集}}</div>
     <div class="cover-tagline">{{一句自我描述 / 作品集主题}}</div>
+    <div class="cover-intro">{{两三行自我介绍：你是谁、做什么、这份作品集收了哪些项目。经历和技能放在简历里，不写在这里。}}</div>
   </div>
 
   <div class="cover-meta">
@@ -486,25 +520,44 @@
   </div>
 </div>
 
-<!-- ════════════ ABOUT ════════════ -->
+<!-- ════════════ ABOUT（可选） ════════════ -->
+<!-- 默认不用：自我介绍已在封面，经历和能力交给简历。用户提供了经历、关注方向、能力和项目一览，
+     足够排满一整页时才取消注释；不到一页就删掉这一节，不留半页。
 <section class="about">
   <div class="about-eyebrow">About</div>
-  <div class="about-title">{{一句自我定位的 headline}}</div>
-  <div class="about-lead">
-    {{2-3 行的自我介绍引言。serif 字体，斜体感，不写太 sales。
-    用自己的语言描述你关心什么、擅长什么。}}
+  <div class="about-title">{{一句自我定位}}</div>
+  <div class="about-lead">{{两三行自我介绍}}</div>
+  <div class="about-metrics">
+    <div><div class="about-metric-value">{{数字}}</div><div class="about-metric-label">{{它代表什么}}</div></div>
+    <div><div class="about-metric-value">{{数字}}</div><div class="about-metric-label">{{它代表什么}}</div></div>
+    <div><div class="about-metric-value">{{数字}}</div><div class="about-metric-label">{{它代表什么}}</div></div>
+    <div><div class="about-metric-value">{{数字}}</div><div class="about-metric-label">{{它代表什么}}</div></div>
   </div>
-  <div class="about-body">
-    <div>
-      <h3>经历</h3>
-      <p>{{一段关于你过往经历的概述。}}</p>
-    </div>
-    <div>
-      <h3>关注</h3>
-      <p>{{一段关于你当前的关注点 / 方法论。}}</p>
-    </div>
+  <div class="about-stack">
+    <h3>经历</h3>
+    <dl class="about-timeline">
+      <dt>{{2023 至今}}</dt><dd>{{公司，职位，负责什么，一行写完}}</dd>
+      <dt>{{2020 至 2023}}</dt><dd>{{公司，职位，负责什么，一行写完}}</dd>
+    </dl>
+    <h3>关注</h3>
+    <p>{{一两句当前关注的方向和做事方法}}</p>
+    <h3>能力</h3>
+    <dl class="about-timeline">
+      <dt>擅长</dt><dd>{{三四项，用顿号分隔}}</dd>
+      <dt>工具</dt><dd>{{常用工具}}</dd>
+    </dl>
+  </div>
+  <div class="about-index">
+    <h3>项目一览</h3>
+    <table class="kami-table">
+      <thead><tr><th>项目</th><th>时间</th><th>负责范围</th><th>关键结果</th></tr></thead>
+      <tbody>
+        <tr><td>01 {{项目名}}</td><td>{{时间}}</td><td>{{负责范围}}</td><td>{{一句关键结果}}</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
+-->
 
 <!-- ════════════ PROJECT 01 ════════════ -->
 <section class="project">

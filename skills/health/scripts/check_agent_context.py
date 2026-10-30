@@ -310,25 +310,30 @@ PROJECT_INSTRUCTION_MODES = (
 def project_instructions_mode(settings_path: Path) -> str:
     """Which files Claude Code loads as project instructions.
 
-    The `agents-md` built-in mod decides whether an `AGENTS.md` counts. It is
-    off unless `pluginConfigs` turns it on, so the same repository is either
-    covered or invisible to Claude depending on one key, and a checker that
-    cannot read it has to guess.
+    The built-in `cc-plugin-agents-md` mod (`agents-md` before v2.1.285)
+    decides whether an `AGENTS.md` counts. Since v2.1.277 it is on by default
+    in `claude-md-or-agents-md`: a root `CLAUDE.md` wins, otherwise
+    `AGENTS.md` loads. `pluginConfigs` only changes that mode, and disabling
+    the plugin in `enabledPlugins` turns `AGENTS.md` off altogether.
     """
+    default = "claude-md-or-agents-md"
     value, _ = load_json(settings_path)
     if not isinstance(value, dict):
+        return default
+    ids = ("cc-plugin-agents-md@builtin", "agents-md@builtin")
+    enabled = value.get("enabledPlugins")
+    if isinstance(enabled, dict) and any(enabled.get(key) is False for key in ids):
         return "claude-md"
     configs = value.get("pluginConfigs")
     if not isinstance(configs, dict):
-        return "claude-md"
-    entry = configs.get("agents-md@builtin")
-    if not isinstance(entry, dict):
-        return "claude-md"
-    options = entry.get("options")
-    if not isinstance(options, dict):
-        return "claude-md"
-    mode = options.get("instructionFiles")
-    return mode if mode in PROJECT_INSTRUCTION_MODES else "claude-md"
+        return default
+    for key in ids:
+        entry = configs.get(key)
+        options = entry.get("options") if isinstance(entry, dict) else None
+        mode = options.get("instructionFiles") if isinstance(options, dict) else None
+        if mode in PROJECT_INSTRUCTION_MODES:
+            return mode
+    return default
 
 
 def nested_agents_files(root: Path) -> list[Path]:

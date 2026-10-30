@@ -11,7 +11,11 @@
       "maxLength": 100
     },
     "contact": { "type": "string", "minLength": 4, "maxLength": 160 },
-    "about": { "type": "string", "minLength": 60 },
+    "about": {
+      "$comment": "Two or three lines of introduction, set on the cover under the positioning line. Experience and skills belong in the resume; the template's About page stays commented out unless the user supplies enough to fill a page.",
+      "type": "string",
+      "minLength": 60
+    },
     "projects": {
       "$comment": "Each project: problem and stakes first, exact role and scope, 2-3 decision points with tradeoffs, outcomes supported by verified metrics or concrete qualitative evidence, and business context when relevant. State unresolved limits honestly.",
       "type": "array",
