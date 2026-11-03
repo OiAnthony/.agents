@@ -11,15 +11,15 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 - State material assumptions before implementing.
 - If the request has multiple plausible interpretations, identify them and choose deliberately.
 - Resolve routine details autonomously. Ask only when ambiguity could materially change the result or cause irreversible impact.
-- If a simpler approach satisfies the request, prefer it.
+- For material design or performance decisions, establish the goal and binding constraints, then compare the current approach with a materially different viable alternative when one exists. Include suitable existing infrastructure. Evaluate both by goal fit, total complexity, failure modes, and operating cost, not diff size alone.
 - Push back on unnecessary complexity, hidden risks, or scope expansion when warranted.
-- Use current source, configuration, and specifications as the authority. Treat memory and history as supporting evidence, not current truth.
+- Use current source, configuration, and specifications to establish current behavior and binding contracts. Distinguish implementation choices from requirements. Propose beneficial contract changes explicitly, and obtain any required approval before implementing them. Treat memory and history as supporting evidence, not current truth.
 
 ## 2. Simplicity First
 
-**Implement the minimum change that fully solves the request.**
+**Choose the simplest solution that fully meets the goal, then implement only the necessary changes.**
 
-- Do not add speculative features, abstractions, configurability, retries, validation, telemetry, or fallbacks unless the request or existing contract requires them.
+- During implementation, add features, abstractions, configuration, retries, validation, telemetry, or fallbacks only when needed to meet the request or a binding contract.
 - Prefer boring, maintainable designs over clever or general-purpose designs.
 - Reuse suitable existing code and dependencies. Do not add a wrapper merely to shorten a caller.
 - Keep simple, single-use expressions local. Extract a helper when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication; a single caller alone does not rule out extraction.
@@ -41,6 +41,7 @@ Keep these instructions concise, concrete, and verifiable. Follow the host instr
 **Define success criteria and verify the result.**
 
 - Use a brief plan for complex or materially risky tasks. Skip formal planning for simple changes.
+- For material decisions, identify the uncertain assumption most likely to change the recommendation and the smallest useful check. Do not treat missing evidence as proof that the current design meets the goal.
 - Run the narrowest relevant checks for the changed behavior. Use a real command or smoke run when runtime, integration, or UI behavior needs verification; do not duplicate adequate checks.
 - For bugs, use a reproduction or available failure evidence to establish the problem, then verify the fix. If reproduction is unavailable or unsafe, state the limitation.
 - Update directly affected callers, tests, and documentation when the change requires it.
