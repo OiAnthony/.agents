@@ -17,7 +17,7 @@ This is not a UI framework. It is a constraint system for print, designed to kee
 7. Letter-spacing: Chinese body 0.3pt for comfortable reading; English body 0; tracking only for short labels and overlines
 8. Tag backgrounds must be solid hex, never rgba (WeasyPrint renders a double rectangle)
 9. Surfaces are flat by default; whisper shadows are reserved for real floating screenshots, popovers, or overlays
-10. **No italic in print templates**. No `font-style: italic` in any PDF template or demo. Exception: landing page (screen-only) allows italic for captions, feature subtitles, and a closing tagline; these need not be poetic
+10. **No italic in print templates**. No `font-style: italic` in any PDF template or demo. Landing pages do not italicize captions, feature subtitles or taglines either; italic marks only a font face, syntax tokens or the author's own emphasis
 
 This system is a fusion of Anthropic's visual language and real Chinese / English resume iteration. Details below.
 
@@ -29,7 +29,7 @@ Anthropic's `frontend-design` skill lists "a warm cream background with a high-c
 - **Ink-blue, never clay.** The single accent is `#1B365D`, kept under 5% of the surface and spent on numbers and distinctive phrases. Terracotta and warm clay are not in the palette, and no second accent is added for warmth.
 - **Serif for reading length.** Documents are read top to bottom at length, which is what the serif and the 500 weight are for. Display contrast stays modest; hierarchy comes from size and space, not a fashion display face.
 - **Rules separate data.** A hairline appears only where it divides rows, regions, or states («Subtractive rule»); a broadsheet frame for its own sake is out.
-- **No chrome without information.** One eyebrow on a cover or hero at most, never one over every heading. Numbering only for real sequences (chapters, slides, steps). A middle dot only between data fields of one line (author and date, phone and email), never as a decorative joiner. To test an eyebrow, cover it: if the title alone still says what the section is, cut it; keep one that adds what the title lacks (a version, a date, an error code, the slide's place in a sequence). To test a middle dot, swap its two sides: if both keep their meaning in either order they are parallel facts and take ` · `; otherwise it is a sentence and takes the language's comma.
+- **No chrome without information.** One eyebrow on a cover or hero at most, never one over every heading. Numbering only for real sequences (chapters, slides, steps). A middle dot only between data fields of one line (author and date, phone and email), never as a decorative joiner. To test an eyebrow, cover it: if the title alone still says what the section is, cut it; keep one that adds what the title lacks (a version, a date, an error code, the slide's place in a sequence). To test a middle dot, swap its two sides: if both keep their meaning in either order they are parallel facts and take ` · `; otherwise it is a sentence and takes the language's comma. A heading may join a name and its qualifier with a dot (`Tags · two levels`); drop the dot only when one side repeats the other, such as a name beside its own translation, and never trade it for parentheses.
 - **Few sizes, few rungs.** A screen page targets four type sizes (display, title, body, secondary) with 12px as the floor for secondary text; print keeps the pt scale in Section 2. Text takes two colour rungs to read (primary, secondary), one for meta and one for disabled or decoration. Hierarchy comes from weight, rung and space before a new size.
 - **Concentric corners.** A rounded shape inside another shares its centre: inner radius = outer radius - the inset between them. Radius follows role (page card, floating layer, row, tag), so a new radius means a new role.
 - **Outline-only buttons.** A button needs a readable fill; do not replace it with a warning-like outline. The filled screen buttons below and Section 11's quiet secondary buttons keep their specified neutral hairlines. Borders otherwise mark region edges, not every row or control.
@@ -1259,7 +1259,7 @@ Below the phone breakpoint, the information diet reverses: images first, words s
 - Empty gallery: script exits cleanly; single-image gallery initializes caption/tab state without starting auto-rotate
 - Tabs: pill buttons 12px `--latin-ui`, active state uses brand-tint background
 - Click navigation: left half = previous, right half = next
-- Caption `.line`: italic serif, 14px olive. Short captions explaining each screenshot or adding useful context
+- Caption `.line`: upright serif, 14px olive. Short captions explaining each screenshot or adding useful context
 - Rapid switching keeps caption and tab state synchronized with the visible frame; test by clicking faster than the transition duration, not just once per panel
 
 ### Links
@@ -1280,7 +1280,7 @@ Both: pill shape (999px radius), 15px `--latin-ui`, weight 500, line-height 1.55
 
 Labels are verb plus object: `Buy {{PRODUCT}}` (no price), `Download for Mac`; a compact nav pill keeps the verb alone. Avoid urgency forms such as "Buy now".
 
-Mobile resting state: the two hero buttons sit in one row starting at the hero text edge, each as wide as its label with 24px sides (`flex: 0 0 auto`, `padding: 10px 24px`, 8px gap), 44px tall, the touch minimum, and the second wraps to its own row when a long label does not fit. Stretching them to share the row (`flex: 1 1 auto`) left a wide empty band around a short label such as `下载 Mac 版`, and the desktop 51px read tall in a phone hero (maintainer 2026-10-23, after comparing stretched, natural width and a 132px minimum at 375px). Never force equal halves (`flex: 1 1 0`): a German "Für Windows herunterladen" overflowed its half at 375px. Do not center the pair (reads as floating). Verify at 320px and 375px in the longest language with no overflow.
+Mobile resting state: the two hero buttons sit in one row starting at the hero text edge, each as wide as its label (`flex: 0 0 auto`), 42px tall with 22px sides, at least 128px wide and 12px apart, sides dropping to 14px under 375px, and the second wraps to its own row only when a long label does not fit; the quiet button's hairline mixes 60% `--line` into ivory, since 1px of `--line` is three device pixels on a phone and read heavy (mole.fit, 2026-10-30, from rendered candidates: 44 read tall, label-width pills read narrow, 128 pairs Chinese labels evenly). Stretching them to share the row (`flex: 1 1 auto`) left a wide empty band around a short label such as `下载 Mac 版`, and the desktop 51px read tall in a phone hero (maintainer 2026-10-23, after comparing stretched, natural width and a 132px minimum at 375px). Never force equal halves (`flex: 1 1 0`): a German "Für Windows herunterladen" overflowed its half at 375px. Do not center the pair (reads as floating). Verify at 320px and 375px in the longest language with no overflow.
 
 ### Pricing
 
@@ -1349,7 +1349,7 @@ For card grids whose content is written text (article listings, changelog indexe
 
 - Two-column grid: 200px name + 1fr description, 36px gap, separated by border-soft hairlines
 - Feature name: 22px brand, weight 500
-- Optional subtitle: `<small>` below name, 13px olive, italic. One short line adding useful context to the feature name
+- Optional subtitle: `<small>` below name, 13px olive, upright. One short line adding useful context to the feature name
 - Description: 15px dark-warm, line-height 1.55
 - Tables stay editorial: no framed box, no tinted header bar, no vertical rules, no empty right gap. Content-sized columns, hairline row rules, a muted `--latin-ui` uppercase header. On phone, `display: block; overflow-x: auto` rather than cramming columns. A framed, tinted table adds weight without adding information.
 
@@ -1387,7 +1387,7 @@ No template ships this section; build it only from real, attributed quotes (name
 - Two-column flex: brand mark (icon + name + tagline) left, colophon (links + ethos) right
 - Mark icon: 56px rounded 8px
 - Links: middot separators live on `a:not(:last-child)::after`; anchors stay inline-block so wrapping never leaves a leading separator. Do not join the row with `&nbsp;`
-- Ethos: closing italic serif line, olive color, max-width 360px. The italic voice signals a personal sign-off
+- Ethos: closing upright serif line, olive color, max-width 360px. Its place at the end of the footer marks it as a personal sign-off
 - Tech credit, once. If the product builds on an upstream project or framework, credit it exactly once as a quiet footer line, never as a repeated selling point and never in the hero tagline. Grep the whole site for the upstream name and collapse it to this single instance; rewrite the hero around the product's own positioning. Hard facts that are not the credit (license, version) belong here too.
 - Collapses to single column below 880px
 

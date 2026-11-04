@@ -9,9 +9,10 @@ gate that catches it now. This helper checks that every row still holds:
 - the ID is unique and the Reported cell, when present, is a YYYY-MM-DD date;
 - Fixed is a commit that resolves, and Introduced is `unknown` or a commit;
 - Layer is one of the ledger's declared layers;
-- every backticked catcher in "Caught by" is a tracked file path, or a name
-  that a test file defines (an identifier followed by `(`, or a quoted test
-  title such as Bats `@test "..."` or JS `it("...")`).
+- every backticked catcher in "Caught by" is an existing workspace file path
+  or a recognized declaration in a Python, shell/Bats, or JS/TS test file.
+  Unsupported declaration forms and languages require an explicit gate path.
+  Declaration recognition does not prove that a test runs or catches a defect.
 
 In a shallow clone commits cannot be resolved, so they are shape-checked and
 the summary says so. `--plan` prints, per row, the pre-fix revision and the
@@ -30,6 +31,8 @@ Run as: python3 <skill-base-dir>/scripts/incident_ledger.py --root <project>
 from __future__ import annotations
 
 import argparse
+import ast
+import shlex
 import re
 import subprocess
 import sys
@@ -93,14 +96,24 @@ def declared_layers(text: str) -> tuple[str, ...]:
 
 
 def tracked_files(root: Path) -> list[str]:
-    out = git(root, "ls-files", "-z")
-    if out.returncode == 0:
-        return [p for p in out.stdout.split("\0") if p]
-    return [
-        p.relative_to(root).as_posix()
-        for p in root.rglob("*")
-        if p.is_file() and not SKIP_PARTS.intersection(p.relative_to(root).parts)
-    ]
+    """Existing, contained worktree files, including non-ignored new files."""
+    root = root.resolve()
+    out = git(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
+    candidates = out.stdout.split("\0") if out.returncode == 0 else (
+        p.relative_to(root).as_posix() for p in root.rglob("*")
+    )
+    files = set()
+    for rel in candidates:
+        if not rel or SKIP_PARTS.intersection(Path(rel).parts):
+            continue
+        path = root / rel
+        try:
+            path.resolve().relative_to(root)
+            if path.is_file() and not path.is_symlink():
+                files.add(rel)
+        except (OSError, ValueError, RuntimeError):
+            continue
+    return sorted(files)
 
 
 def is_test_file(path: str) -> bool:
@@ -112,31 +125,85 @@ def is_test_file(path: str) -> bool:
     return bool(TEST_NAME.match(parts[-1]))
 
 
-def test_corpus(root: Path, files: list[str]) -> str:
-    chunks = []
+def test_names(source: str, suffix: str) -> set[str]:
+    """Recognize supported declarations, not arbitrary identifier mentions.
+
+    Python uses its AST. JS/TS and shell use deliberately narrow declaration
+    forms, not a syntax-validity proof. Unsupported forms need a gate path.
+    """
+    if suffix == ".py":
+        try:
+            return {node.name for node in ast.walk(ast.parse(source))
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+        except (SyntaxError, ValueError):
+            return set()
+    names = set()
+    if suffix in {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"}:
+        # Replace comments and literals before matching declaration shapes.
+        # Keep literal positions separately for direct test registrations.
+        literals = {}
+        token = re.compile(r"//[^\n]*|/\*[\s\S]*?\*/|(['\"`])(?:\\[\s\S]|(?!\1)[^\\])*?\1")
+        def mask(match):
+            value = match.group()
+            if value[0] in "'\"`":
+                literals[match.start()] = (match.end(), value[1:-1])
+            return "".join("\n" if char == "\n" else " " for char in value)
+        clean = token.sub(mask, source)
+        names.update(re.findall(r"(?m)^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(", clean))
+        names.update(re.findall(r"(?m)^\s*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s+)?(?:function\s*\(|\([^()]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)", clean))
+        for pos, (end, title) in literals.items():
+            # Only a literal first argument to a direct test registration.
+            if re.search(r"(?:^|[;{}\n])\s*(?:it|test)(?:\.(?:only))?\s*\(\s*$", clean[:pos]) and re.match(r"\s*,", clean[end:]):
+                if "\\" not in title and "${" not in title:
+                    names.add(title)
+    elif suffix in {".sh", ".bash", ".bats"}:
+        # Heredoc bodies are shell data, not declarations. Prefer an explicit
+        # gate path for these files rather than interpreting their contents.
+        if "<<" in source:
+            return set()
+        try:
+            tokens = shlex.shlex(source, posix=False)
+            tokens.whitespace = " \t\r"
+            tokens.whitespace_split = False
+            tokens.commenters = "#"
+            words = list(tokens)
+        except ValueError:
+            return set()
+        for i, word in enumerate(words):
+            boundary = i == 0 or words[i - 1] in {"\n", ";", "}"}
+            if boundary and IDENTIFIER.fullmatch(word) and words[i + 1:i + 4] == ["(", ")", "{"]:
+                names.add(word)
+            if boundary and word == "function" and i + 2 < len(words):
+                if IDENTIFIER.fullmatch(words[i + 1]) and words[i + 2] == "{":
+                    names.add(words[i + 1])
+            if boundary and words[i:i + 2] == ["@", "test"] and i + 3 < len(words) and words[i + 3] == "{":
+                title = words[i + 2]
+                if title.startswith(("'", '"')):
+                    names.add(title[1:-1])
+    return names
+
+
+def test_corpus(root: Path, files: list[str]) -> set[str]:
+    names = set()
     for rel in files:
         if not is_test_file(rel):
             continue
         path = root / rel
         try:
+            path.resolve().relative_to(root.resolve())
             if path.is_symlink() or path.stat().st_size > MAX_TEST_BYTES:
                 continue
-            chunks.append(path.read_text("utf-8", errors="replace"))
-        except OSError:
+            names.update(test_names(path.read_text("utf-8", errors="replace"), path.suffix))
+        except (OSError, ValueError, RuntimeError):
             continue
-    return "\n".join(chunks)
+    return names
 
 
-def catcher_defined(name: str, corpus: str, files: set[str]) -> bool:
-    if name in files:
-        return True
-    if IDENTIFIER.match(name):
-        return re.search(r"\b" + re.escape(name) + r"\s*\(", corpus) is not None
-    quoted = re.escape(name)
-    return re.search(r"([\"'`])" + quoted + r"\1", corpus) is not None
+def catcher_defined(name: str, corpus: set[str], files: set[str]) -> bool:
+    return name in files or name in corpus
 
 
-def problems(text: str, label: str, layers: tuple[str, ...], corpus: str,
+def problems(text: str, label: str, layers: tuple[str, ...], corpus: set[str],
              files: set[str], resolve) -> list[str]:
     header, body = table(text)
     if not header:
@@ -171,7 +238,7 @@ def problems(text: str, label: str, layers: tuple[str, ...], corpus: str,
         if not catchers:
             found.append(f"{where}: no catcher named")
         found.extend(
-            f"{where}: catcher `{name}` is not a tracked file or a test defined in a test file"
+            f"{where}: catcher `{name}` is not an existing workspace file or a recognized test declaration (use an explicit gate path for unsupported forms)"
             for name in catchers
             if not catcher_defined(name, corpus, files)
         )

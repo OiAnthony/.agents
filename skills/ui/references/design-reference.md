@@ -44,6 +44,7 @@ Placeholder copy that looks real but is not real breaks the illusion the moment 
 - Multiple avatar instances must not share the same image. Multiple blog post or event cards must not share the same date.
 
 **UI copy:**
+- **Meaning lost in a copy cut:** Judge what the remaining text implies, not just whether words repeat a heading. Keep guarantees, scope and limits when removing them changes that implication; clearer wording can be the right edit without shortening. Before rendering a candidate, run existing copy checks across affected locales and reconcile corresponding surfaces on other platforms with their accepted wording. Compare the whole surface before and after: a settings list with uneven descriptions or a card left holding only an icon needs a layout decision, not another isolated text deletion.
 - Sentence case on all headings. Title Case On Every Heading is the most common AI tell in body copy.
 - Remove exclamation marks from success states ("Saved!" becomes "Saved", "Done!" becomes "Done"). Reserve `!` for genuine urgency.
 - Never open an error message with "Oops!". It reads as condescending.

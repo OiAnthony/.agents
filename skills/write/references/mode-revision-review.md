@@ -13,7 +13,7 @@ What a polish pass tends to lose, and what to check before keeping a hunk:
 - **A new word that contradicts the article's thesis.** A casual "along the way" in front of work the article frames as deliberate, laborious effort. Check each added adverb and framing word against the piece's main claim.
 - **Doubled phrasing introduced by the edit.** The same noun twice in one sentence, or a closing call-to-action that repeats the ask in the previous paragraph.
 
-Accept the edits that are better: typo and grammar fixes, a truer opening motivation, a run-on that genuinely misread. The author asked whether the new version is better, not for a defense of the old one, so a review that reverts every hunk has failed too.
+Accept the edits that are better: typo and grammar fixes, a truer opening motivation, a run-on that genuinely misread. Judge each hunk on its merits rather than defending either version; reverting every hunk is valid when each edit loses meaning or makes the prose worse.
 
 Titles get a lighter touch. When the author has just chosen a title, flag it only if it misreads or misleads. Any alternative you offer must read more smoothly aloud than the original; an alternative that is merely more literal or more correct gets rejected, and rightly so.
 

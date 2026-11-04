@@ -53,7 +53,7 @@ _has_content() {
   [ "$(printf '%s' "$content" | wc -l)" -gt 5 ] || return 1
   # Reject pages dominated by login walls, captchas, or bot challenges that
   # otherwise pass the line-count check. Add new markers here, not new branches.
-  if printf '%s' "$content" | grep -qE "Don't miss what's happening|Sign in to continue|Please sign in|Log in to continue|请登录|登录后查看|机器人验证|人机验证|Just a moment\.\.\.|Checking your browser" 2>/dev/null; then
+  if printf '%s' "$content" | grep -qE "Don't miss what's happening|Sign in to continue|Please sign in|Log in to continue|请登录|登录后查看|机器人验证|人机验证|Just a moment\.\.\.|Checking your browser|requiring CAPTCHA" 2>/dev/null; then
     return 1
   fi
   return 0

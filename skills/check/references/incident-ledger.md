@@ -21,7 +21,7 @@ A project that ships to users keeps one table, conventionally `docs/incidents.md
 - `Layer` is the earliest layer that should have caught it, from the project's ordered list (earliest first). The retro question is which layer missed it, never who wrote it.
 - `Caught by` names, in backticks, the test or gate that now fails on the pre-fix code: a test function or test title, or a gate script's repository path. A row with no live catcher is a note, not coverage.
 
-Validate it with `python3 <skill-base-dir>/scripts/incident_ledger.py --root <project>`: unique IDs, dates, commits that resolve (shape-checked only in a shallow clone, which it says), layers from the `<!-- layers: ... -->` declaration or `--layers`, and catchers that are tracked files or names a test file defines. Wire it into the project's fast check so a renamed or deleted test fails its row instead of silently orphaning it. Projects may keep their own checker with a stricter catcher resolver; the contract is the same.
+Validate it with `python3 <skill-base-dir>/scripts/incident_ledger.py --root <project>`: unique IDs, dates, commits that resolve (shape-checked only in a shallow clone, which it says), layers from the `<!-- layers: ... -->` declaration or `--layers`, and catchers that are existing workspace files or recognized declarations in Python, shell/Bats, or JS/TS test files, including non-ignored new files. Other languages and declaration forms need an explicit gate path; finding a declaration does not prove that it executes or catches the defect. Wire it into the project's fast check so a renamed or deleted test fails its row instead of silently orphaning it. Projects may keep their own checker with a stricter catcher resolver; the contract is the same.
 
 ## Replay eval
 
