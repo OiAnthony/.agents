@@ -1,0 +1,103 @@
+{
+  "expectations": [
+    {
+      "text": "The document has separate sections for POST /v1/orders and GET /v1/orders.",
+      "passed": true,
+      "evidence": "api.md contains distinct endpoint headings `### POST /v1/orders` at lines 56-57 and `### GET /v1/orders` at lines 130-132. Each endpoint has its own request, response, and error subsections."
+    },
+    {
+      "text": "The POST section preserves the supplied fields, constraints, 201 status, response fields, and 24-hour idempotency retention.",
+      "passed": true,
+      "evidence": "The POST request table at api.md:68-75 contains only `user_id` and `amount`, marks both required, and states `usr_` plus 16 base62 characters and amount minimum 1 in cents. api.md:60-63 states `Idempotency-Key` support and 24-hour retention. api.md:90-99 states success status 201 and that the only response fields are `order_id` and `status`."
+    },
+    {
+      "text": "The GET section preserves cursor pagination, limit 20/100 bounds, and created_at DESC without inventing a response schema.",
+      "passed": true,
+      "evidence": "api.md:130-132 states cursor pagination; api.md:142-149 gives limit default 20, maximum 100, and `created_at DESC` ordering. api.md:159-161 explicitly says the successful status code, response fields, types, cursor location, and response example were not provided, so no GET response schema is invented."
+    },
+    {
+      "text": "The document covers 400, 409, 429, Retry-After, and RFC 9457 Problem Details.",
+      "passed": true,
+      "evidence": "api.md:108-127 identifies RFC 9457 Problem Details and maps 400 to validation failure, 409 to an Idempotency-Key/request-body mismatch, and 429 to rate limiting. api.md:50-52 states that 429 returns the `Retry-After` header."
+    },
+    {
+      "text": "The document distinguishes standards guidance from service facts and does not assert an unprovided application/problem+json media type or concrete error-field behavior.",
+      "passed": false,
+      "evidence": "The document does mark Problem Details fields such as `type`, `title`, `detail`, and `instance` as unprovided at api.md:110 and 118-127. However, it repeatedly asserts the unprovided service media type as fact: api.md:27 says `错误响应使用 application/problem+json`, api.md:110 repeats that wording, and api.md:169 says all known errors have that media type. The prompt required RFC 9457 Problem Details but did not state that the service returns `application/problem+json`; the document does not clearly frame this as standards guidance rather than a service fact."
+    },
+    {
+      "text": "Examples use fake or environment-variable credentials, and missing information is explicitly listed.",
+      "passed": true,
+      "evidence": "The Authorization example uses the `$TOKEN` environment-variable placeholder and explicitly says it is not a real credential at api.md:15-19. The example `user_id` and response values are labeled fake or example-only at api.md:75 and 99-105. The dedicated `信息缺口` section at api.md:173-185 lists missing authentication, schema, pagination, rate-limit, error, and compatibility details."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333333333333334
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": null,
+    "total_steps": 8,
+    "errors_encountered": 0,
+    "output_chars": 3936,
+    "transcript_chars": 275
+  },
+  "timing": {
+    "executor_duration_seconds": 253.498,
+    "total_duration_seconds": 253.498
+  },
+  "claims": [
+    {
+      "claim": "The document uses only supplied facts and explicitly marks unspecified fields or behavior.",
+      "type": "quality",
+      "verified": false,
+      "evidence": "The document does explicitly mark many omissions, including response fields and Problem Details values at api.md:159-161 and 173-185. It nevertheless presents `application/problem+json` as the service's error media type at api.md:27 and 169, although that service fact was not supplied."
+    },
+    {
+      "claim": "The document covers the Base URL and Bearer authentication.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "api.md:7 gives `https://api.example.com`, and api.md:13-19 documents `Authorization: Bearer $TOKEN` while identifying the token as an environment placeholder."
+    },
+    {
+      "claim": "All known errors are expressed using RFC 9457 Problem Details with application/problem+json.",
+      "type": "quality",
+      "verified": false,
+      "evidence": "The document states this at api.md:167-171, but the supplied facts only require use of RFC 9457 Problem Details and do not establish that the service uses `application/problem+json`; the media-type part is therefore unsupported as a service claim."
+    },
+    {
+      "claim": "The example user_id satisfies the supplied format constraint.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The example at api.md:83 is `usr_8fK2mQ0aZx91LpT3`; after the `usr_` prefix it contains exactly 16 base62 characters."
+    },
+    {
+      "claim": "AI-style language scanning was not completed.",
+      "type": "process",
+      "verified": true,
+      "evidence": "The executor transcript states `AI 腔扫描因工具调用需要额外审批，未能执行。` and executor.json records a denied Bash permission for the scan command."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [
+      "AI 腔扫描未执行，因为相关 Bash 工具调用需要额外审批。"
+    ],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The document distinguishes standards guidance from service facts and does not assert an unprovided application/problem+json media type or concrete error-field behavior.",
+        "reason": "This assertion is useful but should define whether the RFC's registered media type is allowed as standards guidance. More importantly, the document can pass the other assertions while adding unsupported service behavior such as content type, retry advice, or error applicability. Add a dedicated negative assertion that rejects every unprovided service contract, not only the error media type."
+      },
+      {
+        "reason": "No assertion directly checks that every example value satisfies the supplied constraints, such as `usr_` plus exactly 16 base62 characters, or that examples do not imply unsupported response types. Add explicit syntax and no-inference checks for examples."
+      }
+    ],
+    "overall": "The assertions cover the main endpoint content and omissions, but the strict no-invention requirement is only partially enforced. The output exposes this gap by asserting `application/problem+json` as a service media type even though that fact was not supplied."
+  }
+}

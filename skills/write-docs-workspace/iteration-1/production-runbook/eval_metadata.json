@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "production-runbook",
+  "prompt": "请写一份生产环境 Runbook，处理 orders.queue_lag > 300s 的 P1 告警。只用给定信息，不要执行命令，也不要补造监控阈值。影响：订单确认延迟；环境：prod-cn1；当前 orders-api 版本：v2.8.0；最近一次发布可能相关。止血动作：先检查发布状态；确认相关后可执行 kubectl -n orders rollout undo deploy/orders-api --to-revision=41；如果需要暂时关闭异步确认，使用 opsctl flag set orders.async_confirmation false --env prod-cn1。需要观察 queue_lag 和 consumer_error_rate。每 15 分钟仍未缓解就升级给订单值班群。Runbook 必须先止血再诊断，写清前置条件、预期结果、回退方式、验证标准、升级路径、适用版本/环境和最后验证记录。输出 Markdown。",
+  "assertions": [
+    "The first operational section prioritizes mitigation before diagnosis and states the P1 alert, impact, environment, and version.",
+    "Both supplied operational commands are preserved exactly, with rollback conditional on release relevance.",
+    "The Runbook names both metrics and preserves the 15-minute escalation interval and duty-group target.",
+    "Each production action has a precondition, expected result, and rollback or recovery limitation; no command is claimed to have run.",
+    "Verification avoids inventing a consumer_error_rate threshold and includes a final record with unknown fields left for completion."
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "skill_name": "write-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请写一篇面向团队外工程师的中文工程博客，解释我们给内部 Agent 编排器增加 Router/Worker 调度层的设计。只使用下面的事实，不补充未提供的实现细节。背景：一个人同时跟踪 3–5 个会话就接近上限；固定负载为 300 条消息、20 个工作请求、运行 5 次；调度层把请求按 2.5 秒窗口合批，平均每批 2.8 个请求，单次模型调用从 2.5 秒变成 3.9 秒，但摊到每个请求是 1.6 秒；共享前缀缓存 token 从 2323 万增加到 3177 万；新方案 p50 为 12.4 分钟、p95 为 15.7 分钟，对照组 p95 为 29.5 分钟；低负载时合批窗口会额外等待 2.5 秒，缓存依赖提示词前缀稳定；当前还没决定如何自动缩短低负载窗口。文章需要先讲朴素方案为什么不够，再讲模块和权衡，给出实验口径、成本、负面结果、局限和开放问题。不要把这些数字扩展成没有依据的普遍结论。输出 Markdown 成稿。",
+      "expected_output": "一篇结构清晰的中文工程博客：结论式标题；具体缺口；朴素方案及失败原因；Router/Worker 设计与两极权衡；实验负载、基线、指标和成本；负面结果、适用范围、局限和开放问题。所有数字只来自输入材料。",
+      "files": [],
+      "expectations": [
+        "The article reports the supplied fixed workload: 300 messages, 20 work requests, and 5 runs, without replacing it with different experimental conditions.",
+        "The article preserves the supplied measurements: 2.5-second batching window, average batch size 2.8, single-call time 2.5 to 3.9 seconds, per-request 1.6 seconds, cache tokens 2323万 to 3177万, new p50 12.4 minutes, new p95 15.7 minutes, and baseline p95 29.5 minutes.",
+        "The article explains why the naive per-request approach is insufficient and describes Router/Worker tradeoffs rather than only listing components.",
+        "The article states both known negative results: low-load extra waiting of 2.5 seconds and dependence on stable prompt prefixes, and preserves the undecided automatic low-load window policy as an open question.",
+        "The article limits the performance conclusion to the supplied fixed workload and explicitly identifies missing measurements or unknown implementation details instead of presenting a universal claim.",
+        "The article does not present Router or Worker responsibilities, queue behavior, retries, fairness, or module decomposition as confirmed implementation facts when the prompt did not supply them; any such interpretation is marked as inference or assumption, or omitted."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "请写一份可查阅、可复制的中文 API 参考文档，只使用给定事实，不要猜测未提供的字段。API：Base URL 为 https://api.example.com；鉴权是 Authorization: Bearer $TOKEN。POST /v1/orders 创建订单：请求体只有 user_id（必填，格式 usr_ 加 16 位 base62）、amount（必填，整数分，最小值 1）；支持 Idempotency-Key，保留 24 小时；成功返回 201，响应字段只有 order_id 和 status。GET /v1/orders 查询订单：支持 cursor 分页，limit 默认 20、最大 100，排序按 created_at DESC。已知错误：400 参数校验失败、409 同一幂等键对应不同请求体、429 超过限流并返回 Retry-After。请使用 RFC 9457 Problem Details 表达错误，并明确哪些信息没有提供。示例中的 token 和个人数据必须是假值。输出 Markdown API 文档。",
+      "expected_output": "一份参考型 API 文档：按端点组织，包含鉴权、请求字段约束、可复制 curl、响应字段、分页、幂等、错误处理和 RFC 9457 结构；不捏造未提供的字段、状态码或限流数字，并标出资料缺口。",
+      "files": [],
+      "expectations": [
+        "The document has separate reference sections for POST /v1/orders and GET /v1/orders.",
+        "The POST section preserves the exact supplied request constraints, 201 success status, response fields order_id and status, and 24-hour Idempotency-Key retention.",
+        "The GET section preserves cursor pagination, limit default 20, maximum 100, and created_at DESC ordering without inventing a response schema or cursor format.",
+        "The document describes the supplied 400, 409, and 429 errors and Retry-After, and uses RFC 9457 Problem Details as requested.",
+        "The document distinguishes standards guidance from service facts: it does not claim application/problem+json or concrete type/title/detail behavior as supplied API facts unless it marks them as unverified or merely conventional.",
+        "Examples use a placeholder or environment variable rather than a real credential or personal data, and the document explicitly lists important information that was not provided."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "请写一份生产环境 Runbook，处理 orders.queue_lag > 300s 的 P1 告警。只用给定信息，不要执行命令，也不要补造监控阈值。影响：订单确认延迟；环境：prod-cn1；当前 orders-api 版本：v2.8.0；最近一次发布可能相关。止血动作：先检查发布状态；确认相关后可执行 kubectl -n orders rollout undo deploy/orders-api --to-revision=41；如果需要暂时关闭异步确认，使用 opsctl flag set orders.async_confirmation false --env prod-cn1。需要观察 queue_lag 和 consumer_error_rate。每 15 分钟仍未缓解就升级给订单值班群。Runbook 必须先止血再诊断，写清前置条件、预期结果、回退方式、验证标准、升级路径、适用版本/环境和最后验证记录。输出 Markdown。",
+      "expected_output": "一份可在压力下执行的 Runbook：第一屏说明告警含义、影响和紧急程度；先止血后诊断；每个命令有前置条件、预期结果和回退；不执行命令；写明指标验证、升级路径、prod-cn1/v2.8.0 适用范围和未确认项。",
+      "files": [],
+      "expectations": [
+        "The first operational section prioritizes stopping the impact before diagnosis and states the P1 alert, order-confirmation impact, prod-cn1 environment, and orders-api v2.8.0 scope.",
+        "The Runbook preserves both supplied operational commands exactly and places the rollback behind the condition that the recent release is confirmed relevant.",
+        "The Runbook names queue_lag and consumer_error_rate as observed signals, preserves the 15-minute escalation interval, and identifies the orders duty group as the escalation target.",
+        "Each production action includes a precondition, expected result, and a rollback or recovery limitation; the document does not claim that commands were executed.",
+        "The verification section avoids inventing a consumer_error_rate threshold and includes a final verification record with unknown fields left for completion."
+      ]
+    }
+  ]
+}

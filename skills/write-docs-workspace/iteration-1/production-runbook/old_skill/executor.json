@@ -1,0 +1,101 @@
+{
+  "job": {
+    "id": "production-runbook",
+    "mode": "old_skill",
+    "skill": "/Users/anthony/code/personal/devenv/dotfiles/.agents/skills/write-docs-workspace/skill-snapshot",
+    "output": "/Users/anthony/code/personal/devenv/dotfiles/.agents/skills/write-docs-workspace/iteration-1/production-runbook/old_skill/outputs/runbook.md",
+    "log": "/Users/anthony/code/personal/devenv/dotfiles/.agents/skills/write-docs-workspace/iteration-1/production-runbook/old_skill/executor.json"
+  },
+  "exit_code": 0,
+  "duration_ms": 171171,
+  "stdout": {
+    "duration_api_ms": 169419,
+    "stop_reason": "end_turn",
+    "session_id": "1c881cad-cde4-45f6-967c-3e255aff13f8",
+    "total_cost_usd": 0.213892,
+    "usage": {
+      "input_tokens": 19626,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 45824,
+      "output_tokens": 3714,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5": {
+        "inputTokens": 19626,
+        "outputTokens": 3714,
+        "cacheReadInputTokens": 45824,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.213892,
+        "contextWindow": 200000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 0,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-opus-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "safety_stops": 0,
+    "is_error": false,
+    "num_turns": 4,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "已完成，最终 Markdown 文档已保存至：\n\n`/Users/anthony/code/personal/devenv/dotfiles/.agents/skills/write-docs-workspace/iteration-1/production-runbook/old_skill/outputs/runbook.md`",
+    "ttft_ms": 10362,
+    "type": "result",
+    "duration_ms": 169745,
+    "uuid": "e64a2fbb-b396-45a5-a39f-072fbfb8d758",
+    "ttft_stream_ms": 9948,
+    "time_to_request_ms": 221,
+    "first_content_frame_ms": 10361,
+    "queued_turn_count": 0,
+    "result_index": 0
+  },
+  "stderr": ""
+}

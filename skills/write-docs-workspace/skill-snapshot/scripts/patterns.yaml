@@ -1,0 +1,541 @@
+# patterns.yaml: rules for scan_ai_taste.py
+# Restricted YAML subset (the scanner parses it without PyYAML):
+#   top-level `rules:` list of flat maps; one `key: value` per line;
+#   regexes in single quotes ('' escapes a quote); lists as [a, b]; # comments.
+# Fields: id, kind (regex|structural), pattern, flags (i), severity (low|medium|high),
+#   category, lang (zh|en|any), scope (line|heading|bullet|para_start|para_end|doc_start),
+#   escalate_at, escalate_to, profiles [generic rules omit it], raw (true = scan unmasked text),
+#   message, hint, plus check/params for structural rules.
+# Severity guide:
+#   high   = one sighting is enough to rewrite (chatbot residue, banned jargon, signature templates)
+#   medium = suspicious; rewrite when it clusters or carries no information
+#   low    = signal only; look at density, not single hits
+# Ids: Z = Chinese, E = English, P = placeholder/residue, S = structural, G = gpt-6.1-sol, D = deepseek-flash
+version: 1
+rules:
+# ---------------------------------------------------------------- residue
+  - id: P01
+    pattern: '\[(?:TODO|TBD|INSERT[^\]]*|PLACEHOLDER|待补充|此处插入[^\]]*)\]|INSERT_[A-Z_]+|\{\{[^}]+\}\}'
+    severity: high
+    category: placeholder
+    raw: true
+    message: 未替换的占位符
+    hint: 补上真实内容，或删掉这一句
+  - id: P02
+    pattern: 'utm_source=(?:chatgpt\.com|openai)|oaicite|contentReference|turn\d+(?:search|view|news)\d+|:contentReference\[|【\d+†[^】]*】'
+    severity: high
+    category: residue
+    raw: true
+    message: 聊天工具的引用残留
+    hint: 删掉残留标记，换成真实链接或去掉
+# ---------------------------------------------------------------- Chinese: chatbot residue
+  - id: Z01
+    pattern: '希望(?:以上|这些|本文|这篇)?[^。！\n]{0,12}(?:对你|对您|能帮|有帮助|有所帮助)|如(?:果你?|您)?有(?:任何)?(?:疑问|问题)[，,]?(?:欢迎|请|随时)|(?:以下|下面)是(?:为你|为您|我为你)?(?:整理|总结|提供)|作为(?:一个|一名)?(?:AI|人工智能|语言模型|大模型)|我(?:无法|不能)(?:提供|访问|浏览)'
+    severity: high
+    category: 聊天残留
+    lang: zh
+    message: 对话腔残留，读者不是在和你聊天
+    hint: 删掉；文档直接从内容开始，到内容结束
+  - id: Z02
+    pattern: '截至(?:我的)?(?:知识|训练|最后)(?:截止|更新|数据)|根据我(?:的)?(?:训练数据|所知)|(?:具体|详细)(?:信息|情况)可能(?:有所)?(?:变化|不同)，?(?:请|建议)'
+    severity: high
+    category: 知识免责
+    lang: zh
+    message: 知识截止或泛泛的免责
+    hint: 查证后写确定的事实和日期；查不到就写「未核实」并说明查了什么
+# ---------------------------------------------------------------- Chinese: argument templates
+  - id: Z10
+    pattern: '(?<![是还要可就])不是[^。！？\n，,]{1,24}[，,]\s*而是|(?<![是还要可就])不是[^。！？\n]{1,24}?[。；]\s*是[^。\n]{2,}'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 翻案腔
+    lang: zh
+    message: 「不是 X，而是 Y」先立靶子再推翻
+    hint: 直接陈述 Y；只有读者真的会误以为 X 时才保留对比，并说明误解从哪来
+  - id: Z11
+    pattern: '并非[^。\n]{1,20}[，,]\s*而是|与其说[^。\n]{1,20}[，,]\s*不如说|看似[^。\n]{1,20}[，,]\s*(?:实则|其实|实际上)|你以为[^。\n]{1,20}[，,]\s*其实|(?:瓶颈|重心|焦点|问题)(?:已经|正在)?从[^。\n]{1,12}(?:转移|转向)到'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 翻案腔
+    lang: zh
+    message: 翻案或反转句式
+    hint: 删掉被推翻的那一半，直接给结论和证据
+  - id: Z12
+    pattern: '不(?:仅仅?|只)是[^。\n]{1,20}[，,]\s*(?:更|还|也)是|不仅[^。\n]{1,20}[，,]\s*更(?:是|在于|能)'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 递进拔高
+    lang: zh
+    message: 「不只是 X，更是 Y」式拔高
+    hint: 只留有证据的那一层；Y 若是空话直接删
+  - id: Z13
+    pattern: '^(?:随着[^。\n]{2,24}(?:的)?(?:发展|普及|演进|兴起|到来)|在(?:当今|当下|如今|这个)[^。\n]{0,12}(?:时代|背景下|浪潮中)|近年来，|众所周知)'
+    severity: medium
+    category: 空转开头
+    lang: zh
+    scope: para_start
+    message: 宏大背景开头，没有信息量
+    hint: 第一句就写具体问题、数字或结论
+  - id: Z14
+    pattern: '本文(?:将|旨在|主要|会)|接下来[，,]?(?:我们|让我们|本文)|让我们(?:一起|来)?(?:看看|深入|探讨|聊聊)|话不多说|废话不多说|下面(?:我们)?(?:就)?(?:来|一起)(?:看看|聊聊)'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 文章谈自己
+    lang: zh
+    message: 文章在介绍自己要做什么
+    hint: 直接做；目录和标题已经告诉读者结构
+  - id: Z15
+    pattern: '值得(?:注意|一提|关注|强调)的是|需要(?:特别)?(?:注意|指出|强调)的是|综上所述|总而言之|总的来说|不难(?:发现|看出)|毋庸置疑|显而易见'
+    severity: medium
+    escalate_at: 3
+    escalate_to: high
+    category: 套话过渡
+    lang: zh
+    message: 套话过渡，没有带来信息
+    hint: 删掉过渡词，直接写那件事；真的重要就把它放到段首
+  - id: Z16
+    pattern: '赋能|抓手|底层逻辑|顶层设计|组合拳|降维打击|打通(?:了)?(?:全链路|壁垒)|一站式|颠覆性|划时代|里程碑式'
+    severity: high
+    category: 黑话
+    lang: zh
+    message: 黑话或营销腔
+    hint: 换成具体动作和对象：谁、做了什么、改变了哪个数字
+  - id: Z17
+    pattern: '闭环|全链路|颗粒度|护城河|范式(?:转移|转变)|心智|沉淀|对齐(?=颗粒度|一下|认知)|生态位|飞轮|链路打通|降本增效'
+    severity: medium
+    escalate_at: 3
+    escalate_to: high
+    category: 黑话
+    lang: zh
+    message: 行业黑话
+    hint: 有精确含义时保留并定义；否则换成具体说法
+  - id: Z18
+    pattern: '至关重要|不可或缺|举足轻重|重中之重|革命性|前所未有|极大地|显著(?:提升|提高|改善|增强)|大幅(?:提升|提高)|全方位|深刻(?:改变|影响)|无缝'
+    severity: medium
+    escalate_at: 3
+    escalate_to: high
+    category: 价值拔高
+    lang: zh
+    message: 空洞的程度词
+    hint: 给数字和对照（从多少到多少，在什么条件下）；给不出就降调
+  - id: Z19
+    pattern: '深度解析|一文(?:读懂|看懂|搞懂|讲透)|保姆级|干货(?:满满|分享)?|万字长文|超详细|终极指南|全面解读|硬核'
+    severity: medium
+    category: 标题套话
+    lang: zh
+    message: 标题或开头的流量套话
+    hint: 标题写具体对象和结论，例如「把 p95 从 29 分钟降到 16 分钟的三处改动」
+  - id: Z20
+    pattern: '真正的(?:问题|关键|难点|挑战|价值)(?:是|在于)|本质上(?:是|就是)|归根结底|说到底|从根本上(?:说|讲)'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 伪深刻
+    lang: zh
+    message: 伪深刻句式，暗示前面说的都是表象
+    hint: 直接写判断和依据；删掉「真正」「本质」
+  - id: Z21
+    pattern: '^(?:这(?:说明|意味着|表明|体现了|揭示了)|也就是说|换句话说|由此可见|可见|简单来说|一句话总结)'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 段尾复述
+    lang: zh
+    scope: para_end
+    message: 段尾用总结句复述上文
+    hint: 上文已讲清就删；有新推论就写成独立的一句判断
+  - id: Z22
+    pattern: '(?:答案|原因|关键|秘诀|结论|真相|核心)(?:很简单|是|就是|在于)?[:：]\s*\S'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 冒号揭晓
+    lang: zh
+    message: 「答案是：」式悬念揭晓
+    hint: 直接说答案
+  - id: Z23
+    pattern: '接住(?:了)?|(?<!缓存)击穿|托住|兜住|拉满|打穿|跑通(?=了?[^\x00-\x7f]{0,4}(?:逻辑|闭环|认知))|撬动|锚定'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 物理动词
+    lang: zh
+    message: 抽象事物配物理动词（翻译腔或网文腔）
+    hint: 换成准确动词：处理、承受、覆盖、支持
+  - id: Z24
+    pattern: '你会(?:发现|注意到|看到)|你可能会(?:问|想)|相信你|想象一下'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 替读者说话
+    lang: zh
+    message: 替读者设定反应或身份
+    hint: 删掉，直接给事实
+  - id: Z25
+    pattern: '尽管[^。\n]{0,30}(?:挑战|困难|问题)[^。\n]{0,20}(?:但|仍|依然)[^。\n]{0,20}(?:前景|未来|潜力|广阔|可期)|未来可期|(?:前景|潜力)(?:十分|非常)?(?:广阔|巨大)|让我们(?:拭目以待|共同期待)'
+    severity: high
+    category: 挑战展望模板
+    lang: zh
+    message: 「尽管有挑战，但前景广阔」模板收尾
+    hint: 写具体的未解决问题、下一步和判断条件
+  - id: Z26
+    pattern: '一(?P<a>[\u4e00-\u9fff])一(?P<b>[\u4e00-\u9fff])(?:地|的)'
+    severity: low
+    category: 节奏套路
+    lang: zh
+    message: 「一X一X地」凑节奏
+    hint: 通常可删
+  - id: Z27
+    pattern: '首先[，,][^。\n]*[。；]\s*其次[，,]|第一[，,][^。\n]*第二[，,][^。\n]*第三[，,]'
+    severity: low
+    category: 机械枚举
+    lang: zh
+    message: 行内机械枚举
+    hint: 改成列表，或用真实的因果关系连接
+  - id: Z28
+    pattern: '[\u4e00-\u9fff]{2,6}、[\u4e00-\u9fff]{2,6}、[\u4e00-\u9fff]{2,6}(?:的|地)?(?:[\u4e00-\u9fff]{2,4})?(?:体系|方案|能力|体验|平台|架构)'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 三连排比
+    lang: zh
+    message: 三个抽象形容词或名词并列
+    hint: 只留最有证据的一个，再给出依据
+  - id: Z29
+    pattern: '——|(?<=[\u4e00-\u9fff])\s?[—–]\s?(?=[\u4e00-\u9fff])'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: 破折号
+    lang: zh
+    message: 破折号（模型高频标点）
+    hint: 改成逗号、冒号、括号，或拆成两句
+  - id: Z30
+    pattern: '^(?:概述|简介|总结|小结|结语|写在最后|背景介绍|引言|前言|结论)$'
+    severity: low
+    category: 空标题
+    lang: zh
+    scope: heading
+    message: 标题没有信息量
+    hint: 标题写这一节的结论，例如「缓存命中率是瓶颈，不是 CPU」
+  - id: Z31
+    pattern: '(?:深入|全面|系统)(?:地)?(?:探讨|剖析|分析|理解)|(?:扮演|发挥)(?:着)?(?:重要|关键|核心)(?:的)?(?:角色|作用)|起到(?:了)?(?:至关重要|重要|关键)的作用'
+    severity: medium
+    escalate_at: 3
+    escalate_to: high
+    category: 空泛谓语
+    lang: zh
+    message: 「发挥关键作用」「深入探讨」类空泛谓语
+    hint: 写它具体做了什么：减少了哪一步、挡住了哪类错误
+  - id: Z32
+    pattern: '(?:各种|多种|诸多|众多|一系列|大量的?)(?:场景|挑战|问题|因素|方面|可能性)|在(?:很多|许多|某些)(?:情况|场景)下'
+    severity: low
+    escalate_at: 4
+    escalate_to: medium
+    category: 虚假范围
+    lang: zh
+    message: 模糊的范围词
+    hint: 列出具体是哪几种；列不出就删
+# ---------------------------------------------------------------- English
+  - id: E01
+    pattern: "\\b(?:I hope this helps|hope this helps|Let me know if you(?:'d like| have| need)|Feel free to (?:ask|reach out)|Certainly!|Great question|As an AI(?: language model)?|Here(?:'s| is) (?:a|an|the) (?:breakdown|overview|summary)|I'd be happy to)\\b"
+    flags: i
+    severity: high
+    category: chatbot
+    lang: en
+    message: chatbot residue
+    hint: delete; start and end with content
+  - id: E02
+    pattern: "\\b(?:as of my (?:last|knowledge) (?:update|cutoff)|based on (?:my|the) (?:training data|available information)|while (?:specific )?details are (?:limited|scarce))\\b"
+    flags: i
+    severity: high
+    category: knowledge disclaimer
+    lang: en
+    message: knowledge-cutoff disclaimer
+    hint: verify and state the fact with a date, or say what you could not verify
+  - id: E10
+    pattern: "\\b(?:it'?s|this is|that'?s|isn'?t|is) not (?:just|only|merely|simply|about)\\b[^.\\n]{1,60}?[,;—–-]\\s*(?:it'?s|but)\\b|\\bnot (?:just|only|merely) [^.\\n]{1,40}?,? but (?:also )?"
+    flags: i
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: negative parallelism
+    lang: en
+    message: '"not just X, but Y" / "It''s not X, it''s Y"'
+    hint: state Y directly; keep a contrast only if readers really believe X
+  - id: E11
+    pattern: "\\b(?:delve|delving|tapestry|testament to|underscores?|underscoring|showcas(?:e|es|ing)|vibrant|intricate|interplay|meticulous(?:ly)?|garner(?:ed|s)?|bolster(?:ed|s)?|pivotal|multifaceted|seamless(?:ly)?|realm|navigat(?:e|ing) the (?:complexities|landscape)|ever-evolving|game-chang(?:er|ing)|unlock(?:s|ing)? the (?:power|potential)|embark)\\b"
+    flags: i
+    severity: medium
+    escalate_at: 3
+    escalate_to: high
+    category: AI vocabulary
+    lang: en
+    message: high-frequency LLM vocabulary
+    hint: use the plain word, or say the concrete thing
+  - id: E12
+    pattern: "\\b(?:serves as|stands as|functions as|acts as) (?:a|an|the) (?:testament|reminder|cornerstone|catalyst|foundation|bridge)|\\bplays? (?:a|an) (?:pivotal|crucial|key|vital|significant) role\\b|\\b(?:crucial|vital|essential) (?:role|component|aspect)\\b"
+    flags: i
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: significance inflation
+    lang: en
+    message: inflated significance / copula avoidance
+    hint: say what it does ("X caches Y"), not what it "serves as"
+  - id: E13
+    pattern: "\\b(?:it'?s worth noting|it is worth noting|it'?s important to note|importantly,|notably,|needless to say|in today'?s (?:fast-paced|digital|ever)|in the (?:ever-evolving|rapidly evolving) (?:world|landscape))"
+    flags: i
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: filler transition
+    lang: en
+    message: filler transition or empty opener
+    hint: delete and state the point
+  - id: E14
+    pattern: "^(?:In (?:short|summary|conclusion)|Bottom line|The bottom line|TL;DR|Ultimately|Overall)[,:]"
+    flags: i
+    severity: low
+    escalate_at: 2
+    escalate_to: medium
+    category: summary closer
+    lang: en
+    scope: para_end
+    message: paragraph-end summary restating the paragraph
+    hint: delete if it repeats; promote to a heading-level claim if it is new
+  - id: E15
+    pattern: "\\b(?:experts (?:say|believe|agree)|studies (?:show|suggest)|research (?:shows|suggests)|many (?:people|developers|users) (?:believe|feel|say)|it is (?:widely|commonly) (?:believed|accepted))\\b"
+    flags: i
+    severity: medium
+    category: vague attribution
+    lang: en
+    message: vague attribution
+    hint: name the source and link it, or drop the claim
+  - id: E16
+    pattern: '^(?:Introduction|Overview|Conclusion|Summary|Final Thoughts|Key Takeaways|Wrapping Up|Background)$'
+    flags: i
+    severity: low
+    category: empty heading
+    lang: en
+    scope: heading
+    message: heading carries no claim
+    hint: write the section's conclusion as the heading
+  - id: E17
+    pattern: "\\b(?:the future (?:looks|is) bright|remains to be seen|only time will tell|exciting (?:times|future) ahead|despite (?:these |its )?challenges)\\b"
+    flags: i
+    severity: high
+    category: challenge/future template
+    lang: en
+    message: '"despite challenges, the future is bright" template'
+    hint: name the open problem, the next step, and how you will know
+  - id: E18
+    pattern: '—|\s--\s'
+    severity: low
+    escalate_at: 4
+    escalate_to: medium
+    category: em dash
+    lang: en
+    message: em dash (LLM-favoured punctuation)
+    hint: use a comma, colon, parentheses, or two sentences
+# ---------------------------------------------------------------- gpt-6.1-sol profile
+# Source: OpenAI "Using GPT-6" prompting guide slop list + Wikipedia "Signs of AI writing" (GPT-6 era).
+  - id: G01
+    pattern: "\\b(?:Bottom Line|In short|The simplest mental model is|The short version|Here'?s the thing)\\s*:"
+    flags: i
+    severity: high
+    category: GPT-6 signature
+    lang: en
+    profiles: [gpt-6.1-sol]
+    message: GPT-6 signature label-colon opener
+    hint: drop the label; write the sentence
+  - id: G02
+    pattern: "\\b(?:genuinely|foster(?:s|ing)?|leverag(?:e|es|ing)|dependable|quietly|steady|multifaceted|prioritiz(?:e|es|ing)|echo(?:es|ed)|universally)\\b"
+    flags: i
+    severity: low
+    escalate_at: 4
+    escalate_to: medium
+    category: GPT-6 vocabulary
+    lang: en
+    profiles: [gpt-6.1-sol]
+    message: GPT-6-era favoured word
+    hint: one is fine; a cluster is a tell. Use the plain verb
+  - id: G03
+    pattern: "\\b(?:This|It) (?:isn'?t|is not) about [^.\\n]{1,40}\\.\\s*(?:It'?s|It is) about\\b|\\b(?:should be treated as [^.\\n]{1,40} rather than|should not be confused with|does not (?:establish|mean|imply) that)\\b"
+    flags: i
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: corrective framing
+    lang: en
+    profiles: [gpt-6.1-sol]
+    message: corrective framing ("This isn't about X. It's about Y.")
+    hint: state the claim; correct a misreading only if a reader actually holds it
+  - id: G04
+    pattern: '[^.?!\n]{3,60}\?\s+(?:[A-Z][^.?!\n]{0,30}\.|Simple|Easy|Because)'
+    severity: low
+    escalate_at: 3
+    escalate_to: medium
+    category: self Q&A
+    lang: en
+    profiles: [gpt-6.1-sol]
+    message: '"Question? Answer." rhythm'
+    hint: state the answer as a sentence
+  - id: G05
+    pattern: '一句话[:：]|简而言之[:：]|最简单的(?:心智模型|理解方式|说法)(?:是|就是)?[:：]?|核心结论[:：]|底线是[:：]|一言以蔽之'
+    severity: high
+    category: GPT-6 标签冒号
+    lang: zh
+    profiles: [gpt-6.1-sol]
+    message: GPT-6 式「一句话：」「最简单的心智模型是：」
+    hint: 删掉标签，直接写那句话
+  - id: G06
+    pattern: '(?:其余|其他)(?:部分|内容|逻辑)?(?:均|都)?保持不变|(?:我|这里)(?:不会|没有)(?:改动|修改|涉及)|不在本(?:次|文)(?:讨论|范围)(?:之内|内)?'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 声明没做什么
+    lang: zh
+    profiles: [gpt-6.1-sol]
+    message: 声明自己不做什么、什么保持不变
+    hint: 文档只写做了什么；范围外的事放进「非目标」一节，而且只放读者会误以为在范围内的
+  - id: G07
+    pattern: '应(?:该|当)?(?:被)?(?:视为|看作|当作)[^。\n]{1,30}而(?:不是|非)|不应(?:被)?(?:混淆|等同)(?:为|于)|并不(?:意味着|代表|等于)'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 纠偏框架
+    lang: zh
+    profiles: [gpt-6.1-sol]
+    message: 「应视为…而非…」「并不意味着」纠偏框架
+    hint: 直接陈述立场
+  - id: G08
+    pattern: '(?:真正|确实|切实|稳稳|默默|悄悄)(?:地)?(?=[\u4e00-\u9fff]{2})'
+    severity: low
+    escalate_at: 4
+    escalate_to: medium
+    category: 副词堆叠
+    lang: zh
+    profiles: [gpt-6.1-sol]
+    message: GPT 风格的强调副词（对应 genuinely / quietly / steady）
+    hint: 删掉副词，句子通常更有力
+# ---------------------------------------------------------------- deepseek-flash profile
+# Sources: user reports of DeepSeek V4 Flash verbosity and visible self-correction (low confidence);
+# Chinese heuristics below are unverified against a corpus. Calibrate with --ngrams on your own outputs.
+  - id: D01
+    pattern: '^(?:嗯[，,]|等等[，,]|不对[，,]|让我(?:再)?(?:想想|确认一下|重新(?:考虑|思考))|更正一下|我再检查一下|好的[，,]我(?:来|明白))'
+    severity: high
+    category: 思考外泄
+    lang: zh
+    profiles: [deepseek-flash]
+    message: 推理过程泄漏到正文
+    hint: 删掉；只保留最终结论
+  - id: D02
+    pattern: "^(?:Hmm|Wait|Actually, wait|Let me (?:reconsider|re-?check|think)|Okay, so|Alright, let'?s)\\b"
+    flags: i
+    severity: high
+    category: thinking leak
+    lang: en
+    profiles: [deepseek-flash]
+    message: reasoning narration leaked into output
+    hint: delete; keep only the conclusion
+  - id: D03
+    pattern: '说白了|一句话总结|核心逻辑(?:是|就是|在于)|简单理解(?:就是|为)|通俗(?:地)?(?:讲|来说)|划重点|敲黑板'
+    severity: medium
+    escalate_at: 2
+    escalate_to: high
+    category: 口播腔
+    lang: zh
+    profiles: [deepseek-flash]
+    message: 口播式强调（未经语料验证的启发式）
+    hint: 删掉提示语，直接写
+  - id: D04
+    pattern: '(?:好的|当然|没问题)[，,！!]\s*(?:下面|以下|我)|根据你的(?:要求|需求)[，,]'
+    severity: high
+    category: 应答前缀
+    lang: zh
+    profiles: [deepseek-flash]
+    message: 应答前缀残留
+    hint: 删掉
+  - id: D05
+    pattern: '(?<=[。，；,;！？!?])\s*\*\*[^*\n]{1,20}\*\*\s*[:：]'
+    severity: low
+    escalate_at: 6
+    escalate_to: medium
+    category: 加粗标签
+    lang: any
+    profiles: [deepseek-flash, gpt-6.1-sol]
+    message: 段落中间插入「**标签**：」
+    hint: 段落里用完整句子；只有参考型列表才用标签
+# ---------------------------------------------------------------- structural
+  - id: S01
+    kind: structural
+    check: sentence_uniformity
+    min_sentences: 10
+    threshold: 0.32
+    severity: medium
+    category: 句长均匀
+    message: 句长过于均匀（变异系数低），读起来像机器节拍
+    hint: 让短句承担判断，长句承担条件和因果；不要为变化而变化
+  - id: S02
+    kind: structural
+    check: paragraph_uniformity
+    min_paragraphs: 6
+    threshold: 0.22
+    severity: low
+    category: 段长均匀
+    message: 段落长度过于一致
+    hint: 按内容分段：一个论点一段，长短随之
+  - id: S03
+    kind: structural
+    check: bold_label_list
+    min_run: 4
+    severity: low
+    category: 标签列表
+    message: 连续「**标签**：说明」列表
+    hint: 推理型内容写成段落；真是参考信息就做成表格
+  - id: S04
+    kind: structural
+    check: emoji_decor
+    severity: high
+    category: emoji 装饰
+    message: 标题或列表项以 emoji 开头
+    hint: 删掉 emoji
+  - id: S05
+    kind: structural
+    check: one_line_paragraphs
+    min_paragraphs: 6
+    threshold: 0.6
+    severity: low
+    category: 单句成段
+    message: 大量单句成段，制造节奏感
+    hint: 合并承接紧密的句子；单句段只留给真正的转折
+  - id: S06
+    kind: structural
+    check: repeated_openers
+    run: 3
+    severity: low
+    category: 同构开头
+    message: 连续三句同一开头
+    hint: 合并或改写成列表
+  - id: S07
+    kind: structural
+    check: heading_density
+    min_headings: 6
+    threshold: 10
+    severity: low
+    category: 标题过密
+    message: 标题过密，文章被切成提纲
+    hint: 合并小节；每节至少要有一个完整论证
+  - id: S08
+    kind: structural
+    check: title_case_heading
+    severity: low
+    category: Title Case
+    lang: en
+    message: English heading in Title Case
+    hint: use sentence case (Google developer style)

@@ -1,0 +1,351 @@
+{
+  "metadata": {
+    "skill_name": "write-docs",
+    "skill_path": "skills/write-docs",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-11-04T17:08:58Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 286.458,
+        "tokens": 7306,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The article reports 300 messages, 20 work requests, and 5 runs.",
+          "passed": true,
+          "evidence": "outputs/article.md:43 states the fixed load was 300 messages and 20 work requests with 5 runs; the same figures are also summarized in :7 and :48."
+        },
+        {
+          "text": "The article preserves all supplied performance and cache measurements.",
+          "passed": true,
+          "evidence": "outputs/article.md:5, :31, :37, :43, :48, and :50-52 preserve the 2.5-second batching window, average batch size 2.8, 2.5-to-3.9-second call time, 1.6 seconds per request, cache tokens 2323万-to-3177万, new-scheme p50 12.4 minutes, new-scheme p95 15.7 minutes, and control p95 29.5 minutes."
+        },
+        {
+          "text": "The article explains the naive approach and Router/Worker tradeoffs.",
+          "passed": true,
+          "evidence": "outputs/article.md:9-13 explains that the naive approach leaves tracking pressure with one person and reaches its limit at 3-5 sessions. outputs/article.md:15-33 explains batching and the tradeoff between a slower single call (2.5 to 3.9 seconds) and lower per-request amortization (1.6 seconds), including low-load waiting."
+        },
+        {
+          "text": "The article preserves low-load waiting and prompt-prefix stability as negative results, including the undecided low-load policy.",
+          "passed": true,
+          "evidence": "outputs/article.md:7, :33, :39, :65-66, and :70-73 explicitly state the extra 2.5-second low-load wait, the dependency on stable prompt prefixes, and that automatic shortening of the low-load window has not been decided."
+        },
+        {
+          "text": "The article limits conclusions to the supplied workload and identifies unknowns.",
+          "passed": true,
+          "evidence": "outputs/article.md:3, :41-54, and :74-78 limit the result to 300 messages, 20 work requests, and 5 runs; explicitly reject extrapolation to other workloads; and identify missing timing definitions, raw run values, variance, cache metrics, ablations, and module details."
+        },
+        {
+          "text": "The article does not promote unsupplied Router/Worker responsibilities or implementation details to confirmed facts.",
+          "passed": true,
+          "evidence": "outputs/article.md:17-29 labels only the window-batching relationship as confirmed and explicitly says Router/Worker responsibilities, communication, queue structure, failure handling, and scheduling rules were not provided. outputs/article.md:76 repeats this boundary."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 236.571,
+        "tokens": 8276,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The document has separate sections for POST /v1/orders and GET /v1/orders.",
+          "passed": true,
+          "evidence": "api.md contains distinct headings at lines 63 and 145: `POST /v1/orders` and `GET /v1/orders`, with separate request, response, and error subsections."
+        },
+        {
+          "text": "The POST section preserves the supplied fields, constraints, 201 status, response fields, and 24-hour idempotency retention.",
+          "passed": true,
+          "evidence": "The POST section lists only `user_id` and `amount` (lines 75-85), preserves the `usr_` plus 16 base62 constraint and amount minimum 1, states `201` success and exactly `order_id` and `status` response fields (lines 103-125), and documents `Idempotency-Key` retention for 24 hours (lines 67-73 and 139-143)."
+        },
+        {
+          "text": "The GET section preserves cursor pagination, limit 20/100 bounds, and created_at DESC without inventing a response schema.",
+          "passed": true,
+          "evidence": "The GET section documents cursor pagination, `limit` default `20`, maximum `100`, and `created_at DESC` (lines 156-164). It explicitly states that the successful status, response fields, response body structure, and example were not provided and does not add a response schema (lines 176-178)."
+        },
+        {
+          "text": "The document covers 400, 409, 429, Retry-After, and RFC 9457 Problem Details.",
+          "passed": true,
+          "evidence": "The document gives endpoint error tables for 400, 409, and 429 (lines 128-137 and 180-192), states that 429 responses return `Retry-After` (lines 184-187 and 198-205), and explains RFC 9457 Problem Details with a clearly qualified example (lines 45-61)."
+        },
+        {
+          "text": "The document distinguishes standards guidance from service facts and does not assert an unprovided application/problem+json media type or concrete error-field behavior.",
+          "passed": true,
+          "evidence": "It identifies RFC 9457 standard members separately from service-specific values, says the service's field values and whether all fields are returned were not provided (lines 45-49), and explicitly says it does not assert `application/problem+json` (line 49). The example labels angle-bracket values as placeholders rather than service return values (lines 51-61)."
+        },
+        {
+          "text": "Examples use fake or environment-variable credentials, and missing information is explicitly listed.",
+          "passed": true,
+          "evidence": "Authentication examples use `Bearer $TOKEN`, and the document identifies it as an environment-variable placeholder rather than a real credential (lines 16-22). The example IDs, key, cursor, and response values are identified as fake or placeholders (lines 101, 115, 123-125, and 174). A dedicated missing-information section enumerates unspecified media types, error fields, GET schema, cursor behavior, limits, rate limits, retry values, credential lifecycle, and other details (lines 207-224)."
+        }
+      ],
+      "notes": [
+        "The supplied material did not define the GET success response schema, concrete error fields or values, error media type, or rate-limit parameters; the executor reported these limitations and the document marks them as not provided."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 225.515,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The first operational section prioritizes mitigation before diagnosis and states the P1 alert, impact, environment, and version.",
+          "passed": true,
+          "evidence": "runbook.md:19-21 labels section 1 as '先止血' and says to handle mitigation before diagnosis; runbook.md:3-15 states the P1 alert condition, impact '订单确认延迟', environment 'prod-cn1', and version 'orders-api v2.8.0'. Section 2 is explicitly titled '止血后再诊断' at runbook.md:31."
+        },
+        {
+          "text": "Both supplied operational commands are preserved exactly, with rollback conditional on release relevance.",
+          "passed": true,
+          "evidence": "runbook.md:26 preserves `kubectl -n orders rollout undo deploy/orders-api --to-revision=41` exactly and makes it conditional on confirming that the latest release is related. runbook.md:27 preserves `opsctl flag set orders.async_confirmation false --env prod-cn1` exactly. The supplied commands also appear in the prompt in eval_metadata.json:4 with the same text."
+        },
+        {
+          "text": "The Runbook names both metrics and preserves the 15-minute escalation interval and duty-group target.",
+          "passed": true,
+          "evidence": "runbook.md:35-40 names and specifies observation of `queue_lag` and `consumer_error_rate`. runbook.md:61-71 requires re-observation every 15 minutes and escalation to '订单值班群' when the alert remains unresolved."
+        },
+        {
+          "text": "Each production action has a precondition, expected result, and rollback or recovery limitation; no command is claimed to have run.",
+          "passed": true,
+          "evidence": "The action table at runbook.md:23-27 has columns for conditions/preconditions, operation, command, expected result, and rollback/recovery limitation. The rollback row requires release relevance confirmation and notes missing recovery guidance; the feature-flag row requires that the action be executable and notes that no reopen command or recovery condition was supplied. runbook.md:17 and :26-27 explicitly state that no commands were executed."
+        },
+        {
+          "text": "Verification avoids inventing a consumer_error_rate threshold and includes a final record with unknown fields left for completion.",
+          "passed": true,
+          "evidence": "runbook.md:37 and :59 explicitly state that no normal value or fixed recovery threshold for `consumer_error_rate` was supplied and that no numeric threshold is invented. The final verification record at runbook.md:73-86 leaves date, verifier, both metrics, release relevance, actions, result, and recovery record as '待补' where unknown."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 348.917,
+        "tokens": 3297,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The article reports 300 messages, 20 work requests, and 5 runs.",
+          "passed": true,
+          "evidence": "article.md 明确写出“固定负载包含 300 条消息和 20 个工作请求，共运行 5 次”（第 54 行），结尾再次列出相同口径（第 82 行）。"
+        },
+        {
+          "text": "The article preserves all supplied performance and cache measurements.",
+          "passed": true,
+          "evidence": "article.md 保留了 2.5 秒合批窗口（第 5、28、36 行）、平均每批 2.8 个请求（第 7、34、40、59 行）、单次模型调用从 2.5 秒变为 3.9 秒（第 7、40、58-59 行）、请求级摊销 1.6 秒（第 7、40、59 行）、共享前缀缓存 token 从 2323 万到 3177 万（第 7、48-50、58-59 行）、新方案 p50 12.4 分钟和 p95 15.7 分钟以及对照组 p95 29.5 分钟（第 5、13、56-59 行）。"
+        },
+        {
+          "text": "The article explains the naive approach and Router/Worker tradeoffs.",
+          "passed": true,
+          "evidence": "第 9-15 行将朴素路径限定为不引入新增调度层和合批行为的对照路径，并解释单次调用时间与请求级摊销的不同；第 17-36 行说明 Router/Worker 的已知行为边界、2.5 秒窗口以及窗口长度与低负载等待、批量机会之间的权衡；第 38-44 行进一步说明合批降低请求级摊销但增加单次调用时间。"
+        },
+        {
+          "text": "The article preserves low-load waiting and prompt-prefix stability as negative results, including the undecided low-load policy.",
+          "passed": true,
+          "evidence": "第 44 行明确写出低负载会额外等待 2.5 秒，且“当前还没有决定如何自动缩短低负载窗口”；第 46-50 行保留缓存依赖 prompt 前缀稳定这一条件，并将前缀变化列为已知风险条件；第 77-78 行把这两项列为开放问题。"
+        },
+        {
+          "text": "The article limits conclusions to the supplied workload and identifies unknowns.",
+          "passed": true,
+          "evidence": "开头声明数字只适用于给定固定负载，不外推到更大规模或其他负载（第 3 行）；第 52-65 行说明缺少硬件、模型版本、并发设置、p50/p95 起止时间、运行方差、token 价格和金额成本；第 67-73 行再次限制数字的可迁移范围；第 75-80 行列出低负载策略、缓存稳定边界、模块贡献和波动范围等开放问题。"
+        },
+        {
+          "text": "The article does not promote unsupplied Router/Worker responsibilities or implementation details to confirmed facts.",
+          "passed": true,
+          "evidence": "第 19 行明确说明材料没有定义 Router 和 Worker 各自职责，因此不把路由规则、Worker 生命周期、队列实现或并发模型写成事实；第 21-34 行把图标注为“行为边界图，不是 Router 与 Worker 的内部职责图”；第 63、79 行也明确指出无法归因到具体模块。"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 307.497,
+        "tokens": 6290,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The document has separate sections for POST /v1/orders and GET /v1/orders.",
+          "passed": true,
+          "evidence": "输出在第 53 行以独立的 `POST /v1/orders` 标题开始，在第 108 行以独立的 `GET /v1/orders` 标题开始；两节分别包含请求、响应或查询参数说明。"
+        },
+        {
+          "text": "The POST section preserves the supplied fields, constraints, 201 status, response fields, and 24-hour idempotency retention.",
+          "passed": true,
+          "evidence": "POST 节第 65-70 行明确写明请求体只有 `user_id` 和 `amount`，并保留 `usr_` 加 16 位 base62、整数分且最小值为 1 的约束；第 59 行写明 `Idempotency-Key` 保留 24 小时；第 88 行写明成功状态码为 201 且响应字段只有 `order_id` 和 `status`。"
+        },
+        {
+          "text": "The GET section preserves cursor pagination, limit 20/100 bounds, and created_at DESC without inventing a response schema.",
+          "passed": true,
+          "evidence": "GET 节第 114 行写明按 `created_at DESC` 排序，第 120-121 行写明支持 `cursor` 游标分页、`limit` 默认 20 且最大 100；第 139-141 行明确说明成功响应字段、类型和示例均未提供，因此不推测响应结构。"
+        },
+        {
+          "text": "The document covers 400, 409, 429, Retry-After, and RFC 9457 Problem Details.",
+          "passed": true,
+          "evidence": "第 35 行开始说明 RFC 9457 Problem Details；第 147-157 行的错误码表覆盖 400 参数校验失败、409 同一幂等键对应不同请求体、429 超过限流，并在 429 行记录返回 `Retry-After`。"
+        },
+        {
+          "text": "The document distinguishes standards guidance from service facts and does not assert an unprovided application/problem+json media type or concrete error-field behavior.",
+          "passed": true,
+          "evidence": "第 37-39 行明确区分 RFC 9457 的规范要求与当前服务行为，并明确说不把 `application/problem+json` 写成已确认的服务行为；第 41-51 行将 JSON 标为规范示例并说明 `type`、`title`、`detail`、`instance` 等当前服务字段未提供；第 149 行再次说明错误字段未提供。"
+        },
+        {
+          "text": "Examples use fake or environment-variable credentials, and missing information is explicitly listed.",
+          "passed": true,
+          "evidence": "鉴权示例使用环境变量 `$TOKEN`，第 19 行说明不包含真实凭证；请求示例使用假用户 ID `usr_8fK2mQ0aZx91LpT3`、假幂等键和占位订单值。第 159-171 行集中列出媒体类型、token 生命周期、响应结构、游标格式、幂等行为、错误字段和限流细节等未提供信息。"
+        }
+      ],
+      "notes": [
+        "未找到 user_notes.md；执行转录说明未执行生产 API 命令，因此接口运行时行为未验证。"
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 229.066,
+        "tokens": 4621,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The first operational section prioritizes mitigation before diagnosis and states the P1 alert, impact, environment, and version.",
+          "passed": true,
+          "evidence": "outputs/runbook.md 第 1-11 行写明告警为 `orders.queue_lag > 300s`、影响为订单确认延迟、紧急程度为 P1、环境为 `prod-cn1`、当前 `orders-api` 版本为 `v2.8.0`。第一个操作章节是第 1 节“先止血”（第 13 行），第 2 节“诊断”到第 28 行才出现。"
+        },
+        {
+          "text": "Both supplied operational commands are preserved exactly, with rollback conditional on release relevance.",
+          "passed": true,
+          "evidence": "outputs/runbook.md 第 19 行逐字包含 `kubectl -n orders rollout undo deploy/orders-api --to-revision=41`，第 20 行逐字包含 `opsctl flag set orders.async_confirmation false --env prod-cn1`。第 19 行要求先确认最近一次发布与告警相关并具备权限后才执行回滚；第 20 行也把关闭开关限定为回滚后仍需该动作或处置判断明确需要。"
+        },
+        {
+          "text": "The Runbook names both metrics and preserves the 15-minute escalation interval and duty-group target.",
+          "passed": true,
+          "evidence": "outputs/runbook.md 第 19-20、24、30-33、39-42 行同时列出并要求观察 `queue_lag` 和 `consumer_error_rate`。第 8、26、42、44-48 行保留每 15 分钟仍未缓解的升级条件，并指定升级给订单值班群。"
+        },
+        {
+          "text": "Each production action has a precondition, expected result, and rollback or recovery limitation; no command is claimed to have run.",
+          "passed": true,
+          "evidence": "outputs/runbook.md 第 17-20 行的处置表分别为回滚和关闭异步确认提供了“情况与前置条件”“预期结果”和“回退或恢复限制”。回滚要求确认发布关联并说明未提供其他 revision 的命令；开关变更要求授权并说明未提供恢复命令。第 11 行明确说明本文不表示任何生产命令已经执行，transcript.md 第 24-26 行也明确报告未执行生产命令。"
+        },
+        {
+          "text": "Verification avoids inventing a consumer_error_rate threshold and includes a final record with unknown fields left for completion.",
+          "passed": true,
+          "evidence": "outputs/runbook.md 第 24、31、40 行明确说明材料没有提供 `consumer_error_rate` 的阈值，不自行补充数值标准。第 50-64 行提供“最后验证记录”，将验证时间、人员、发布关联、动作时间、两项指标值、告警状态和恢复状态等未知字段保留为“待补”或“待确认”。"
+        }
+      ],
+      "notes": [
+        "材料未提供 consumer_error_rate 阈值、异步确认开关恢复命令、值班群具体名称，以及最近一次发布是否相关。",
+        "静态扫描 PASS 只有 transcript 中的执行报告，没有独立扫描输出可复核。",
+        "未提供开关恢复命令，因此 Runbook 保留恢复限制并要求记录后升级，而未补造命令。"
+      ]
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 1,
+        "stddev": 0,
+        "min": 1,
+        "max": 1
+      },
+      "time_seconds": {
+        "mean": 249.5147,
+        "stddev": 32.4679,
+        "min": 225.515,
+        "max": 286.458
+      },
+      "tokens": {
+        "mean": 5194,
+        "stddev": 4524.2073,
+        "min": 0,
+        "max": 8276
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1,
+        "stddev": 0,
+        "min": 1,
+        "max": 1
+      },
+      "time_seconds": {
+        "mean": 295.16,
+        "stddev": 60.8705,
+        "min": 229.066,
+        "max": 348.917
+      },
+      "tokens": {
+        "mean": 4736,
+        "stddev": 1499.8103,
+        "min": 3297,
+        "max": 6290
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "-45.6",
+      "tokens": "+458"
+    }
+  },
+  "notes": []
+}

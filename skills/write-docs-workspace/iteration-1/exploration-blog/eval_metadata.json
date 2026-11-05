@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "exploration-blog",
+  "prompt": "请写一篇面向团队外工程师的中文工程博客，解释我们给内部 Agent 编排器增加 Router/Worker 调度层的设计。只使用下面的事实，不补充未提供的实现细节。背景：一个人同时跟踪 3–5 个会话就接近上限；固定负载为 300 条消息、20 个工作请求、运行 5 次；调度层把请求按 2.5 秒窗口合批，平均每批 2.8 个请求，单次模型调用从 2.5 秒变成 3.9 秒，但摊到每个请求是 1.6 秒；共享前缀缓存 token 从 2323 万增加到 3177 万；新方案 p50 为 12.4 分钟、p95 为 15.7 分钟，对照组 p95 为 29.5 分钟；低负载时合批窗口会额外等待 2.5 秒，缓存依赖提示词前缀稳定；当前还没决定如何自动缩短低负载窗口。文章需要先讲朴素方案为什么不够，再讲模块和权衡，给出实验口径、成本、负面结果、局限和开放问题。不要把这些数字扩展成没有依据的普遍结论。输出 Markdown 成稿。",
+  "assertions": [
+    "The article reports 300 messages, 20 work requests, and 5 runs.",
+    "The article preserves all supplied performance and cache measurements.",
+    "The article explains the naive approach and Router/Worker tradeoffs.",
+    "The article preserves low-load waiting and prompt-prefix stability as negative results, including the undecided low-load policy.",
+    "The article limits conclusions to the supplied workload and identifies unknowns.",
+    "The article does not promote unsupplied Router/Worker responsibilities or implementation details to confirmed facts."
+  ]
+}

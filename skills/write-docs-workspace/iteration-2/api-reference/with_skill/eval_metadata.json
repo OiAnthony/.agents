@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "api-reference",
+  "prompt": "请写一份可查阅、可复制的中文 API 参考文档，只使用给定事实，不要猜测未提供的字段。API：Base URL 为 https://api.example.com；鉴权是 Authorization: Bearer $TOKEN。POST /v1/orders 创建订单：请求体只有 user_id（必填，格式 usr_ 加 16 位 base62）、amount（必填，整数分，最小值 1）；支持 Idempotency-Key，保留 24 小时；成功返回 201，响应字段只有 order_id 和 status。GET /v1/orders 查询订单：支持 cursor 分页，limit 默认 20、最大 100，排序按 created_at DESC。已知错误：400 参数校验失败、409 同一幂等键对应不同请求体、429 超过限流并返回 Retry-After。请使用 RFC 9457 Problem Details 表达错误，并明确哪些信息没有提供。示例中的 token 和个人数据必须是假值。输出 Markdown API 文档。",
+  "assertions": [
+    "The document has separate sections for POST /v1/orders and GET /v1/orders.",
+    "The POST section preserves the supplied fields, constraints, 201 status, response fields, and 24-hour idempotency retention.",
+    "The GET section preserves cursor pagination, limit 20/100 bounds, and created_at DESC without inventing a response schema.",
+    "The document covers 400, 409, 429, Retry-After, and RFC 9457 Problem Details.",
+    "The document distinguishes standards guidance from service facts and does not assert an unprovided application/problem+json media type or concrete error-field behavior.",
+    "Examples use fake or environment-variable credentials, and missing information is explicitly listed."
+  ]
+}

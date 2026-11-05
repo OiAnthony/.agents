@@ -1,0 +1,84 @@
+{
+  "expectations": [
+    {
+      "text": "The first operational section prioritizes mitigation before diagnosis and states the P1 alert, impact, environment, and version.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 1-11 行写明告警为 `orders.queue_lag > 300s`、影响为订单确认延迟、紧急程度为 P1、环境为 `prod-cn1`、版本为 `v2.8.0`。第一个编号操作章节是第 1 节“先止血”（第 20 行）；“诊断”到第 44 行才出现。"
+    },
+    {
+      "text": "Both supplied operational commands are preserved exactly, with rollback conditional on release relevance.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 26 行逐字包含 `kubectl -n orders rollout undo deploy/orders-api --to-revision=41`，第 27 行逐字包含 `opsctl flag set orders.async_confirmation false --env prod-cn1`。第 22 行要求只有确认最近一次发布与告警相关后才执行回滚；第 26 行的操作条件也明确为已确认相关。"
+    },
+    {
+      "text": "The Runbook names both metrics and preserves the 15-minute escalation interval and duty-group target.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 同时列出 `orders.queue_lag` 和 `consumer_error_rate`，例如第 26-27 行、第 31-38 行。第 9、42、59 行均保留每隔 15 分钟仍未缓解的升级条件，并指定升级给订单值班群。"
+    },
+    {
+      "text": "Each production action has a precondition, expected result, and rollback or recovery limitation; no command is claimed to have run.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 24-27 行的表格分别为回滚和关闭异步确认动作提供了条件、预期结果和回退/恢复说明：回滚要求发布关联性已确认、预期回到 revision 41，并说明撤销命令未提供；关闭开关要求仍需暂时关闭异步确认、预期设置为 false，并说明恢复命令未提供。transcript.md 第 12 行明确说“未执行提示词中的任何命令”，Runbook 第 83 行也注明未执行命令。"
+    },
+    {
+      "text": "Verification avoids inventing a consumer_error_rate threshold and includes a final record with unknown fields left for completion.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 38、79 行明确说明材料未提供 `consumer_error_rate` 的恢复阈值，不能补充或自定义数值标准。第 81-95 行提供“最后验证记录”，并将验证状态、时间、执行人、发布关联性、动作结果和三个结果字段保留为“待补”。"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": null,
+    "total_steps": 9,
+    "files_created": [],
+    "errors_encountered": 0,
+    "output_chars": 2526,
+    "transcript_chars": 192
+  },
+  "timing": {
+    "duration_ms": 226681,
+    "executor_duration_seconds": 226.681,
+    "total_duration_seconds": 226.681
+  },
+  "claims": [
+    {
+      "claim": "已生成 Markdown Runbook，输出文件为 outputs/runbook.md。",
+      "type": "process",
+      "verified": true,
+      "evidence": "transcript.md 第 8-10 行报告了生成结果和确切路径；outputs/runbook.md 实际存在，并包含完整的 Markdown Runbook。"
+    },
+    {
+      "claim": "执行过程中没有运行提示词中的任何命令。",
+      "type": "process",
+      "verified": true,
+      "evidence": "transcript.md 第 12 行明确声明未执行提示词中的任何命令；Runbook 第 83 行也记录本次仅基于给定材料编写、未执行命令。"
+    },
+    {
+      "claim": "Runbook 适用于环境 prod-cn1 和 orders-api v2.8.0。",
+      "type": "factual",
+      "verified": true,
+      "evidence": "outputs/runbook.md 第 11 行写明适用范围为 `prod-cn1` 和 `orders-api` `v2.8.0`；第 86-87 行的最后验证记录重复列出这两个值。"
+    },
+    {
+      "claim": "材料没有提供 consumer_error_rate 的恢复阈值，因此 Runbook 不应自行补造数值阈值。",
+      "type": "quality",
+      "verified": true,
+      "evidence": "outputs/runbook.md 第 38、52、79 行都说明该阈值未提供，并明确禁止补充或用自定义阈值替代。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "五项断言均覆盖了给定任务的关键结果，并由 Runbook 内容或执行记录提供了具体证据；未发现需要提出的明确评测缺口。"
+  }
+}

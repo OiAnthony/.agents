@@ -1,0 +1,109 @@
+{
+  "expectations": [
+    {
+      "text": "The first operational section prioritizes mitigation before diagnosis and states the P1 alert, impact, environment, and version.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 1-11 行写明告警为 `orders.queue_lag > 300s`、影响为订单确认延迟、紧急程度为 P1、环境为 `prod-cn1`、当前 `orders-api` 版本为 `v2.8.0`。第一个操作章节是第 1 节“先止血”（第 13 行），第 2 节“诊断”到第 28 行才出现。"
+    },
+    {
+      "text": "Both supplied operational commands are preserved exactly, with rollback conditional on release relevance.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 19 行逐字包含 `kubectl -n orders rollout undo deploy/orders-api --to-revision=41`，第 20 行逐字包含 `opsctl flag set orders.async_confirmation false --env prod-cn1`。第 19 行要求先确认最近一次发布与告警相关并具备权限后才执行回滚；第 20 行也把关闭开关限定为回滚后仍需该动作或处置判断明确需要。"
+    },
+    {
+      "text": "The Runbook names both metrics and preserves the 15-minute escalation interval and duty-group target.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 19-20、24、30-33、39-42 行同时列出并要求观察 `queue_lag` 和 `consumer_error_rate`。第 8、26、42、44-48 行保留每 15 分钟仍未缓解的升级条件，并指定升级给订单值班群。"
+    },
+    {
+      "text": "Each production action has a precondition, expected result, and rollback or recovery limitation; no command is claimed to have run.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 17-20 行的处置表分别为回滚和关闭异步确认提供了“情况与前置条件”“预期结果”和“回退或恢复限制”。回滚要求确认发布关联并说明未提供其他 revision 的命令；开关变更要求授权并说明未提供恢复命令。第 11 行明确说明本文不表示任何生产命令已经执行，transcript.md 第 24-26 行也明确报告未执行生产命令。"
+    },
+    {
+      "text": "Verification avoids inventing a consumer_error_rate threshold and includes a final record with unknown fields left for completion.",
+      "passed": true,
+      "evidence": "outputs/runbook.md 第 24、31、40 行明确说明材料没有提供 `consumer_error_rate` 的阈值，不自行补充数值标准。第 50-64 行提供“最后验证记录”，将验证时间、人员、发布关联、动作时间、两项指标值、告警状态和恢复状态等未知字段保留为“待补”或“待确认”。"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 4621,
+    "transcript_chars": 969,
+    "input_tokens": 31532,
+    "output_tokens": 4115,
+    "total_cost_usd": 0.332663,
+    "num_turns": 10,
+    "exit_code": 0,
+    "errors_encountered": 0,
+    "tool_calls": "未提供 metrics.json，因此没有细粒度工具调用计数",
+    "source": "executor.json"
+  },
+  "timing": {
+    "executor_duration_seconds": 229.066,
+    "total_duration_seconds": 229.066,
+    "duration_ms": 229066
+  },
+  "claims": [
+    {
+      "claim": "已生成 Markdown Runbook，输出文件为 outputs/runbook.md。",
+      "type": "process",
+      "verified": true,
+      "evidence": "transcript.md 第 8-10 行报告了生成结果和确切路径；outputs/runbook.md 实际存在，并包含完整的 Markdown Runbook。"
+    },
+    {
+      "claim": "执行过程中没有运行提示词中的生产命令。",
+      "type": "process",
+      "verified": true,
+      "evidence": "transcript.md 第 24-26 行明确声明未执行任何生产命令；outputs/runbook.md 第 11 行也说明本文不表示任何生产命令已经执行。"
+    },
+    {
+      "claim": "提示词提供的回滚命令和异步确认开关命令在 Runbook 中保持原文。",
+      "type": "factual",
+      "verified": true,
+      "evidence": "outputs/runbook.md 第 19-20 行的命令字符串与 eval_metadata.json 第 4 行提示词中的两条命令逐字一致。"
+    },
+    {
+      "claim": "材料没有提供 consumer_error_rate 阈值、异步确认开关恢复命令、值班群具体名称，且最近一次发布是否相关尚未确认。",
+      "type": "factual",
+      "verified": true,
+      "evidence": "eval_metadata.json 第 4 行未提供这些细节；outputs/runbook.md 第 9、20、24、31、48、56 行明确将这些内容标为限制、未提供或待确认，没有自行补造。"
+    },
+    {
+      "claim": "已通过 AI 写作静态扫描，且无 HIGH、MEDIUM 或 LOW 命中。",
+      "type": "process",
+      "verified": false,
+      "evidence": "transcript.md 第 24 行作出该报告，但提供的文件中没有扫描命令、扫描结果文件或其他独立证据，因此只能确认报告存在，不能独立验证扫描确实运行或结果准确。"
+    },
+    {
+      "claim": "Runbook 适用于 prod-cn1 中当前运行 orders-api v2.8.0 的环境。",
+      "type": "factual",
+      "verified": true,
+      "evidence": "outputs/runbook.md 第 6-9 行明确给出环境、版本和适用范围；第 54-55 行的最后验证记录再次列出 `prod-cn1` 和 `v2.8.0`。"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "材料未提供 consumer_error_rate 阈值、异步确认开关恢复命令、值班群具体名称，以及最近一次发布是否相关。"
+    ],
+    "needs_review": [
+      "静态扫描 PASS 只有 transcript 中的执行报告，没有独立扫描输出可复核。"
+    ],
+    "workarounds": [
+      "未提供开关恢复命令，因此 Runbook 保留恢复限制并要求记录后升级，而未补造命令。"
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "现有断言覆盖了关键字段、两条命令、阈值不臆造和未知字段记录，但没有直接检查“只用给定信息”这一全局约束。可增加负向断言，要求全文不得出现提示词未提供的生产命令、监控 URL、具体因果结论或其他未支持的阈值。"
+      }
+    ],
+    "overall": "五项断言均由 Runbook 的实质内容和执行记录支持，全部通过。评测覆盖良好；主要明确缺口是未直接断言全文没有其他未提供的操作细节。"
+  }
+}
