@@ -155,9 +155,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "3945e4256b5b1c4e57ba171f24f8df0b3f7ab587",
+      "skillFolderHash": "e4dd0b55de45cb6a676be6b4133dd5011d87ea26",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-11-05T01:01:24.625Z"
+      "updatedAt": "2026-11-06T02:18:54.776Z"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -267,9 +267,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "c528c01ad1a8dbbcaa91d03bfb9d529068873005",
+      "skillFolderHash": "eeeb1278f50bf1a21da42907f01648809ac6d807",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-11-05T01:01:25.881Z"
+      "updatedAt": "2026-11-06T02:25:35.356Z"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
