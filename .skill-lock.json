@@ -70,9 +70,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/github/awesome-copilot.git",
       "skillPath": "skills/git-commit/SKILL.md",
-      "skillFolderHash": "266a4c3fbaa9f5441b5d1a96b786b6aa634c19e6",
+      "skillFolderHash": "34b3e1ac8c5cbdc3a24dfc053cad930aaddf41f6",
       "installedAt": "2026-04-01T03:52:21.894Z",
-      "updatedAt": "2026-10-23T01:26:59.100Z"
+      "updatedAt": "2026-11-08T01:02:46.536Z"
     },
     "changelog-generator": {
       "source": "composiohq/awesome-claude-skills",
