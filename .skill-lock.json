@@ -267,9 +267,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "eeeb1278f50bf1a21da42907f01648809ac6d807",
+      "skillFolderHash": "8eee1de185fd67ec6611ba5a04ac99a869e0a5d7",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-11-06T02:25:35.356Z"
+      "updatedAt": "2026-11-09T01:01:19.140Z"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
