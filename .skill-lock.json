@@ -61,9 +61,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/health/SKILL.md",
-      "skillFolderHash": "610bb268c5ff2e18250b849c13cafa9b750eb57d",
+      "skillFolderHash": "c07840c6fb05ca0604f6f118b3c9c28a0bdd3721",
       "installedAt": "2026-03-23T05:24:29.032Z",
-      "updatedAt": "2026-10-30T01:59:51.367Z"
+      "updatedAt": "2026-11-10T01:01:09.449Z"
     },
     "git-commit": {
       "source": "github/awesome-copilot",
@@ -97,19 +97,19 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/check/SKILL.md",
-      "skillFolderHash": "33149186b7f3e6b0e76eac8d44697c2e76a8a369",
+      "skillFolderHash": "0dfdfc40ad29422e7c25e73c97db5eb6b6b1aab7",
       "installedAt": "2026-04-07T08:10:59.117Z",
-      "updatedAt": "2026-11-04T01:38:29.399Z"
+      "updatedAt": "2026-11-10T01:01:09.821Z"
     },
     "hunt": {
       "source": "tw93/Waza",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/hunt/SKILL.md",
-      "skillFolderHash": "d62b8a89b441d0aa0e48ebf17b0fa8ead0e5faf6",
+      "skillFolderHash": "ec98a8b29ff26c8aab88e4d3dcf07d5a1ee5729a",
       "pluginName": "waza-hunt",
       "installedAt": "2026-04-07T08:11:00.749Z",
-      "updatedAt": "2026-10-20T08:51:34.617Z"
+      "updatedAt": "2026-11-10T01:01:10.169Z"
     },
     "read": {
       "source": "tw93/Waza",
@@ -136,9 +136,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/write/SKILL.md",
-      "skillFolderHash": "f099244a6581bda8ad97f63c7b15157f12b684d7",
+      "skillFolderHash": "48f30830d900aae6ab0c579f8d9ccbcbc8d54793",
       "installedAt": "2026-04-07T08:11:02.881Z",
-      "updatedAt": "2026-11-04T01:38:29.548Z"
+      "updatedAt": "2026-11-10T01:01:10.304Z"
     },
     "learn": {
       "source": "tw93/Waza",
@@ -248,28 +248,28 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/Waza.git",
       "skillPath": "skills/ui/SKILL.md",
-      "skillFolderHash": "610919c9a884d7b880227b23e0328826170fa58a",
+      "skillFolderHash": "d8a821fac9bd3d4ff791f0dbb7259e182a75beec",
       "installedAt": "2026-10-20T08:51:34.627Z",
-      "updatedAt": "2026-11-04T01:38:29.605Z"
+      "updatedAt": "2026-11-10T01:01:10.516Z"
     },
     "humanizer": {
       "source": "blader/humanizer",
       "sourceType": "github",
       "sourceUrl": "https://github.com/blader/humanizer.git",
       "skillPath": "SKILL.md",
-      "skillFolderHash": "0ef9fe5bc3572734fd3ae6c448fe00a30cd5dcf0",
+      "skillFolderHash": "6042f310a7e3eaf9bdaf22f2ec6bb32eb840984e",
       "pluginName": "humanizer",
       "installedAt": "2026-10-28T09:39:56.218Z",
-      "updatedAt": "2026-10-28T09:39:56.218Z"
+      "updatedAt": "2026-11-10T01:01:11.024Z"
     },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "8eee1de185fd67ec6611ba5a04ac99a869e0a5d7",
+      "skillFolderHash": "d921f4b0f8813c73a8bf55f4b4a8f97eac842f09",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-11-09T01:01:19.140Z"
+      "updatedAt": "2026-11-10T01:01:11.898Z"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",

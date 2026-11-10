@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Require a fresh full-file read in file mode and report review coverage so partial passes are visible (fixes #326).
+
+Added a blank line above each pattern label in `SKILL.md` so GitHub shows every label and example on its own line. No wording changed.
+
 ## 3.1.0
 
 - Added pattern #26 and section F for replies that re-explain context the reader already has (#269). It acts on replies, not standalone writing. 26 patterns total.
@@ -9,6 +15,7 @@
 - Narrowed #10 so words the dictionary always hyphenates keep their hyphen. Gave each watched word one pattern, and stated the evidence rule and the no-invention rule once each.
 - Fixed the Voice section's dash reference (#273) and the marketplace schema URL (#288).
 - Added a Cursor plugin manifest (#278).
+- Added a pi package manifest, so `pi install git:github.com/blader/humanizer` installs the skill.
 - README: opens with a before/after, the five strongest tells, and install steps for each agent. States that getting past AI detectors is not a goal. The full example's rewrite now keeps every fact from its draft and adds none. Version history moved to this file.
 
 ## 3.0.0

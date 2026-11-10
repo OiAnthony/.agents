@@ -48,6 +48,14 @@ The plugin answers to `/humanizer:humanizer`. It needs Claude Code 2.1.142 or ne
 npx skills add blader/humanizer --global --agent codex
 ```
 
+### pi
+
+```bash
+pi install git:github.com/blader/humanizer
+```
+
+The skill answers to `/skill:humanizer`. Add `-l` to install it only in the current project. `pi update --extensions` pulls new versions.
+
 ### Claude.ai and Claude Desktop
 
 Download this repository as a ZIP (**Code → Download ZIP**) and upload it as a skill in Settings.
@@ -81,6 +89,8 @@ To rewrite a file, give Humanizer its path:
 ```
 Humanize the prose in docs/launch-post.md
 ```
+
+Humanizer reads the current file in full before editing, including files it wrote earlier in the session. Its summary states how many sections it reviewed and identifies any it could not cover.
 
 ### Match your voice
 
