@@ -31,13 +31,16 @@ lark-cli auth login --domain apps
 | 创建**新**应用资产、拿 app_id | `+create` | [`lark-apps-create.md`](references/lark-apps-create.md) |
 | 找已有 app_id、按名字过滤应用 | `+list --keyword <name>` | [`lark-apps-list.md`](references/lark-apps-list.md) |
 | 查单个应用详情（类型、名称、发布状态等） | `+get --app-id <app_id>` | [`lark-apps-get.md`](references/lark-apps-get.md) |
-| 改应用名或描述 | `+update` | [`lark-apps-update.md`](references/lark-apps-update.md) |
+| 改应用名、描述或图标（图标优先 `--icon-file` 传本地 png/jpeg；OpenClaw 类应用等类型不支持改图标） | `+update` | [`lark-apps-update.md`](references/lark-apps-update.md) |
+| 删除应用（是否可从 web 端「我的应用 → 回收站」恢复取决于结果里的 `in_trash=true`；CLI 无恢复命令） | `+delete --app-id <app_id> --confirm-name <name> --yes`（先 `+get` 向用户展示名称与 app_id、说明删除后可能进入回收站，也可能永久删除；恢复只在返回 `in_trash=true` 时成立；再等用户明确确认该应用；确认规则见下方「禁止预授权判定底线」②） | [`lark-apps-delete.md`](references/lark-apps-delete.md) |
 | HTML 应用 / 创意模式 — 写 HTML 页面/网站、静态页、PPT/deck、落地页、仪表盘、UI mockup、原型、线框图、视觉探索 | 加载 [`creative-design/creative-design.md`](creative-design/creative-design.md)（含完整开发与发布流程） | [`creative-design/creative-design.md`](creative-design/creative-design.md) |
 | 旧版存量 HTML 应用（无 Git 管理）继续上传已有静态产物 | `+html-publish`（仅兼容旧链路；新建 html / 创意模式 / creative-design 产物不得使用） | [`lark-apps-html-publish.md`](references/lark-apps-html-publish.md) |
 | 开发已有应用 / 初始化本地仓库（开发方式已定为本地后；先解析 app_id，勿 `+create` 新建） | `+init`（或手动 `+git-credential-init` + 原生 git）。**执行前必读** [`lark-apps-local-dev.md`](references/lark-apps-local-dev.md)，含端到端流程和领域规则 | [`lark-apps-init.md`](references/lark-apps-init.md), [`lark-apps-git-credential.md`](references/lark-apps-git-credential.md) |
 | 阅读 / 分析 / 总结一个妙搭应用的内容（任意应用模式，含创意模式应用的 `/page/<token>` 链接）；只要一份源码快照、不做本地开发；或要取**别人分享给你的**应用源码（你对其仓库无权限） | `+export`（下载 zip 后解压读源码；不配 git 凭证、不建工作区）。创意模式应用的 `/page/` 链接直接传 `--meta-token <token>`，不必先 `+get` 换 app_id。要继续开发用 `+init` 而非本命令 | [`lark-apps-export.md`](references/lark-apps-export.md) |
 | 本地开发时 `.env.local` 损坏/丢失，重新拉取启动期环境变量 | `+env-pull` | [`lark-apps-env-pull.md`](references/lark-apps-env-pull.md) |
 | 管理应用环境变量（查看/设置/删除） | `+env-list`, `+env-set`, `+env-delete` | [`lark-apps-env.md`](references/lark-apps-env.md) |
+| 网页/另一台电脑开通数据库后同步本地环境变量 | `+env-pull`（之后重启本地开发进程） | [`lark-apps-env-pull.md`](references/lark-apps-env-pull.md) |
+| 查应用是否已开启数据库；给应用开启数据库 | `+features --app-id <app_id>`；确认需求后 `+feature-enable --feature database --app-id <app_id>` | [`lark-apps-features.md`](references/lark-apps-features.md) |
 | 查线上日志、Trace、请求数、错误率、延迟、CPU、memory、PV/UV/访问量 | `+log-list`, `+log-get`, `+trace-list`, `+trace-get`, `+metric-list`, `+analytics-list` | [`lark-apps-observability.md`](references/lark-apps-observability.md) |
 | 看表 / 看结构 / 初始化多环境 / 导入导出数据 / 变更追溯 / 行级审计 / dev→online 发布 / 时间点恢复 / 查 DB 用量 | `+db-table-list`、`+db-table-get`、`+db-env-create`、`+db-data-export`/`+db-data-import`、`+db-changelog-list`、`+db-audit-status`/`+db-audit-enable`/`+db-audit-disable`/`+db-audit-list`、`+db-env-diff`/`+db-env-migrate`、`+db-recovery-diff`/`+db-recovery-apply`、`+db-quota-get` | [`lark-apps-db.md`](references/lark-apps-db.md) |
 | 逐条执行 SQL（SELECT / DML / DDL）；建表 / 改表 / 写 SQL 的平台规范 | `+db-execute` | [`lark-apps-db-execute.md`](references/lark-apps-db-execute.md)（含「平台 SQL 规范」：审计列 / RLS / `user_profile` / 禁用 SQL / PG 陷阱） |
@@ -98,7 +101,7 @@ lark-cli apps +member-settings-set --app-id <app_id> --external-access disabled 
 
 | 信号 | 判定 |
 |---|---|
-| 含数据库 / 后端持久化：登录 / 增删改查 / 报名·投票·站会存记录 / 多人协作 / 泛称"系统·工具"且明确要存数据 | `app_type=full_stack` |
+| 含数据库 / 后端持久化：登录 / 增删改查 / 报名·投票·站会存记录 / 多人协作 / 泛称"系统·工具"且明确要存数据 | `app_type=full_stack`；创建后用 `+features` 看 `database` 的 `enabled`，为 `false` 时按 [`lark-apps-features.md`](references/lark-apps-features.md) 用 `+feature-enable --feature database` 开数据库 |
 | 纯静态展示（给人"看"的物料，无 JS 交互）：PPT/deck / demo / 落地页 / 海报 / UI mockup / 线框图 / 静态仪表盘 / 视觉探索 | `app_type=html`，加载 [`creative-design/creative-design.md`](creative-design/creative-design.md)（含完整开发与发布流程） |
 | 有 JS 交互但无数据库（给人"用"的前端应用）：可交互原型 / SPA / 表单校验 / 动态计算 / 调用外部 API / 泛称"工具·系统"但未明确要存数据 | `app_type=frontend`（**默认倾向**：用户未明确提出数据库需求时默认引导 frontend，不默认 full_stack） |
 | 类型模糊（尤其"要不要存数据"不清） | **追问**，话术偏向 frontend，例："看起来是个前端应用，需要保存数据吗？"；确认要存数据再转 full_stack，确认纯展示再转 html |
@@ -108,7 +111,7 @@ lark-cli apps +member-settings-set --app-id <app_id> --external-access disabled 
 | 修改已有 + 当前目录是 `.spark/meta.json` 项目 | 直接继续本地按意图路由，不必问也不必判云端 |
 | 修改已有 + 有云端偏好 | 云端会话；未表达偏好且非本地项目 → 默认本地；判不准先问 |
 
-**类型升级**：`frontend` 应用后续需要数据库/后端能力时，本地 CLI 不提供类型升级；引导用户到云端会话（打开 `https://miaoda.feishu.cn/app/{app_id}`），用自然语言描述后端需求（如"给这个应用加登录和数据存储"）即可触发升级，无需特殊指令。
+**后续加数据库 / 类型升级**：应用后续需要数据库时，先 `+features --app-id <app_id>`：列出 `database` 且 `enabled=false` 时经用户确认后 `+feature-enable --feature database`，再 `+env-pull` 并重启本地开发进程（见 [`lark-apps-features.md`](references/lark-apps-features.md)）；没列出 `database`、`+features` 报错或服务端拒绝启用时，本地 CLI 不提供类型升级，引导用户到云端会话（打开 `https://miaoda.feishu.cn/app/{app_id}`），用自然语言描述后端需求（如"给这个应用加登录和数据存储"）即可触发升级，无需特殊指令。
 
 ## 发布态护栏
 
@@ -158,4 +161,4 @@ lark-cli apps +get --app-id <meta_token> -q '.data.app.app_id'
 ## 高影响动作：确认与预授权
 
 - **预授权判定**：判断用户是否表达了"放手做完、不用中途逐步问我"的意图——明确免确认（如"别问 / 直接做 / 自己定"），或要求一气呵成做到完成（如"做完部署上线给我"）。是 → 整个流程按合理默认往下走、不再逐步确认（含 clone 到派生目录、发布等）；否 → 缺失参数（如目录）该问就问、高影响动作先确认。
-- **禁止预授权判定底线**（即便已预授权也不豁免）：① 会删/丢数据或不可逆的 DB 操作（判据见 [`lark-apps-db-execute.md`](references/lark-apps-db-execute.md)）先 `--dry-run` 确认；② `+role-delete`、`+role-member-remove --all`、批量移除成员必须先确认 app、role、成员范围和后果，不能从泛化"直接做"推导出 `--yes`；命令式"删除/移除某对象"只确定操作目标，不等于用户已确认不可逆后果，未明确确认时应在说明影响后停下请求确认；③ `+html-publish` 体积超限时（判据见 [`lark-apps-html-publish.md`](references/lark-apps-html-publish.md)），立即停止并转述超限项；④ `+cache-clear` 会清空整个环境的缓存，「用户让我清缓存」只确定了操作目标、不等于确认了这次清空——未拿到对「清空该环境」的明确确认表述时，只出 `--dry-run` 预览或停下请求确认，不得首次调用即自带 `--yes`（判据表见 [`lark-apps-cache.md`](references/lark-apps-cache.md)）。
+- **禁止预授权判定底线**（即便已预授权也不豁免）：① 会删/丢数据或不可逆的 DB 操作（判据见 [`lark-apps-db-execute.md`](references/lark-apps-db-execute.md)）先 `--dry-run` 确认；② `+delete`（删除应用）、`+role-delete`、`+role-member-remove --all`、批量移除成员必须先确认 app、role、成员范围和后果，不能从泛化"直接做"推导出 `--yes`；命令式"删除/移除某对象"只确定操作目标，不等于用户已确认不可逆后果，未明确确认时应在说明影响后停下请求确认；`+delete` 即使可从回收站恢复也不豁免：用户只说“帮我删掉 X / X 不用了删了吧”时，先展示应用名称与 app_id、说明后果，然后结束本轮，等用户下一条消息明确确认这个应用后才带 `--yes` 执行，不得在展示后同一轮紧接着执行；只有用户原话已明确表示确认删除这个应用（如“确认删除 X，我已经确认过了”）才可直接执行；`+list` / `+get` 查到唯一且名称完全一致的应用只说明目标找对了，不算用户确认；用户给的应用名与查到的实际名称不完全一致（如只匹配到近似名）时，不得把查到的名称填进 `--confirm-name`，先停下展示候选名称与 app_id 请用户确认；③ `+html-publish` 体积超限时（判据见 [`lark-apps-html-publish.md`](references/lark-apps-html-publish.md)），立即停止并转述超限项；④ `+cache-clear` 会清空整个环境的缓存，「用户让我清缓存」只确定了操作目标、不等于确认了这次清空——未拿到对「清空该环境」的明确确认表述时，只出 `--dry-run` 预览或停下请求确认，不得首次调用即自带 `--yes`（判据表见 [`lark-apps-cache.md`](references/lark-apps-cache.md)）。
