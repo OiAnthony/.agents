@@ -168,15 +168,6 @@
       "installedAt": "2026-05-14T09:21:05.859Z",
       "updatedAt": "2026-05-14T16:19:02.680Z"
     },
-    "herdr": {
-      "source": "herdrdev/herdr",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/herdrdev/herdr.git",
-      "skillPath": "skills/herdr/SKILL.md",
-      "skillFolderHash": "2be0d86d481d1bb29c62e11ef37b78d27d01b478",
-      "installedAt": "2026-08-02T10:19:31.736Z",
-      "updatedAt": "2026-10-14T01:02:35.761Z"
-    },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
@@ -279,6 +270,15 @@
       "skillFolderHash": "e79b9cc03e06efe8d40349bc39df0ed4a9d5deff",
       "installedAt": "2026-10-28T12:11:57.463Z",
       "updatedAt": "2026-11-04T01:38:30.762Z"
+    },
+    "herdr-core": {
+      "source": "herdrdev/herdr-core",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/herdrdev/herdr-core.git",
+      "skillPath": "skills/herdr-core/SKILL.md",
+      "skillFolderHash": "9691960a86a372aaa06eae674f93192b8e54cfad",
+      "installedAt": "2026-11-10T06:25:58.851Z",
+      "updatedAt": "2026-11-10T06:25:58.851Z"
     }
   },
   "dismissed": {
