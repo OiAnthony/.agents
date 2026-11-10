@@ -279,6 +279,15 @@
       "skillFolderHash": "9691960a86a372aaa06eae674f93192b8e54cfad",
       "installedAt": "2026-11-10T06:25:58.851Z",
       "updatedAt": "2026-11-10T06:25:58.851Z"
+    },
+    "agent-desktop": {
+      "source": "vercel-labs/agent-desktop",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/agent-desktop.git",
+      "skillPath": "skills/agent-desktop/SKILL.md",
+      "skillFolderHash": "8108a9408ff2a933b83b89732c6538becc8acadd",
+      "installedAt": "2026-11-10T13:49:56.757Z",
+      "updatedAt": "2026-11-10T13:49:56.757Z"
     }
   },
   "dismissed": {
