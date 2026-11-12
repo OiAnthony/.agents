@@ -216,6 +216,14 @@ Multi-agent cursors (macOS and Windows): start with `session start --cursor --mu
 - `--agent-id <id> cursor-overlay enable` saves a style for that agent. Do not add `--multi-agent` to it.
 - `cursor-overlay disable` and `session end` stop every cursor in the session, even when you pass an agent id.
 
+## Sandboxes
+
+`agent-desktop sandbox install` lists the providers this build includes, and `agent-desktop sandbox list` lists the sandboxes with `name`, `state`, `message`, and `next`. A single sandbox command also returns its `provider`. A build can include no providers: `sandbox install` then returns an empty list, and a command that names a provider fails with `INVALID_ARGS`.
+
+A sandbox whose record is missing or malformed, or names a provider this build does not include, appears in `sandbox list` with `state: "broken"`, and every command on it returns `INVALID_ARGS`. `next` and `suggestion` name the directory to delete once nothing in it is still running. A sandbox whose status check failed is also `broken`; follow its `next`, which is not always a removal.
+
+`sandbox start <name> --window` shows the sandbox's desktop in a window on the host instead of running it headless, and `--set key=value` passes the provider an option for that start. `create`, `start`, `stop` and `rm` on one sandbox run one at a time; a second one fails with `ACTION_FAILED`. `sandbox exec` ends a guest command after 300 seconds with `TIMEOUT`. The host's session and agent id, from flags or from `AGENT_DESKTOP_SESSION` and `AGENT_DESKTOP_AGENT_ID`, do not apply in the guest; pass `--session` after `--`.
+
 ## status, permissions, version
 
 - `status` returns adapter health, platform, the permission report, `supported_surfaces`, the latest snapshot (`snapshot_id`, `ref_count`), `session_id`, `tracing`, `state_root`.
