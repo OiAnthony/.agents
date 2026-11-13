@@ -42,9 +42,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/vercel-labs/agent-browser.git",
       "skillPath": "skills/agent-browser/SKILL.md",
-      "skillFolderHash": "29ba9c12789b1c54ab76ad40e2472e646d141b85",
+      "skillFolderHash": "cd4185523189fb04c1d24bea0100b6aa2ce7421e",
       "installedAt": "2026-02-11T16:00:19.711Z",
-      "updatedAt": "2026-11-04T01:38:29.255Z"
+      "updatedAt": "2026-11-13T01:01:37.192Z"
     },
     "skill-creator": {
       "source": "anthropics/skills",
