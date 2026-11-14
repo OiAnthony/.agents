@@ -78,7 +78,7 @@ A sandbox is a desktop a provider manages on your machine. The provider is `maco
 
 ```sh
 agent-desktop sandbox install                          # report the provider's state
-agent-desktop sandbox install macos                    # compile and sign the VM host, then report ready
+agent-desktop sandbox install macos                    # compile and sign the VM host and guest agent, then report ready
 ```
 
 ```sh
@@ -91,7 +91,7 @@ agent-desktop sandbox stop demo                        # stop the sandbox
 agent-desktop sandbox rm demo                          # remove it
 ```
 
-Names are 1–32 lowercase letters, digits or hyphens, starting with a letter or digit. `exec` returns the guest's envelope and exit status; a provider failure returns a host error. `rm` refuses a sandbox reported as `running`; stop it first. `create` needs exactly one source: `--set from=<sandbox>`, `--set ipsw=latest` or `--set ipsw=<path>`. `start` answers `working` until the guest answers; wait for `status` to report `running` before `exec`.
+Names are 1–32 lowercase letters, digits or hyphens, starting with a letter or digit. `exec` returns the guest's envelope and exit status; a provider failure returns a host error. `rm` refuses a sandbox reported as `running`; stop it first. `create` needs exactly one source: `--set from=<sandbox>`, `--set ipsw=latest` or `--set ipsw=<path>`. `start` answers `working`, or `needs_setup` when the guest agent is not answering; wait for `status` to report `running` before `exec`.
 
 Read `state`, `message` and optional `next`; `ok: true` alone does not mean the sandbox is ready.
 
@@ -104,7 +104,7 @@ Read `state`, `message` and optional `next`; `ok: true` alone does not mean the 
 - `stopped`: start the sandbox to use it, or remove it.
 - `broken`: follow `next`; a broken sandbox may need removal.
 
-A sandbox separates the desktop, not the network or the host. Sandboxes on one host share a virtual network, and a guest can reach the host's network services; keep one trust level per host. Each sandbox has its own pinned SSH host key, so a guest cannot answer for another sandbox. The SSH key under `<state root>/sandboxes/<name>/` is the guest credential, and in the guest Accessibility belongs to `sshd-keygen-wrapper` for the whole user session.
+A sandbox separates the desktop, not the network or the host. Sandboxes on one host share a virtual network, and a guest can reach the host's network services; keep one trust level per host. The host reaches the guest over the virtual machine's own socket device: only the process that runs the VM can open that connection, and `agent-desktop-guest` refuses any caller that is not the host. The host sends commands only to the agent whose key it recorded at setup, so another guest account cannot answer in its place. The agent runs the guest's `agent-desktop` with the arguments after `--` and never a shell. In the guest, Accessibility belongs to `agent-desktop-guest`.
 
 Cloning a configured macOS VM has been tested end to end. Installing the first VM from a macOS image is experimental and has not been verified end to end. Provider setup steps and limits are in the docs: `agent-browser.dev/desktop/sandboxes/macos`.
 

@@ -42,9 +42,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/vercel-labs/agent-browser.git",
       "skillPath": "skills/agent-browser/SKILL.md",
-      "skillFolderHash": "cd4185523189fb04c1d24bea0100b6aa2ce7421e",
+      "skillFolderHash": "d75a393c9a371295c6d6be46c34938e76ef21184",
       "installedAt": "2026-02-11T16:00:19.711Z",
-      "updatedAt": "2026-11-13T01:01:37.192Z"
+      "updatedAt": "2026-11-14T01:02:22.927Z"
     },
     "skill-creator": {
       "source": "anthropics/skills",
@@ -258,18 +258,18 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "e92e2e77c815097cd5fa05c8eaee2a5399d92757",
+      "skillFolderHash": "2b0a11b8bc8fd914caae7d24e96bdff43f8ba1e7",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-11-11T01:01:34.649Z"
+      "updatedAt": "2026-11-14T01:02:23.293Z"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "sourceUrl": "https://github.com/emilkowalski/skills.git",
       "skillPath": "skills/emil-design-eng/SKILL.md",
-      "skillFolderHash": "e79b9cc03e06efe8d40349bc39df0ed4a9d5deff",
+      "skillFolderHash": "8086a08e5ebde316c4b9226764f1f2196e1869fa",
       "installedAt": "2026-10-28T12:11:57.463Z",
-      "updatedAt": "2026-11-04T01:38:30.762Z"
+      "updatedAt": "2026-11-14T01:02:23.309Z"
     },
     "herdr-core": {
       "source": "herdrdev/herdr-core",
@@ -285,9 +285,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/vercel-labs/agent-desktop.git",
       "skillPath": "skills/agent-desktop/SKILL.md",
-      "skillFolderHash": "ef953179861334f07a7ec948f1d34401de17b9b0",
+      "skillFolderHash": "2b8dc2b7d5927a1e21713db09683e1ca3e87f2bc",
       "installedAt": "2026-11-10T13:49:56.757Z",
-      "updatedAt": "2026-11-12T01:11:32.089Z"
+      "updatedAt": "2026-11-14T01:02:23.331Z"
     }
   },
   "dismissed": {

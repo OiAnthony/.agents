@@ -222,7 +222,7 @@ Multi-agent cursors (macOS and Windows): start with `session start --cursor --mu
 
 A sandbox whose record is missing or malformed, or names a provider this build does not include, appears in `sandbox list` with `state: "broken"`, and every command on it returns `INVALID_ARGS`. `next` and `suggestion` name the directory to delete once nothing in it is still running. A sandbox whose status check failed is also `broken`; follow its `next`, which is not always a removal.
 
-`sandbox start <name> --window` shows the sandbox's desktop in a window on the host instead of running it headless, and `--set key=value` passes the provider an option for that start. `create`, `start`, `stop` and `rm` on one sandbox run one at a time; a second one fails with `ACTION_FAILED`. `sandbox exec` ends a guest command after 300 seconds with `TIMEOUT`. The host's session and agent id, from flags or from `AGENT_DESKTOP_SESSION` and `AGENT_DESKTOP_AGENT_ID`, do not apply in the guest; pass `--session` after `--`.
+`sandbox start <name> --window` shows the sandbox's desktop in a window on the host instead of running it headless, and `--set key=value` passes the provider an option for that start. `create`, `start`, `stop` and `rm` on one sandbox run one at a time; a second one fails with `ACTION_FAILED`. `sandbox exec` ends a guest command after 300 seconds with `TIMEOUT`. It runs the guest's `~/.local/bin/agent-desktop` through `agent-desktop-guest` with the arguments after `--`; the agent does not run a shell. The host's session and agent id, from flags or from `AGENT_DESKTOP_SESSION` and `AGENT_DESKTOP_AGENT_ID`, do not apply in the guest; pass `--session` after `--`.
 
 ## status, permissions, version
 
