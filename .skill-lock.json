@@ -248,10 +248,11 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/blader/humanizer.git",
       "skillPath": "SKILL.md",
-      "skillFolderHash": "b48c832f0f809c1b5658edbb838c2521b72f2413",
+      "skillFolderHash": "a32f24407364c74c812b43c15926d638bee1e072",
       "pluginName": "humanizer",
       "installedAt": "2026-10-28T09:39:56.218Z",
-      "updatedAt": "2026-11-10T02:38:56.584Z"
+      "updatedAt": "2026-11-20T01:11:06.284Z",
+      "commit": "a32f24407364c74c812b43c15926d638bee1e072"
     },
     "impeccable": {
       "source": "pbakaus/impeccable",
