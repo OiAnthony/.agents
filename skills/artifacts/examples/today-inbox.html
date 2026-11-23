@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Today — action cards and loops</title>
+    <script type="application/json" data-ryugi-tweaks>
+      {
+        "controls": {
+          "accent": {
+            "type": "color",
+            "label": "Accent",
+            "default": "#b45309",
+            "options": ["#b45309", "#355ecb", "#24775a"],
+            "section": "Appearance"
+          },
+          "density": {
+            "type": "enum",
+            "label": "Density",
+            "default": "comfortable",
+            "options": [
+              { "value": "comfortable", "label": "Comfortable" },
+              { "value": "compact", "label": "Compact" }
+            ],
+            "section": "Appearance"
+          },
+          "count": {
+            "type": "range",
+            "label": "Item count",
+            "default": 2,
+            "min": 0,
+            "max": 2,
+            "step": 1,
+            "section": "Preview data"
+          },
+          "showLoops": {
+            "type": "boolean",
+            "label": "Show loops",
+            "default": true,
+            "section": "Preview data"
+          }
+        },
+        "version": 1
+      }
+    </script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: #fcf9f3;
+        color: #26241f;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        padding: 48px 0 24px;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0 0 12px;
+      }
+      h1 {
+        font-size: 32px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      header,
+      .summary,
+      #empty {
+        padding-inline: 20px;
+      }
+      #cards {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 4px 20px 16px;
+      }
+      article {
+        flex: 0 0 280px;
+        padding: 16px;
+        border: 1px solid #dedbd3;
+        border-radius: 16px;
+        background: white;
+      }
+      article p {
+        min-height: 72px;
+      }
+      button {
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 0;
+        border-radius: 22px;
+        background: var(--tweak-accent, #b45309);
+        color: white;
+        font: inherit;
+        cursor: pointer;
+      }
+      html[data-tweak-density='compact'] article {
+        padding: 10px;
+      }
+      html[data-tweak-density='compact'] article p {
+        min-height: 54px;
+      }
+      button:focus-visible {
+        outline: 3px solid #966000;
+        outline-offset: 3px;
+      }
+      #open-loops {
+        margin: 16px 20px;
+      }
+      dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 80%;
+        margin: auto 0 0;
+        padding: 24px 20px 36px;
+        border: 0;
+        border-radius: 24px 24px 0 0;
+        background: #fcf9f3;
+        color: inherit;
+      }
+      dialog::backdrop {
+        background: rgb(0 0 0 / 32%);
+      }
+      dialog header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0;
+        margin-bottom: 16px;
+      }
+      dialog h2 {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><h1>Today</h1></header>
+      <section aria-labelledby="needs-title">
+        <div class="summary">
+          <h2 id="needs-title">Needs you</h2>
+          <p role="status"><span id="count">2</span> items need you</p>
+        </div>
+        <div id="cards" tabindex="0" role="region" aria-label="Action cards">
+          <article id="card-research" data-card="research">
+            <h2>Research assistant</h2>
+            <p>The competitor pricing comparison is ready for your review.</p>
+            <button id="dismiss-research" type="button" aria-label="Dismiss research update">
+              Got it
+            </button>
+          </article>
+          <article id="card-writing" data-card="writing">
+            <h2>Writing partner</h2>
+            <p>The opening paragraphs are revised. Review them when you have time.</p>
+            <button id="dismiss-writing" type="button" aria-label="Dismiss writing update">
+              Later
+            </button>
+          </article>
+        </div>
+        <p id="empty" hidden>Nothing needs your attention.</p>
+      </section>
+      <button id="open-loops" type="button">View loops</button>
+      <dialog id="loops" aria-labelledby="loops-title">
+        <header>
+          <h2 id="loops-title">Loops</h2>
+          <button id="close-loops" type="button">Done</button>
+        </header>
+        <p>Evening review · every day at 18:00</p>
+        <p>Competitor report · every Thursday at 09:00</p>
+      </dialog>
+    </main>
+    <script>
+      const cards = [...document.querySelectorAll('[data-card]')];
+      const dismissed = new Set();
+      const openLoops = document.getElementById('open-loops');
+      const loops = document.getElementById('loops');
+
+      function render() {
+        const parameters = window.ryugiTweaks ?? { count: 2, showLoops: true };
+        cards.forEach((card, index) => {
+          card.hidden = index >= parameters.count || dismissed.has(card.dataset.card);
+        });
+        const count = cards.filter((card) => !card.hidden).length;
+        document.getElementById('count').textContent = String(count);
+        document.getElementById('cards').hidden = count === 0;
+        document.getElementById('empty').hidden = count > 0;
+        openLoops.hidden = !parameters.showLoops;
+        if (!parameters.showLoops && loops.open) loops.close();
+      }
+
+      cards.forEach((card) => {
+        card.querySelector('button').addEventListener('click', () => {
+          dismissed.add(card.dataset.card);
+          render();
+          const next = cards.find((item) => !item.hidden);
+          (next ? next.querySelector('button') : openLoops).focus();
+        });
+      });
+      openLoops.addEventListener('click', () => loops.showModal());
+      document.getElementById('close-loops').addEventListener('click', () => loops.close());
+      document.addEventListener('ryugi-tweaks', render);
+      render();
+    </script>
+  </body>
+</html>

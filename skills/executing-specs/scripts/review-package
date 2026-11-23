@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# Generate a review package: commit list, stat summary, and the net
+# diff with extended context, written to a file the reviewer reads in one
+# call. Using the recorded per-task BASE (not HEAD~1) keeps multi-commit
+# tasks intact.
+#
+# Usage: review-package SPEC_FILE BASE HEAD [OUTFILE]
+#        review-package SPEC_FILE --commits SHA...
+#        review-package SPEC_FILE --exploring
+# Default OUTFILE: <repo-root>/.ryugi/sdd/<plan-basename>/review-<base7>..<head7>.diff
+# (named per range, so a re-review after fixes gets a distinct fresh file).
+# --commits packages only the listed commits, one diff each, for work done in
+# a checkout where other agents commit to the same branch.
+# --exploring packages the uncommitted changes to the paths listed in the
+# spec's EXPLORING file, for exploratory work that commits nothing.
+set -euo pipefail
+
+usage() {
+  echo "usage: review-package SPEC_FILE BASE HEAD [OUTFILE]" >&2
+  echo "       review-package SPEC_FILE --commits SHA..." >&2
+  echo "       review-package SPEC_FILE --exploring" >&2
+  exit 2
+}
+
+[ $# -ge 2 ] || usage
+plan=$1
+[ -f "$plan" ] || {
+  echo "no such plan file: $plan" >&2
+  exit 2
+}
+
+workspace() {
+  # Invoke via bash rather than direct exec: some extractors (Python zipfile)
+  # strip Unix exec bits when unpacking marketplace packages (#2040).
+  "${BASH:-bash}" "$(cd "$(dirname "$0")" && pwd)/sdd-workspace" "$plan"
+}
+
+if [ "$2" = "--exploring" ]; then
+  [ $# -eq 2 ] || usage
+  dir=$(workspace)
+  flag="$dir/EXPLORING"
+  [ -f "$flag" ] || {
+    echo "no EXPLORING file in $dir" >&2
+    exit 2
+  }
+  paths=()
+  while IFS= read -r p; do
+    [ -n "$p" ] && paths+=("$p")
+  done < <(tail -n +2 "$flag")
+  [ ${#paths[@]} -gt 0 ] || {
+    echo "EXPLORING lists no paths: $flag" >&2
+    exit 2
+  }
+  out="$dir/review-exploring.diff"
+  cd "$(git rev-parse --show-toplevel)"
+  {
+    echo "# Review package: uncommitted exploratory work, ${#paths[@]} listed path(s)"
+    echo
+    echo "## Files changed"
+    git status --porcelain -- "${paths[@]}"
+    echo
+    echo "## Diff"
+    git diff -U10 HEAD -- "${paths[@]}"
+    for p in "${paths[@]}"; do
+      if [ -f "$p" ] && ! git ls-files --error-unmatch -- "$p" > /dev/null 2>&1; then
+        git diff --no-index -U10 -- /dev/null "$p" || true
+      fi
+    done
+  } > "$out"
+  echo "wrote ${out}: ${#paths[@]} path(s), $(wc -c < "$out" | tr -d ' ') bytes"
+  exit 0
+fi
+
+[ $# -ge 3 ] || usage
+
+if [ "$2" = "--commits" ]; then
+  shift 2
+  shas=()
+  for c in "$@"; do
+    git rev-parse --verify --quiet "$c^{commit}" > /dev/null || {
+      echo "bad SHA: $c" >&2
+      exit 2
+    }
+    shas+=("$(git rev-parse "$c")")
+  done
+  # git log --no-walk sorts by commit date, so the package reads oldest first
+  # whatever order the ledger listed them in.
+  ordered=$(git log --no-walk=sorted --reverse --format=%H "${shas[@]}")
+  first=$(printf '%s\n' "$ordered" | head -n 1)
+  last=$(printf '%s\n' "$ordered" | tail -n 1)
+  out="$(workspace)/review-commits-$(git rev-parse --short "$first")..$(git rev-parse --short "$last").diff"
+  {
+    echo "# Review package: ${#shas[@]} listed commit(s)"
+    echo
+    echo "Other commits on this branch belong to other work and are not part of this review."
+    echo
+    echo "## Commits"
+    for c in $ordered; do git log -1 --oneline "$c"; done
+    echo
+    echo "## Files changed"
+    for c in $ordered; do git show --stat --format= "$c"; done
+    echo
+    echo "## Diff"
+    for c in $ordered; do
+      echo
+      echo "### $(git log -1 --oneline "$c")"
+      git show -U10 --format= "$c"
+    done
+  } > "$out"
+  echo "wrote ${out}: ${#shas[@]} commit(s), $(wc -c < "$out" | tr -d ' ') bytes"
+  exit 0
+fi
+
+[ $# -le 4 ] || usage
+base=$2
+head=$3
+
+git rev-parse --verify --quiet "$base" > /dev/null || {
+  echo "bad BASE: $base" >&2
+  exit 2
+}
+git rev-parse --verify --quiet "$head" > /dev/null || {
+  echo "bad HEAD: $head" >&2
+  exit 2
+}
+
+# Range guards (exit 3): a wrong-branch HEAD yields a range that is empty or
+# not rooted at BASE; either would silently produce a bogus review package.
+git merge-base --is-ancestor "$base" "$head" || {
+  echo "HEAD is not a descendant of BASE: ${base}..${head}" >&2
+  exit 3
+}
+[ "$(git rev-list --count "${base}..${head}")" -gt 0 ] || {
+  echo "empty commit range: ${base}..${head}" >&2
+  exit 3
+}
+
+if [ $# -eq 4 ]; then
+  out=$4
+else
+  out="$(workspace)/review-$(git rev-parse --short "$base")..$(git rev-parse --short "$head").diff"
+fi
+
+{
+  echo "# Review package: ${base}..${head}"
+  echo
+  echo "## Commits"
+  git log --oneline "${base}..${head}"
+  echo
+  echo "## Files changed"
+  git diff --stat "${base}..${head}"
+  echo
+  echo "## Diff"
+  git diff -U10 "${base}..${head}"
+} > "$out"
+
+commits=$(git rev-list --count "${base}..${head}")
+echo "wrote ${out}: ${commits} commit(s), $(wc -c < "$out" | tr -d ' ') bytes"

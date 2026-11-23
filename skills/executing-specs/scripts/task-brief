@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Extract one task's full text from a spec's task list (or a plan) into a file the
+# implementer reads in one call, so the task text never has to be pasted
+# through the controller's context.
+#
+# Usage: task-brief SPEC_FILE TASK_NUMBER [OUTFILE]
+# Default OUTFILE: <repo-root>/.ryugi/sdd/<plan-basename>/task-<N>-brief.md
+# (per plan and per worktree; concurrent runs of the SAME plan in the same
+# working tree share it).
+set -euo pipefail
+
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: task-brief SPEC_FILE TASK_NUMBER [OUTFILE]" >&2
+  exit 2
+fi
+
+plan=$1
+n=$2
+[ -f "$plan" ] || {
+  echo "no such plan file: $plan" >&2
+  exit 2
+}
+
+# Invoke via bash rather than direct exec: some extractors (Python zipfile)
+# strip Unix exec bits when unpacking marketplace packages (#2040).
+dir=$("${BASH:-bash}" "$(cd "$(dirname "$0")" && pwd)/sdd-workspace" "$plan")
+if [ $# -eq 3 ]; then
+  out=$3
+else
+  out="$dir/task-${n}-brief.md"
+fi
+
+# A spec carries no task headings; the executor splits it into tasks.md in
+# the spec's workspace, and that list is where tasks are read from.
+src=$plan
+[ -f "$dir/tasks.md" ] && src="$dir/tasks.md"
+
+awk -v n="$n" '
+  /^```/ { infence = !infence }
+  !infence && /^#+[ \t]+Task[ \t]+[0-9]+/ {
+    intask = ($0 ~ ("^#+[ \t]+Task[ \t]+" n "([^0-9]|$)"))
+  }
+  intask { print }
+' "$src" > "$out"
+
+if [ ! -s "$out" ]; then
+  echo "task ${n} not found in ${src} (no heading matching 'Task ${n}')" >&2
+  exit 3
+fi
+
+echo "wrote ${out}: $(wc -l < "$out" | tr -d ' ') lines"

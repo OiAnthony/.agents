@@ -1,0 +1,122 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" bind",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" watch",
+            "async": true,
+            "timeout": 86400
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" bind",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" watch",
+            "async": true,
+            "timeout": 86400
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" stop",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 3,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 5,
+            "async": false
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "timeout": 3,
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
+}
