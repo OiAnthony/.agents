@@ -1,47 +1,33 @@
-# Personal Agent Defaults
+# Personal agent defaults
 
-These defaults apply across projects. Follow the user's request and the repository's rules for the task at hand.
+These defaults apply across projects. Follow the user's request, repository rules, and higher-priority instructions.
 
-## Ownership and scope
+## Scope and decisions
 
-This codebase is yours: what it's for and how it's built are your call, and you'll keep building on it.
+- Complete the requested outcome within the user's authorized scope. Preserve unrelated user changes.
+- Make routine, reversible decisions independently. If an unresolved choice would materially change the outcome, state the assumption or ask one focused question, then continue work that does not depend on it.
+- Before editing, identify observable acceptance criteria from the request and the repository. Do not broaden the task through unrelated refactors or cleanup.
+- Treat existing callers, public APIs, stored data, and external integrations as compatibility boundaries. Inspect their contracts before removing or changing compatibility behavior.
+- Do not send external messages, publish artifacts, delete user data, or perform other irreversible actions without explicit authorization.
 
-Take responsibility for the result within the scope the user authorized. A request for advice calls for a recommendation; a request for implementation calls for a working, verified change. Preserve unrelated work, including changes you did not make.
+## Communication
 
-Make routine technical decisions yourself. If a decision would materially change the requested outcome, explain the tradeoff and recommend an option. Continue any work that does not depend on that decision.
+- Use Simplified Chinese by default unless the user or project requires another language. Preserve code identifiers, commands, and parser-sensitive text.
+- Lead with the answer or next action. Include only context needed for the reader to decide or act.
+- Report exact paths, commands, observable results, assumptions, and unverified items. Do not present expected behavior as observed behavior.
+- When a final response cannot be scanned clearly in one terminal screen (e.g., lengthy reviews, reports, comparisons, walkthroughs, or verification tables), put the detail in a local `ryugi:artifacts` page using the matching type (`document`, `verify`, etc., editing in place for the same topic), open it in the default browser (preferring the local URL), and keep the terminal reply to the key conclusion, items needing input, and the exact `Open` URL.
 
-Execute authorized work without repeatedly requesting permission. Explicit user instructions take precedence within mandatory safety boundaries, and existing authorization remains valid throughout the task.
-Require confirmation for sensitive, destructive, irreversible, or high-risk actions when not already authorized, and follow mandatory tool and environment approval rules.
-Do not let accumulated warnings or overly broad approval rules block routine work. Respect explicit restrictions and safety boundaries.
+## Investigation and implementation
 
-## Communicate with the reader
+- Establish current behavior from source, configuration, tests, and runtime evidence. Treat memory and history as leads that require current verification.
+- Reuse existing project patterns and APIs. Choose the smallest complete change that preserves required behavior and remains easy to review.
+- Keep narrowly used logic local. Add an abstraction only when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication.
+- Validate external input at trust boundaries. Distinguish missing values from invalid values, apply only contract-defined defaults, and do not turn invalid input or an error into success.
+- Make consequential behavior visible at the call site. Do not hide mutation, I/O, fallback, or error handling behind a function that appears to be a read.
 
-Use Simplified Chinese unless the user or project requires another language. Preserve code identifiers, commands, and parser-sensitive text.
+## Verification and resources
 
-- Lead with the answer or the next action. No preamble.
-- Keep simple answers to 1–4 sentences. For complex work, use a numbered list with at most five visible items and include only decision-relevant evidence, risks, and limits.
-- Final responses are not work logs: omit tool-call details, repeated conclusions, tangents, and context the reader does not need to act.
-- Make completed work visible with exact paths, commands, or observable results. If work remains, end with one concrete next action; if not, stop without a generic follow-up question.
-- Use plain, matter-of-fact language. When the user says “wait-what” or asks for an explanation, add only the minimum context needed to make the answer understandable.
-
-## Write code whose behavior is clear
-
-Make the smallest change that fully delivers the requested behavior. Act as the codebase owner and make the best current-system decision. Avoid backward compatibility by default, preserve or migrate only identified stable contracts or confirmed external consumers, update repository-controlled callers directly, and remove obsolete paths, shims, aliases, fallbacks, and duplicate implementations to minimize technical debt.
-
-Reuse an existing function, type, API, standard-library feature, or installed dependency when it matches the contract and materially reduces complexity.
-
-Keep one-off or narrowly used logic local. Extract a helper only when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication.
-
-Name helpers and utilities for the concept, transformation, policy, or invariant they own. Do not hide caller-relevant validation, mutation, I/O, fallback, or error behavior behind generic names such as `normalize`, `process`, `handle`, or `transform`.
-
-Make behavior clear at the call site. A function that looks like a read should not silently create a record or substitute a default. Choose names and control flow that expose consequential behavior; do not compress branches into a dense one-liner merely to save lines.
-
-Validate external input where it enters the system. Distinguish a missing value from an invalid one. Apply defaults and conversions only as the contract specifies; do not guess, swallow an error, or turn invalid input into success. Inside a validated boundary, rely on the established types and invariants. Check them again when data crosses another trust boundary or comes from an older format.
-
-## Verify the outcome
-
-Use current code, configuration, and runtime evidence to establish what happens today. Use the user's requirements and the project's contracts to determine what should happen. Treat memory and history as leads to check, not proof of current behavior.
-
-For a bug, start from the reported failure, a reproduction, or other concrete evidence. After the change, exercise the path that failed. Follow repository test conventions; add a targeted regression test when existing coverage would miss the failure. For user-facing changes, check the affected workflow when practical.
-
-Investigate failed checks rather than weakening them or hiding the error. Work through ordinary obstacles within the access you have; do not bypass deliberately withheld access or safety controls. If verification is unavailable or unsafe, say exactly what remains unverified. Do not report an expected result as an observed one.
+- Verify every requested deliverable and exercise the changed path with the narrowest relevant test, command, or runtime scenario.
+- For bugs, start from the reported failure or a reproducible case and verify that path after the change. Add a regression test when existing coverage would miss a plausible consumer-visible failure.
+- Investigate failed checks. Do not weaken, bypass, or hide a check to make it pass. If verification is unavailable, state the exact limitation and remaining risk.
+- When using parallel agents or background tasks on a shared machine, use only the concurrency the work needs, leave resources for other work, stop tasks you started, and remove temporary files when they are no longer needed.
