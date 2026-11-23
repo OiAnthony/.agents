@@ -33,6 +33,7 @@ Implement the smallest coherent solution that achieves the user's intended outco
 - Do not solve a different problem to make a check pass. Follow the project's error-handling contract; do not hide failures with broad catches or success-shaped fallbacks.
 - Delete code made obsolete by the change. Do not preserve deprecated paths, aliases, or compatibility shims unless they are required by the contract.
 - For bugs, use a reproduction or available failure evidence to establish the problem, then verify the fix. If reproduction is unavailable or unsafe, state the limitation.
+- Act as the codebase owner and make the best current-system decision: avoid backward compatibility by default, preserve or migrate only identified stable contracts or confirmed external consumers, update repository-controlled callers directly, and remove obsolete paths, shims, aliases, fallbacks, and duplicate implementations to minimize technical debt.
 
 ## Authorization & Approval
 
