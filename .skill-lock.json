@@ -38,25 +38,6 @@
       "updatedAt": "2026-11-21T01:06:16.969Z",
       "commit": "5a37a6329fbad3666c3207392a6a7c0110e92efb"
     },
-    "agent-browser": {
-      "source": "vercel-labs/agent-browser",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/vercel-labs/agent-browser.git",
-      "skillPath": "skills/agent-browser/SKILL.md",
-      "skillFolderHash": "d75a393c9a371295c6d6be46c34938e76ef21184",
-      "installedAt": "2026-02-11T16:00:19.711Z",
-      "updatedAt": "2026-11-14T01:02:22.927Z"
-    },
-    "skill-creator": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/anthropics/skills.git",
-      "skillPath": "skills/skill-creator/SKILL.md",
-      "skillFolderHash": "3cf9a8db32597ba3e24b584a3d696f4e11c7d7b6",
-      "pluginName": "example-skills",
-      "installedAt": "2026-03-16T08:19:56.697Z",
-      "updatedAt": "2026-07-25T10:28:22.472Z"
-    },
     "git-commit": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
@@ -75,13 +56,6 @@
       "installedAt": "2026-04-02T06:25:04.887Z",
       "updatedAt": "2026-11-04T01:38:29.703Z"
     },
-    "changelog-automation": {
-      "source": "wshobson/agents",
-      "sourceUrl": "https://github.com/wshobson/agents.git",
-      "skillPath": "plugins/documentation-generation/skills/changelog-automation/SKILL.md",
-      "skillFolderHash": "bda1b5d9da08093d0be956a3098e1c41e4e3d29b",
-      "installedAt": "2026-04-02T06:31:07.868Z",
-      "updatedAt": "2026-11-04T01:38:29.799Z"
     "kami": {
       "source": "tw93/kami",
       "sourceType": "github",
