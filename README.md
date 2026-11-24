@@ -27,16 +27,12 @@ bunx @oipsanthony/dotagents@latest --scope global --clients all --yes --force
 - `executing-specs`：按已批准的设计逐项实施
 - `test-driven-development`：编写功能或修复问题时先建立失败测试
 - `verifying`：完成前验证实际行为、输出和可见结果
-- `check`：独立审查改动、发布条件或项目状态
-- `health`：审计 Agent 配置、hooks、MCP、skills 和指令维护性
-- `write`：润色技术文档、操作说明和发布文案
-- `learn`：进行多来源深度研究并整理成结构化材料
 
 轻量任务按实际阶段进入对应 skill。典型路径如下：
 
 ```text
-brainstorming → test-driven-development → verifying → check
-systematic-debugging → test-driven-development → verifying → check
+brainstorming → test-driven-development → verifying
+systematic-debugging → test-driven-development → verifying
 ```
 
 复杂变更使用 `brainstorming` 形成设计，再交给 `executing-specs` 实施。
@@ -52,7 +48,7 @@ flowchart LR
 
     A[探索需求<br/>/openspec-explore] --> B[生成提案<br/>/openspec-propose]
     B -->|new session| C[实施变更<br/>/openspec-apply-change]
-    C -->|new session| D[独立审查<br/>/check]
+    C -->|new session| D[验证改动<br/>/verifying]
     D -->|new session| E[归档变更<br/>/openspec-archive-change]
 ```
 

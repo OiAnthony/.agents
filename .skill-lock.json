@@ -77,13 +77,11 @@
     },
     "changelog-automation": {
       "source": "wshobson/agents",
-      "sourceType": "github",
       "sourceUrl": "https://github.com/wshobson/agents.git",
       "skillPath": "plugins/documentation-generation/skills/changelog-automation/SKILL.md",
       "skillFolderHash": "bda1b5d9da08093d0be956a3098e1c41e4e3d29b",
       "installedAt": "2026-04-02T06:31:07.868Z",
       "updatedAt": "2026-11-04T01:38:29.799Z"
-    },
     "kami": {
       "source": "tw93/kami",
       "sourceType": "github",
