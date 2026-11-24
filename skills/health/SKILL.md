@@ -69,7 +69,7 @@ $HEALTH_LAUNCHER = @(
   "<skill-base-dir>/skills/health/scripts/run-health.ps1"
 ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $HEALTH_LAUNCHER) {
-  throw "Health launcher not found under the installed skill base; reinstall Waza."
+  throw "Health launcher not found under the installed skill base."
 }
 $POWERSHELL = Join-Path ([Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe"
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect "$HEALTH_SCOPE"
@@ -88,7 +88,7 @@ for candidate in \
   [ -f "$candidate" ] && HEALTH_SCRIPT="$candidate" && break
 done
 if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
-  echo "health collect-data.sh not found under the installed skill base; reinstall Waza"
+  echo "health collect-data.sh not found under the installed skill base" >&2
   exit 1
 fi
 BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" "$HEALTH_SCOPE"

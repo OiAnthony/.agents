@@ -50,20 +50,20 @@ Pick the mode that matches the user's intent, then read it in full before acting
 
 | User intent | Mode |
 |---|---|
-| "implement this plan", `/think` output handed off | [Plan Execution](#plan-execution-mode) |
+| "implement this plan", `brainstorming` output handed off | [Plan Execution](#plan-execution-mode) |
 | Diff or PR ready, "review", "看看代码", "合并前" | Default review (start at [Get the Diff](#get-the-diff)) |
 | "look at issues", "review PRs", "triage", "批量处理", "all repos' issues", "其他仓库也扫一遍" | load `references/mode-triage.md` |
 | "is this worth a release", "值不值得发版" | load `references/mode-ship.md` (Release Worthiness Analysis) |
 | "commit", "push", "publish", "release", "close issue", "发布表情" | load `references/mode-ship.md` (Ship / Release Follow-through) |
 | "audit", "项目体检", "项目评分", "给项目打分", "深入分析项目代码", "scorecard", "linus review" | load `references/mode-audit.md` |
 | A review prompt, skill, persona, or model changed; "is review still catching bugs" | load `references/incident-ledger.md` (Replay eval) |
-| Document, PDF, prose review | Delegate to `/write` Document Review Mode, keeping it in the same completion ledger; without `/write`, use the available prose capability and name the limitation |
+| Document, PDF, prose review | Delegate to the local `write` skill's Document Review Mode, keeping it in the same completion ledger; without `write`, use the available prose capability and name the limitation |
 
 Before any mode, run [Project Context Extraction](#project-context-extraction) and (if memory is in scope) [Durable Context Preflight](#durable-context-preflight).
 
 ## Project Context Extraction
 
-This is Waza's public, standalone code-review capability; it never depends on private machine paths or unpublished instructions. Learn the project from the diff and its public context (manifests, CI workflows, AGENTS/CLAUDE files, release notes) until you know its verification commands, generated or protected files, release artifacts, and domain risks. The shape is in `references/project-context.md`.
+This is a standalone code-review capability. It never depends on private machine paths or unpublished instructions. Learn the project from the diff and its public context (manifests, CI workflows, AGENTS/CLAUDE files, release notes) until you know its verification commands, generated or protected files, release artifacts, and domain risks.
 
 - Where project context and this skill overlap and both can be met, satisfy the stricter one. An explicit project exception wins and the report names it; stricter is not a licence to overrule a written decision or reorder the host's instruction precedence.
 - Prefer a verification command the project names, and read the workflow rather than the sentence describing it. A doc claiming CI enforces something is a claim; a check that runs on only one side (local or CI) means a green run there predicts nothing about the other.
@@ -72,7 +72,7 @@ For release readiness or publication, also fill the Release Gate 2.0 matrix from
 
 ## Plan Execution Mode
 
-Activate when the message starts with "Implement the following plan", "按计划实施", "按照计划", "整", "可以干", or "直接改" followed by a plan body, or links to a `/think` output. Skip the code review: name the plan, check `git status --short --branch -uall` for drift that makes it unsafe (name the conflict and stop), execute, then run the project's verification command.
+Activate when the message starts with "Implement the following plan", "按计划实施", "按照计划", "整", "可以干", or "直接改" followed by a plan body, or links to a `brainstorming` output. Skip the code review: name the plan, check `git status --short --branch -uall` for drift that makes it unsafe (name the conflict and stop), execute, then run the project's verification command.
 
 Review-then-ship: when `AGENTS.md` or the current thread asks to "commit after review", "ship if green", or equivalent, load `references/mode-ship.md` after a clean review or finished plan, state "proceeding to ship", and do not ask again.
 
@@ -84,7 +84,7 @@ Derive the review baseline from the user's words and current repository state. D
 - **PR or branch review**: use the merge base through the reviewed head, then add any dirty files in that checkout as a separate surface.
 - **Since the last release**: resolve the latest stable from the delivery channel the product actually uses (feed, registry, store, or release host), map it to a source ref, and review through `HEAD`, then add dirty files. A stale release-host listing is not the baseline when another channel ships the product; a missing artifact-to-ref mapping stays an explicit gap.
 - **Recent N days or an explicit ref**: resolve that time/ref boundary through `HEAD`, then add dirty files.
-- **Known-good or previous working version**: compare that ref through `HEAD`; route to `/hunt` Bisect Mode only when the regression point itself is unknown.
+- **Known-good or previous working version**: compare that ref through `HEAD`; route to `systematic-debugging` Bisect Mode only when the regression point itself is unknown.
 - **Whole-project audit**: use Audit Mode rather than pretending one diff is the repository.
 
 Freeze the resolved base, `HEAD`, worktree inventory, generated/distribution surfaces, and delegated scopes before review. For a large inventory, reconcile the union of reviewed paths against that frozen set, including root files and cross-domain consumers; assignment alone is not coverage. Repeated locale or generated files may share a semantic check only when it accounts for every member, otherwise name the sampled and unread remainder separately. Ask one narrow question only when two plausible baselines would materially change the verdict. If review fixes are applied or repository state moves, the old verdict expires: re-read `HEAD`, status, and the full resolved diff before signing off.

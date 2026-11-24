@@ -9,7 +9,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Remove-Item "Env:WAZA_PYTHON" -ErrorAction SilentlyContinue
+Remove-Item "Env:AGENT_HEALTH_PYTHON" -ErrorAction SilentlyContinue
 Remove-Item "Env:DOC_REF_CHECKER" -ErrorAction SilentlyContinue
 Remove-Item "Env:GIT_INSTALL_ROOT" -ErrorAction SilentlyContinue
 Remove-Item "Env:BASH_ENV" -ErrorAction SilentlyContinue
@@ -262,14 +262,14 @@ function Resolve-WorkingPython([string]$Candidate, [string]$TargetRoot) {
     try {
         $probe = @(
             & $executable -I -c (
-                "import sys; print('waza-health-python-ok') " +
+                "import sys; print('agent-health-python-ok') " +
                 "if sys.version_info >= (3, 9) else sys.exit(1)"
             ) 2>$null
         )
         if (
             $LASTEXITCODE -eq 0 -and
             $probe.Count -eq 1 -and
-            $probe[0] -eq "waza-health-python-ok"
+            $probe[0] -eq "agent-health-python-ok"
         ) {
             return $executable
         }

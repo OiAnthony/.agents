@@ -7,7 +7,7 @@ case "$SCRIPT_PATH" in
   *) SCRIPT_BASE="." ;;
 esac
 SCRIPT_DIR="$(cd "$SCRIPT_BASE" && pwd -P)"
-unset WAZA_PYTHON DOC_REF_CHECKER GIT_INSTALL_ROOT BASH_ENV ENV
+unset AGENT_HEALTH_PYTHON DOC_REF_CHECKER GIT_INSTALL_ROOT BASH_ENV ENV
 
 sanitize_health_path() {
   local target="$1"

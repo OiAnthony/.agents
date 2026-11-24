@@ -109,11 +109,11 @@ for candidate in \
   "<skill-base-dir>/skills/write/scripts/check-punctuation.sh"; do
   [ -f "$candidate" ] && GATE="$candidate" && break
 done
-[ -f "${GATE:-}" ] || { echo "punctuation gate not found under the installed skill base; reinstall Waza" >&2; exit 1; }
+[ -f "${GATE:-}" ] || { echo "punctuation gate not found under the installed skill base" >&2; exit 1; }
 bash "$GATE" --lang <zh|en|ja|auto> <file>   # or pipe text via stdin
 ```
 
-Replace `<skill-base-dir>` with the installed Write skill or Waza dispatcher directory. The first path covers direct/plugin installs; the second covers the inlined-root release ZIP.
+Replace `<skill-base-dir>` with the installed Write skill base directory. The first path covers direct installs; the second covers an inlined skill root.
 
 It enforces character-level punctuation by locale and skips code, URLs, and link targets; the script header documents the rules, `--fix`, and `--lang auto` routing. Fix every finding while preserving meaning, and pass an explicit `--lang` for mixed-locale or predominantly-English text. Quote direction and other judgment calls stay with you and the reference files.
 

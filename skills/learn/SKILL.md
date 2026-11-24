@@ -18,7 +18,7 @@ Support the user's thinking; do not replace it.
 - Evidence: source URLs or files, fetched content, notes from digestion, outline decisions, and self-review against the requested output.
 - Output: research notes, outline, publish-ready draft, or canonical reference, matching the chosen mode.
 
-**Boundary**: single URL that only needs fetching belongs in `/read`. A single URL that needs summary or analysis can use `/read` as the fetch step, but the final answer should satisfy the user's requested summary or analysis. `/learn` is for multi-source research that produces a new structured output.
+**Boundary**: a single URL that only needs fetching belongs to the native URL reader. A single URL that needs summary or analysis can use the native reader as the fetch step, but the final answer should satisfy the user's requested summary or analysis. `learn` is for multi-source research that produces a new structured output.
 
 ## Choose Mode
 
@@ -53,8 +53,8 @@ Gather primary sources only: papers that introduced key ideas, official lab/prod
 Three ordered steps per source -- no shortcuts, no merging:
 
 1. **Discover** -- use an installed search plugin to map the landscape, then deep-search the 2-3 most promising sub-topics. No plugin: use the environment's native web search. Output is a URL list; do not fetch content here.
-2. **Fetch** -- every URL goes through `/read` when available. `/read` owns the proxy cascade, paywall detection, and platform routing (WeChat, Feishu, PDF, GitHub). Native fetch tools and raw `curl` silently fail on JS-heavy or paywalled sites and skip all of that. If `/read` is not installed, warn once without blocking, fall back to native fetch, and state the reduced coverage on paywalled, JS-heavy, and Chinese-platform pages.
-3. **File** -- tell `/read` the research project's source directory when one exists. If no directory was specified, let `/read` use a per-session temp directory and return the saved path. Move or index saved files into sub-topic directories after fetch returns. Move, don't refetch.
+2. **Fetch** -- every URL goes through the native URL reader when available. It owns source fetching, PDF extraction, and citation handling. If it is unavailable, use the environment's native web tools and state the reduced coverage on paywalled or JS-heavy pages.
+3. **File** -- save fetched sources in the research project's source directory when one exists. If no directory was specified, use a per-session temporary directory and return the saved path. Move or index saved files into sub-topic directories after fetch returns. Move, do not refetch.
 
 Target: 5-10 sources for a blog post, 15-20 for a deep technical survey.
 

@@ -1,6 +1,6 @@
 # Project Review Context Template
 
-Use this template to compress repository context before running Waza `/check`. The context must come from public project files, the diff, CI configuration, or explicit user instructions. Do not depend on private machine paths or unpublished project instructions.
+Use this template to compress repository context before running the standalone `/check` skill. The context must come from public project files, the diff, CI configuration, or explicit user instructions. Do not depend on private machine paths or unpublished project instructions.
 
 ## What Belongs In Project Context
 
@@ -20,7 +20,7 @@ The template below names most of it. Also capture:
 - One-off personal preferences that do not affect project behavior.
 - One-off review reports, scorecards, or diagnostic snapshots copied as guidance instead of distilled into stable project rules.
 - Raw memory, chat excerpts, screenshots, private support details, local paths, project-specific commands, issue/PR numbers, release tags, or commit hashes from another project.
-- Full copies of Waza `/check` sections.
+- Full copies of the `/check` skill sections.
 
 ## Recommended Context Shape
 

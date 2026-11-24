@@ -11,11 +11,11 @@ Loaded from `health` Output (the report step) for the AI-maintainability lane. S
 | Independent recurrence | Were cloned prompts, retries, automated fan-out sessions, pasted assistant output, and platform-resume messages collapsed into one underlying event? |
 | Repeated failure | Did this recur across fixes, releases, agents, or user reports? |
 | Durable invariant | Can the lesson be stated as a stable rule, not a dated incident summary? |
-| Target layer | Should it live in project instructions, a Waza skill, a global rule, or private memory? |
+| Target layer | Should it live in project instructions, a skill, a global rule, or private memory? |
 | Verifier | Is there a deterministic command, script, artifact check, or runtime smoke that can enforce it? |
 | Redaction risk | Does the lesson require local paths, issue numbers, customer details, machine state, secrets, or unpublished release facts? |
 
-Layering rule: project-specific commands, app names, artifact names, and release rituals stay in the project; reusable workflows such as cancelled-release review gates or native-freeze evidence ladders belong in Waza skills; universal honesty and verification rules belong in global CLAUDE/AGENTS; private user preferences and one-machine facts stay in memory. If the lesson cannot pass the redaction-risk field, keep it out of public guidance.
+Layering rule: project-specific commands, app names, artifact names, and release rituals stay in the project. Reusable workflows such as cancelled-release review gates or native-freeze evidence ladders belong in skills. Universal honesty and verification rules belong in global CLAUDE/AGENTS. Private user preferences and one-machine facts stay in memory. If the lesson cannot pass the redaction-risk field, keep it out of public guidance.
 
 Scope by load surface, not just by layer. A rule kept in the project still pays context on every session unless it is bound to where it applies: language and framework rules carry file-type `paths` scope, project-domain rules bind to their source directories (`paths` frontmatter or a nested-directory `CLAUDE.md`), and only genuinely cross-cutting constraints load unconditionally in the always-loaded root. A rule that only matters under one path does not belong in an always-loaded file.
 

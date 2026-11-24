@@ -20,21 +20,26 @@ bunx @oipsanthony/dotagents@latest --scope global --clients all --yes --force
 
 ## Coding Agent 工作流
 
-主要用到这几个 skills：
+主要用到这些 skills：
 
-- `/think`：编码前澄清需求、比较方案，整理出可以直接执行的计划
-- `/hunt`：复现问题，根据证据找到根因
-- `/check`：独立审查改动、发布条件或项目状态
-- `/openspec-*`：处理需要设计、任务拆分和归档的复杂变更
+- `brainstorming`：编码前澄清需求、比较方案，形成可执行方向
+- `systematic-debugging`：遇到错误、回归或异常行为时定位根因
+- `executing-specs`：按已批准的设计逐项实施
+- `test-driven-development`：编写功能或修复问题时先建立失败测试
+- `verifying`：完成前验证实际行为、输出和可见结果
+- `check`：独立审查改动、发布条件或项目状态
+- `health`：审计 Agent 配置、hooks、MCP、skills 和指令维护性
+- `write`：润色技术文档、操作说明和发布文案
+- `learn`：进行多来源深度研究并整理成结构化材料
 
-### 轻量任务
-
-轻量任务可以在一次会话里完成。修改前先定方案或找根因，完成后再用 `/check` 审查：
+轻量任务按实际阶段进入对应 skill。典型路径如下：
 
 ```text
-/think → implement this plan → /check
-/hunt  → fix it              → /check
+brainstorming → test-driven-development → verifying → check
+systematic-debugging → test-driven-development → verifying → check
 ```
+
+复杂变更使用 `brainstorming` 形成设计，再交给 `executing-specs` 实施。
 
 ### 复杂变更
 
@@ -66,5 +71,4 @@ flowchart LR
 ## 致谢
 
 - [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) 与 [Karpathy-Inspired Claude Code Guidelines](https://github.com/multica-ai/andrej-karpathy-skills)：Agent 行为规范的早期来源
-- [Waza](https://github.com/tw93/Waza)：AI skill 系列
 - [OpenSpec](https://github.com/Fission-AI/OpenSpec)：规范驱动开发工作流
