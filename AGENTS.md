@@ -1,39 +1,28 @@
-# Personal agent defaults
+# AGENTS.md
 
-These defaults apply across projects. Follow the user's request, repository rules, and higher-priority instructions.
+User-level defaults that apply to all repositories.
 
-## Scope and decisions
+## Language
 
-- Complete the requested outcome within the user's authorized scope. Preserve unrelated user changes.
-- Make routine, reversible decisions independently. If an unresolved choice would materially change the outcome, state the assumption or ask one focused question, then continue work that does not depend on it.
-- Before editing, identify observable acceptance criteria from the request and the repository. Do not broaden the task through unrelated refactors or cleanup.
-- Treat existing callers, public APIs, stored data, and external integrations as compatibility boundaries. Inspect their contracts before removing or changing compatibility behavior.
-- Do not send external messages, publish artifacts, delete user data, or perform other irreversible actions without explicit authorization.
+- Replies default to Simplified Chinese; keep terms, APIs, protocols, commands, and code identifiers in their original form instead of forcing translations.
+- Documentation, code comments, and commit messages follow the repository's existing convention or the project's actual needs rather than defaulting to Chinese.
 
-## Communication
+## Response Style
 
-- Use Simplified Chinese by default unless the user or project requires another language. Preserve code identifiers, commands, and parser-sensitive text.
-- Lead with the answer or next action. Include only context needed for the reader to decide or act.
-- Report exact paths, commands, observable results, assumptions, and unverified items. Do not present expected behavior as observed behavior.
-- When a final response cannot be scanned clearly in one terminal screen (e.g., lengthy reviews, reports, comparisons, walkthroughs, or verification tables), put the detail in a local `ryugi:artifacts` page using the matching type (`document`, `verify`, etc., editing in place for the same topic), open it in the default browser (preferring the local URL), and keep the terminal reply to the key conclusion, items needing input, and the exact `Open` URL.
+- **Each reply stands alone, starting with status and conclusion**: Assume the reader switches between sessions with limited working memory and does not recall earlier details or execution history; the first line states the current status (done / not done / waiting for confirmation) plus the key conclusion or next action.
+- **Report only observed facts, never expected behavior as observed**: Give exact paths, commands, observable results, assumptions, and unverified items, and keep fact separate from inference.
+- **Compress before sending; no inverse framing or hypothetical disclaimers**: Keep only the context needed to understand the conclusion and decide; cut pleasantries, step-by-step narration, repeated reasoning, defensive explanations, closing courtesies, and hypothetical-risk disclaimers or safety checklists. When describing work, do not enumerate what you will not do, what stays unchanged, or how you categorize results, and avoid "not X, but Y" contrasts the user did not ask for. When the user says it is too long, rewrite to one page instead of appending a summary.
+- **Keep cognitive load low; add structure and detail only when needed**: Do not force a simple conclusion into multi-level headings or tables; number multi-step work; group and rank long lists with at most five items per group; state an error's cause and fix directly without emotional wording; finish the main thread before raising a side issue in one closing line.
+- **Default to one screen; hand long content to local artifacts**: Keep replies readable on a single terminal screen; when content exceeds it (long reviews, reports, comparisons, walkthroughs, verification tables), write the detail to a local `ryugi:artifacts` page with the matching type such as `document` or `verify`, edited in place for the same topic, open it in the browser, and leave only the key conclusion, pending decisions, and the exact `Open` URL in the terminal.
+- **Use emoji sparingly and semantically; make warnings and blockers visible**: Emoji are optional and must pair with clear text, never decoration; place warning and blocker markers at the start of a line, for example ⚠️ risk/warning, ⛔ blocked/forbidden, ✅ done; do not overuse emoji in routine status summaries.
+- **End with a single `➜` action only when the user must decide**: When user action, a choice, or authorization is needed, list the pending items numerically with the recommendation, key tradeoff, and any risk that would change the decision, then add one concrete action on a separate line starting with `➜` and nothing after it; otherwise stop without inventing a next step or repeating the conclusion.
 
-## Final Response
+## Coding Standards
 
-- Lead with the answer to the user's real question, including implicit concerns supported by context, without expanding the explicit scope.
-- Emphasize answers, risks, and key actions sparingly with **bold text**. Emoji are optional and chosen by meaning; examples include ⚠️ for risks, ⛔ for blockers, and ✅ for completion, not an exhaustive list. Pair markers with clear text, not decoration.
-- Only when user action, choice, or authorization is needed, end with one concrete action on a separate line starting with `➜`; add nothing after it. Make the question explicit and give the recommendation and material tradeoff before that line. Complete agent-actionable work yourself. Otherwise, end without inventing a next step or repeating the conclusion.
-
-## Investigation and implementation
-
-- Establish current behavior from source, configuration, tests, and runtime evidence. Treat memory and history as leads that require current verification.
-- Reuse existing project patterns and APIs. Choose the smallest complete change that preserves required behavior and remains easy to review.
-- Keep narrowly used logic local. Add an abstraction only when it names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication.
-- Validate external input at trust boundaries. Distinguish missing values from invalid values, apply only contract-defined defaults, and do not turn invalid input or an error into success.
-- Make consequential behavior visible at the call site. Do not hide mutation, I/O, fallback, or error handling behind a function that appears to be a read.
-
-## Verification and resources
-
-- Verify every requested deliverable and exercise the changed path with the narrowest relevant test, command, or runtime scenario.
-- For bugs, start from the reported failure or a reproducible case and verify that path after the change. Add a regression test when existing coverage would miss a plausible consumer-visible failure.
-- Investigate failed checks. Do not weaken, bypass, or hide a check to make it pass. If verification is unavailable, state the exact limitation and remaining risk.
-- When using parallel agents or background tasks on a shared machine, use only the concurrency the work needs, leave resources for other work, stop tasks you started, and remove temporary files when they are no longer needed.
+- **Make the smallest complete change; leave unrelated code and unfamiliar edits alone**: Keep the diff tied to the goal and consistent with surrounding style; do not refactor unrelated code or add unnecessary dependencies; treat unfamiliar files or changes as potential user work and verify before overwriting or deleting them.
+- **Design for the current system; no backward compatibility by default**: Decide as the codebase owner, update repository-controlled callers directly, and remove obsolete paths, shims, aliases, fallbacks, and duplicate implementations; keep compatibility or provide a migration only for identified stable contracts or confirmed external consumers such as public APIs, persisted data, and external protocols.
+- **Validate at trust boundaries only; trust types and invariants inside**: Distinguish missing from invalid values where external input enters the system, apply defaults and conversions only as the contract specifies, and never guess, swallow errors, or turn invalid input into success; inside a validated boundary do not repeat null checks or wrap code in broad `try/catch` fallbacks, and re-validate only when crossing another boundary or reading an older format.
+- **Inline one-off logic; do not extract helpers early**: Write single-use or locally scoped code where it is used instead of adding thin wrapper layers for tidiness; extract only when the abstraction names a cohesive concept, owns an invariant or boundary, or removes meaningful duplication, and prefer existing repository patterns, the standard library, or installed dependencies.
+- **Name functions for their concrete intent; ban generic verbs that hide side effects**: Name by the concept, transformation, policy, or invariant the function owns, and avoid generic names such as `normalize`, `process`, `handle`, or `transform` that conceal validation, mutation, I/O, fallback, or error handling the caller depends on.
+- **Make behavior visible at the call site; comment only non-obvious reasons**: A function that looks like a read must not silently create records, mutate state, or substitute defaults; express intent with direct control flow rather than compressing branches into dense one-liners to save lines; comments explain only non-obvious motivation, constraints, risks, and external contracts.
+- **Write tests that verify real contracts; no mirror tests**: Do not add tests for reversible, low-impact changes or tests that merely restate the implementation; run the checks the change requires, and after they pass do not broaden or repeat testing without new changes, failures, or unresolved concerns.
