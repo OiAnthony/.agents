@@ -205,6 +205,8 @@ Print documents are **tighter** than English web body. English web typically run
 
 ### Letter-spacing
 
+Source Han Serif SC (`<html data-serif="source-han">`, see SKILL.md «Simplified Chinese serif») fills the em box, so `scripts/hans.py` rewrites the render-time tracking: every `0.3pt` (body, plus the few headings and tags that share the value) becomes `0.1pt` and Chinese lede `0.03-0.06em` becomes `0`; other label, overline and Latin tracking stays. Leading is unchanged (page 2 of the resume measures the same in both faces). The values below describe the TsangerJinKai02 baseline.
+
 - Body text: **0**
 - Chinese and Japanese body text with TsangerJinKai02: **0.3pt**, the baseline every shipped CN/JA template uses (`long-doc.html`, `one-pager.html`, `slides-weasy.html`); section titles and Mincho samples: **0**
 - Chinese lede text (14–22pt) with TsangerJinKai02: **0.03–0.06em** to open up large-body paragraphs without breaking density; EN and JA lede: **0** (only TsangerJinKai02 needs density compensation)

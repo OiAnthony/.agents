@@ -38,3 +38,7 @@ Fill all placeholders in a skill's prompt template before passing the complete p
 Antigravity has **no todo tool** (`manage_task` manages background processes — `list`/`kill`/`status`/`send_input` — it is _not_ a checklist). When a skill says to create a todo list or track tasks, maintain a **task artifact**: a markdown checklist saved in the conversation's artifact directory (`<appDataDir>/brain/<conversation-id>/task.md`) using `write_file` with `ArtifactMetadata` (or `write_to_file` with `IsArtifact: true`, `ArtifactMetadata.ArtifactType: "task"`), and updated with `edit_file` (`replace_file_content` / `multi_replace_file_content`) as you go.
 
 At the start of any multi-step task, create the task artifact listing every step of your plan. As you complete each step, edit the artifact to mark it done (`- [x]`). If the plan changes, update the checklist. Keep it current — it is your source of truth for what remains; once the conversation gets long, re-read it before starting each step.
+
+## Artifacts sidecar pane
+
+When the optional `ryugi/artifacts` plugin sidecar is enabled in Antigravity, you can link the local Ryugi Artifacts workbench inside Antigravity's Auxiliary Pane with `[Ryugi](sidecar://ryugi/artifacts/)`. Opening the pane lands on the conversation's most recent subscribed artifact automatically, follows new artifacts opened in that conversation, and falls back to a waiting screen until the local Ryugi server is running.

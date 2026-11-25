@@ -26,6 +26,17 @@ let node_os = require("node:os");
 node_os = __toESM(node_os, 1);
 let node_path = require("node:path");
 node_path = __toESM(node_path, 1);
+// ../shared/src/types.ts
+const ARTIFACT_TYPES = [
+	"artboard",
+	"document",
+	"html",
+	"whiteboard",
+	"verify",
+	"slides",
+	"report",
+	"storyboard"
+];
 // ../shared/src/validate.ts
 const BOARD_NUMBERS = [
 	"x",
@@ -90,6 +101,8 @@ function projectPaths(dir) {
 		lock: node_path.default.join(state, "start.lock")
 	};
 }
+new RegExp(`^(${ARTIFACT_TYPES.join("|")})/[a-z0-9][a-z0-9-]*$`);
+`${ARTIFACT_TYPES.slice(0, -1).join(", ")}${ARTIFACT_TYPES.at(-1)}`;
 // src/core/cli/output/normalize.ts
 var OutputError = class extends Error {
 	error;

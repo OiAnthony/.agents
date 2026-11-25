@@ -6,12 +6,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" bind",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" codex-bind",
+            "commandWindows": "exit 0",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" watch",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" codex-watch",
+            "commandWindows": "exit 0",
             "async": true,
             "timeout": 86400
           }
@@ -23,18 +25,21 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" bind",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" codex-bind",
+            "commandWindows": "exit 0",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" watch",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" codex-watch",
+            "commandWindows": "exit 0",
             "async": true,
             "timeout": 86400
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 5,
             "async": true
           }
@@ -46,12 +51,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/codex-comment-watch.cjs\" stop",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" codex-stop",
+            "commandWindows": "exit 0",
             "timeout": 3
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 3,
             "async": false
           }
@@ -63,7 +70,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 5,
             "async": false
           }
@@ -75,7 +83,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 5,
             "async": true
           }
@@ -87,7 +96,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 5,
             "async": true
           }
@@ -99,7 +109,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 5,
             "async": true
           }
@@ -111,7 +122,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/skills/artifacts/app/agent-event.cjs\" codex",
+            "command": "\"${PLUGIN_ROOT}/skills/artifacts/app/codex-hook\" event codex",
+            "commandWindows": "exit 0",
             "timeout": 3,
             "async": false
           }

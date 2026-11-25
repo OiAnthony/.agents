@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+case "$0" in
+  */* | *\\*) SCRIPT_DIR="$(cd "${0%[/\\]*}" && pwd)" ;;
+  *) SCRIPT_DIR="$(pwd)" ;;
+esac
+. "$SCRIPT_DIR/hook-bin.sh"
+
+RYUGI_PLUGIN_ROOT="${SCRIPT_DIR%[/\\]*}"
+RYUGI_PLUGIN_ROOT="${RYUGI_PLUGIN_ROOT%[/\\]*}"
+export RYUGI_PLUGIN_ROOT="${RYUGI_PLUGIN_ROOT%[/\\]*}"
+if ! bin="$(ryugi_hook_bin "$RYUGI_PLUGIN_ROOT")"; then
+  if command -v node > /dev/null 2>&1; then
+    node "$SCRIPT_DIR/ryugi.cjs" hook-install < /dev/null > /dev/null 2>&1 &
+  fi
+  exit 0
+fi
+exec "$bin" "$@"

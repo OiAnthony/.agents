@@ -61,10 +61,10 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tw93/kami.git",
       "skillPath": "plugins/kami/skills/kami/SKILL.md",
-      "skillFolderHash": "2fc7516411fe3ad9b5a40f0b6d0907c07f073a7b",
+      "skillFolderHash": "55b71806dcfcd7fa16ba952b57548207a9a10052",
       "installedAt": "2026-04-21T09:16:26.120Z",
-      "updatedAt": "2026-11-22T01:06:13.034Z",
-      "commit": "27177605ad0007bc29fa3f9c203c347aa91074e2"
+      "updatedAt": "2026-11-25T01:09:08.927Z",
+      "commit": "ad1de198c4721902d4601a839b7c85b72fa0e15e"
     },
     "html-effectiveness": {
       "source": "OiAnthony/html-effectiveness",
@@ -73,17 +73,18 @@
       "skillPath": "skills/html-effectiveness/SKILL.md",
       "skillFolderHash": "634010cddd7312fdffb2c536a60366a0c3bc36e4",
       "installedAt": "2026-05-14T09:21:05.859Z",
-      "updatedAt": "2026-05-14T16:19:02.680Z"
+      "updatedAt": "2026-11-25T01:09:09.012Z",
+      "commit": "a1ffabb7c8dcff4278947f46cfa7eb8ee703578f"
     },
     "archify": {
       "source": "tt-a1i/archify",
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "d3e9c89dd9510a64c1114d685b68ebf1887f135e",
+      "skillFolderHash": "193c697e93622c9a306567d0d84c7b23a15f2e24",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-11-23T01:08:28.777Z",
-      "commit": "6cafc5a9875a795c6932ac0c196dacf3097fafe6"
+      "updatedAt": "2026-11-25T01:09:12.255Z",
+      "commit": "62f3a995eb26ee23f784bdea4a7992340078e9be"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",
@@ -194,12 +195,12 @@
       "source": "Innei/ryugi",
       "sourceType": "github",
       "sourceUrl": "https://github.com/Innei/ryugi.git",
-      "commit": "0e5f03594b723f4248b46bbf213c2fb75163c271",
+      "commit": "3bdef4c8efbbb8e655e16d7bbd0c9ad4ea14b8d9",
       "skillPath": "skills/artifacts/SKILL.md",
-      "skillFolderHash": "1581e928d6885630c59e2a70478dea5d07e25cc7",
+      "skillFolderHash": "131aa33967b386737db90a8af0063eb3c695eae7",
       "pluginName": "ryugi-artifacts",
       "installedAt": "2026-11-17T11:18:26.858Z",
-      "updatedAt": "2026-11-23T01:08:28.984Z"
+      "updatedAt": "2026-11-25T01:09:12.395Z"
     },
     "interface-craft": {
       "source": "Innei/ryugi",
@@ -266,11 +267,11 @@
       "source": "Innei/ryugi",
       "sourceType": "github",
       "sourceUrl": "https://github.com/Innei/ryugi.git",
-      "commit": "60209ae4e667e3f3142724721e553c5e9216bab5",
+      "commit": "3bdef4c8efbbb8e655e16d7bbd0c9ad4ea14b8d9",
       "skillPath": "skills/using-ryugi/SKILL.md",
-      "skillFolderHash": "adba66787c3107a2c457c6385e77b4e22fd33880",
+      "skillFolderHash": "2b2e03605cfd4a9024e2f6ef34266cc3fafe3e03",
       "installedAt": "2026-11-18T14:20:58.576Z",
-      "updatedAt": "2026-11-18T14:20:58.576Z"
+      "updatedAt": "2026-11-25T01:09:12.571Z"
     },
     "verifying": {
       "source": "Innei/ryugi",

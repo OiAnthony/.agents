@@ -9,6 +9,12 @@ const path = require('node:path');
 
 const outputBootstrap = require('./output-bootstrap.cjs');
 
+// `process.execPath` is only a JavaScript runtime under node/bun. Hosts that embed bun in a compiled
+// binary (omp.exe) report themselves, so spawning it with a script path starts a whole new host session.
+function nodeBin() {
+  return /(^|[\\/])(node|bun)(\.exe)?$/i.test(process.execPath) ? process.execPath : 'node';
+}
+
 const LATEST_CHECK_MS = 24 * 60 * 60 * 1000;
 const RETRY_CHECK_MS = 60 * 60 * 1000;
 const RELEASES = path.join(
@@ -17,6 +23,8 @@ const RELEASES = path.join(
   'artifacts',
 );
 const LATEST_FILE = path.join(RELEASES, 'latest.json');
+const PLUGIN_ROOT = path.join(__dirname, '..', '..', '..');
+const HOOK_HOME = path.join(os.homedir(), '.ryugi', 'hook');
 const win32 = process.platform === 'win32';
 
 const valid = (v) => /^\d+\.\d+\.\d+(?:[-+][0-9A-Z.-]+)?$/i.test(v || '');
@@ -32,7 +40,7 @@ const cliOf = (version) =>
 const protocolChecks = new Map();
 function usesOutputProtocol(cli) {
   if (protocolChecks.has(cli)) return protocolChecks.get(cli);
-  const probe = spawnSync(process.execPath, [cli, '--version', '--format', 'json'], {
+  const probe = spawnSync(nodeBin(), [cli, '--version', '--format', 'json'], {
     env: { ...process.env, RYUGI_NO_UPDATE_CHECK: '1' },
     encoding: 'utf8',
     timeout: 5000,
@@ -213,8 +221,67 @@ function ownerPid() {
   return Number.isInteger(parent) && parent > 1 ? parent : process.ppid;
 }
 
+function pluginVersion() {
+  return ['package.json', '.claude-plugin/plugin.json', '.codex-plugin/plugin.json']
+    .map((file) => {
+      try {
+        const manifest = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, file), 'utf8'));
+        return manifest.name === 'ryugi' ? manifest.version || null : null;
+      } catch {
+        return null;
+      }
+    })
+    .find(Boolean);
+}
+
+const executable = (file) => {
+  try {
+    return fs.statSync(file).isFile() && (fs.statSync(file).mode & 0o111) !== 0;
+  } catch {
+    return false;
+  }
+};
+
+function hookBin() {
+  if (process.env.RYUGI_HOOK_BIN)
+    return executable(process.env.RYUGI_HOOK_BIN) ? process.env.RYUGI_HOOK_BIN : null;
+  const local = path.join(PLUGIN_ROOT, 'hook', 'target', 'release', 'ryugi-hook');
+  if (executable(local)) return local;
+  const version = pluginVersion();
+  const cached = version && path.join(HOOK_HOME, version, 'ryugi-hook');
+  return cached && executable(cached) ? cached : null;
+}
+
+function requestHookInstall() {
+  try {
+    spawn(nodeBin(), [__filename, 'hook-install'], {
+      detached: true,
+      stdio: 'ignore',
+    }).unref();
+  } catch {}
+}
+
+async function hookInstall() {
+  const version = pluginVersion() || newestInstalled();
+  if (!valid(version) || executable(path.join(HOOK_HOME, version, 'ryugi-hook'))) return;
+  let cli = path.join(__dirname, 'cli.cjs');
+  try {
+    if (!fs.existsSync(cli)) cli = cliOf(resolveRelease());
+  } catch {
+    return;
+  }
+  spawnSync(nodeBin(), [cli, 'hook', 'install', version, '--background'], {
+    stdio: 'ignore',
+    timeout: 120000,
+  });
+}
+
 function main() {
   const args = process.argv.slice(2);
+  if (args[0] === 'hook-install') {
+    void hookInstall();
+    return;
+  }
   let sessionProof;
   const proofIndex = args.indexOf('--ryugi-session');
   if (proofIndex >= 0) {
@@ -244,104 +311,52 @@ function main() {
     env.RYUGI_ARTIFACTS_VERSION = localVersion();
   }
   requireOutputProtocol(cli);
-  let customHost = null;
-  try {
-    customHost = require('./custom-hosts.cjs').matchCustomHost(process.env);
-  } catch (error) {
-    if (error.code !== 'MODULE_NOT_FOUND')
-      console.error(JSON.stringify({ type: 'comment-watch-error', message: error.message }));
-  }
-  let subscription = null;
-  if (
-    customHost ||
+  const hook = hookBin();
+  const marked =
     sessionProof ||
     process.env.CODEX_THREAD_ID ||
-    process.env.CODEX_SESSION_ID ||
     process.env.CLAUDE_CODE_SESSION_ID ||
     process.env.PI_SESSION_ID ||
-    process.env.ANTIGRAVITY_CONVERSATION_ID
-  ) {
+    process.env.ANTIGRAVITY_CONVERSATION_ID;
+  let subscription = null;
+  if (hook) {
+    const prepared = spawnSync(
+      hook,
+      ['launch-prepare', ...(sessionProof ? ['--ryugi-session', sessionProof] : []), '--', ...args],
+      {
+        encoding: 'utf8',
+        env: { ...process.env, RYUGI_PLUGIN_ROOT: PLUGIN_ROOT },
+        stdio: ['ignore', 'pipe', 'inherit'],
+        timeout: 15000,
+      },
+    );
     try {
-      subscription = require('./comment-subscriptions.cjs').subscriptionFor(
-        args,
-        process.env,
-        sessionProof,
-      );
-    } catch (error) {
-      if (error.code !== 'MODULE_NOT_FOUND')
-        console.error(JSON.stringify({ type: 'comment-watch-error', message: error.message }));
-    }
-  }
-  const idx = args.indexOf('--project-dir');
-  const projectDir =
-    idx >= 0
-      ? args[idx + 1]
-      : args.find((arg) => arg.startsWith('--project-dir='))?.slice('--project-dir='.length);
-  if (customHost && (subscription || args[0] === 'start')) {
-    try {
-      require('./cmd-comment-watch.cjs').ensureWatch(
-        projectDir || process.cwd(),
-        customHost,
-        process.env,
-      );
+      subscription = prepared.stdout.trim() ? JSON.parse(prepared.stdout) : null;
     } catch {}
-  } else if (
-    !customHost &&
-    process.env.ANTIGRAVITY_CONVERSATION_ID &&
-    process.env.ANTIGRAVITY_LS_ADDRESS
-  ) {
-    try {
-      require('./agy-comment-watch.cjs').ensureWatch(projectDir || process.cwd(), process.env);
-    } catch {}
+  } else if (marked) {
+    requestHookInstall();
   }
   const given = Number(env.RYUGI_ARTIFACTS_OWNER);
   const owner = Number.isInteger(given) && given > 1 ? given : ownerPid();
   if (owner) env.RYUGI_ARTIFACTS_OWNER = String(owner);
-  const child = spawn(process.execPath, [cli, ...args], { env, stdio: 'inherit' });
+  const child = spawn(nodeBin(), [cli, ...args], { env, stdio: 'inherit' });
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));
-  child.on('close', async (code, signal) => {
+  child.on('close', (code, signal) => {
     process.exitCode = code ?? (signal ? 1 : 0);
-    if (subscription) await subscribe(subscription);
+    // The hub is running only once the CLI command has returned, so the subscription follows it.
+    if (subscription && hook)
+      spawnSync(hook, ['subscribe'], {
+        input: JSON.stringify(subscription),
+        stdio: ['pipe', 'ignore', 'inherit'],
+        timeout: 15000,
+      });
   });
-}
-
-// The hub is running only once the CLI command has returned, so the subscription follows it.
-async function subscribe(subscription) {
-  try {
-    const { hubProjectOf, postToHub, postToServer } = require('./agent-event.cjs');
-    await postToServer(hubProjectOf(subscription.project), '/api/agent/subscribe', subscription);
-    const defaultHome = path.join(os.homedir(), '.ryugi', 'server');
-    // The session's watcher dials the hub of the session's own environment, normally the default one, not the hub this command was pointed at.
-    if (
-      process.env.RYUGI_SERVER_HOME &&
-      path.resolve(process.env.RYUGI_SERVER_HOME) !== defaultHome
-    )
-      await postToHub(
-        path.join(defaultHome, 'server-info'),
-        subscription.project,
-        '/api/agent/subscribe',
-        subscription,
-      );
-  } catch (error) {
-    if (error.code !== 'MODULE_NOT_FOUND')
-      console.error(JSON.stringify({ type: 'comment-watch-error', message: error.message }));
-  }
 }
 
 // Copied on its own into installs, so it cannot require process-title.cjs.
 function setLauncherTitle() {
   if (win32) return;
-  const root = path.join(__dirname, '..', '..', '..');
-  const version = ['package.json', '.claude-plugin/plugin.json', '.codex-plugin/plugin.json']
-    .map((file) => {
-      try {
-        const manifest = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
-        return manifest.name === 'ryugi' ? manifest.version || null : null;
-      } catch {
-        return null;
-      }
-    })
-    .find(Boolean);
+  const version = pluginVersion();
   process.title = version ? `Ryugi launcher (${version})` : 'Ryugi launcher';
 }
 
@@ -356,4 +371,4 @@ function run() {
 
 if (require.main === module) run();
 
-module.exports = { npmCommand, run };
+module.exports = { nodeBin, npmCommand, run };
