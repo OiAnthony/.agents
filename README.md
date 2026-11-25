@@ -37,23 +37,6 @@ systematic-debugging → test-driven-development → verifying
 
 复杂变更使用 `brainstorming` 形成设计，再交给 `executing-specs` 实施。
 
-### 复杂变更
-
-需要设计和任务拆分的复杂变更，交给 OpenSpec：
-
-```mermaid
-flowchart LR
-    accTitle: OpenSpec 复杂变更工作流
-    accDescr: 从探索需求开始，依次生成提案、实施变更、独立审查，最后归档。
-
-    A[探索需求<br/>/openspec-explore] --> B[生成提案<br/>/openspec-propose]
-    B -->|new session| C[实施变更<br/>/openspec-apply-change]
-    C -->|new session| D[验证改动<br/>/verifying]
-    D -->|new session| E[归档变更<br/>/openspec-archive-change]
-```
-
-实现、审查和归档最好各开一个 session，免得实现过程影响后续判断。
-
 ## 仓库约定
 
 `skills/` 只保留运行时文件，不收录上游项目的网站、showcase、发布素材、缓存和本地生成状态。
@@ -67,4 +50,3 @@ flowchart LR
 ## 致谢
 
 - [Andrej Karpathy](https://x.com/karpathy/status/2015883857489522876) 与 [Karpathy-Inspired Claude Code Guidelines](https://github.com/multica-ai/andrej-karpathy-skills)：Agent 行为规范的早期来源
-- [OpenSpec](https://github.com/Fission-AI/OpenSpec)：规范驱动开发工作流

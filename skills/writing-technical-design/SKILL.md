@@ -99,4 +99,3 @@ license: Proprietary
 | 对外技术长文 / 公众号叙事 | `writing-technical-articles` |
 | 定稿去 AI 味 | `write` |
 | 重型机制图 | `archify` / `show-me` |
-| OpenSpec 变更提案 | `openspec-propose` / `openspec-explore` |
