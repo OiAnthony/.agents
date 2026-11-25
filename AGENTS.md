@@ -17,6 +17,12 @@ These defaults apply across projects. Follow the user's request, repository rule
 - Report exact paths, commands, observable results, assumptions, and unverified items. Do not present expected behavior as observed behavior.
 - When a final response cannot be scanned clearly in one terminal screen (e.g., lengthy reviews, reports, comparisons, walkthroughs, or verification tables), put the detail in a local `ryugi:artifacts` page using the matching type (`document`, `verify`, etc., editing in place for the same topic), open it in the default browser (preferring the local URL), and keep the terminal reply to the key conclusion, items needing input, and the exact `Open` URL.
 
+## Final Response
+
+- Lead with the answer to the user's real question, including implicit concerns supported by context, without expanding the explicit scope.
+- Emphasize answers, risks, and key actions sparingly with **bold text**. Emoji are optional and chosen by meaning; examples include ⚠️ for risks, ⛔ for blockers, and ✅ for completion, not an exhaustive list. Pair markers with clear text, not decoration.
+- Only when user action, choice, or authorization is needed, end with one concrete action on a separate line starting with `➜`; add nothing after it. Make the question explicit and give the recommendation and material tradeoff before that line. Complete agent-actionable work yourself. Otherwise, end without inventing a next step or repeating the conclusion.
+
 ## Investigation and implementation
 
 - Establish current behavior from source, configuration, tests, and runtime evidence. Treat memory and history as leads that require current verification.
