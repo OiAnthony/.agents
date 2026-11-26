@@ -21,12 +21,37 @@ ryugi_plugin_version() {
   return 1
 }
 
+ryugi_dev_plugin() {
+  local line rest link
+  link="${RYUGI_DEV_LINK:-${HOME:-}/.ryugi/dev.json}"
+  [ -r "$link" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      '  "plugin": "'*)
+        rest="${line#  \"plugin\": \"}"
+        rest="${rest%\"*}"
+        [ -n "$rest" ] || return 1
+        printf '%s\n' "$rest"
+        return 0
+        ;;
+    esac
+  done < "$link"
+  return 1
+}
+
 ryugi_hook_bin() {
-  local version candidate
+  local version candidate dev
   if [ -n "${RYUGI_HOOK_BIN:-}" ]; then
     [ -f "$RYUGI_HOOK_BIN" ] && [ -x "$RYUGI_HOOK_BIN" ] || return 1
     printf '%s\n' "$RYUGI_HOOK_BIN"
     return 0
+  fi
+  if dev="$(ryugi_dev_plugin)"; then
+    candidate="$dev/hook/target/release/ryugi-hook"
+    if [ -f "$candidate" ] && [ -x "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
   fi
   candidate="$1/hook/target/release/ryugi-hook"
   if [ -f "$candidate" ] && [ -x "$candidate" ]; then

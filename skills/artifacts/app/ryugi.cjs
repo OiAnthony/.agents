@@ -12,7 +12,7 @@ const outputBootstrap = require('./output-bootstrap.cjs');
 // `process.execPath` is only a JavaScript runtime under node/bun. Hosts that embed bun in a compiled
 // binary (omp.exe) report themselves, so spawning it with a script path starts a whole new host session.
 function nodeBin() {
-  return /(^|[\\/])(node|bun)(\.exe)?$/i.test(process.execPath) ? process.execPath : 'node';
+  return /(?:^|[\\/])(?:node|bun)(?:\.exe)?$/i.test(process.execPath) ? process.execPath : 'node';
 }
 
 const LATEST_CHECK_MS = 24 * 60 * 60 * 1000;
@@ -25,6 +25,7 @@ const RELEASES = path.join(
 const LATEST_FILE = path.join(RELEASES, 'latest.json');
 const PLUGIN_ROOT = path.join(__dirname, '..', '..', '..');
 const HOOK_HOME = path.join(os.homedir(), '.ryugi', 'hook');
+const DEV_LINK = process.env.RYUGI_DEV_LINK || path.join(os.homedir(), '.ryugi', 'dev.json');
 const win32 = process.platform === 'win32';
 
 const valid = (v) => /^\d+\.\d+\.\d+(?:[-+][0-9A-Z.-]+)?$/i.test(v || '');
@@ -67,17 +68,60 @@ function requireOutputProtocol(cli) {
     );
 }
 
-// The local checkout has no release version. Fingerprint the code that affects
-// the running server so start replaces an older process instead of reusing it.
+const LOCAL_FILES = [
+  'cli.cjs',
+  'document-engine.cjs',
+  'loro_wasm_bg.wasm',
+  win32 ? 'ryugi-daemon.exe' : 'ryugi-daemon',
+];
+const LOCAL_DIRS = ['viewer', 'runtime'];
+
+function treeOf(dir) {
+  let names = [];
+  try {
+    names = fs.readdirSync(dir, { recursive: true }).map(String).sort();
+  } catch {}
+  return names.flatMap((name) => {
+    try {
+      const stat = fs.statSync(path.join(dir, name));
+      return stat.isFile() ? [`${name}\0${stat.size}\0${stat.mtimeMs}\0`] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+// The local checkout has no release version. Fingerprint everything the hub runs (the CLI, the
+// Rust hub, the document engine and the viewer and runtime it serves) so start replaces an older
+// hub instead of reusing it. The served trees are fingerprinted by size and mtime, not content,
+// because the launcher runs on every command.
 function localVersion() {
   const hash = nodeCrypto.createHash('sha256');
-  for (const name of ['cli.cjs', 'server.cjs']) {
+  for (const name of LOCAL_FILES) {
     try {
       hash.update(`${name}\0`);
       hash.update(fs.readFileSync(path.join(__dirname, name)));
     } catch {}
   }
+  for (const dir of LOCAL_DIRS)
+    for (const entry of treeOf(path.join(__dirname, dir))) hash.update(`${dir}/${entry}`);
   return `local-${hash.digest('hex').slice(0, 12)}`;
+}
+
+// `ryugi dev link` points every launcher on the machine, whichever plugin copy holds it, at one
+// frozen local build.
+function devLink() {
+  try {
+    const link = JSON.parse(fs.readFileSync(DEV_LINK, 'utf8'));
+    if (
+      typeof link.build === 'string' &&
+      typeof link.plugin === 'string' &&
+      typeof link.version === 'string' &&
+      fs.existsSync(path.join(link.build, 'cli.cjs'))
+    )
+      return link;
+  } catch {}
+  return null;
 }
 
 class LaunchError extends Error {}
@@ -245,6 +289,9 @@ const executable = (file) => {
 function hookBin() {
   if (process.env.RYUGI_HOOK_BIN)
     return executable(process.env.RYUGI_HOOK_BIN) ? process.env.RYUGI_HOOK_BIN : null;
+  const dev = devLink();
+  const linked = dev && path.join(dev.plugin, 'hook', 'target', 'release', 'ryugi-hook');
+  if (linked && executable(linked)) return linked;
   const local = path.join(PLUGIN_ROOT, 'hook', 'target', 'release', 'ryugi-hook');
   if (executable(local)) return local;
   const version = pluginVersion();
@@ -303,7 +350,11 @@ function main() {
     RYUGI_ARTIFACTS_COMMAND: `node "${__filename}"${sessionProof ? ` --ryugi-session ${sessionProof}` : ''}`,
   };
   let cli = local;
-  if (!fs.existsSync(local)) {
+  const dev = devLink();
+  if (dev) {
+    cli = path.join(dev.build, 'cli.cjs');
+    env.RYUGI_ARTIFACTS_VERSION = dev.version;
+  } else if (!fs.existsSync(local)) {
     const version = resolveRelease();
     cli = cliOf(version);
     env.RYUGI_ARTIFACTS_VERSION = version;
@@ -318,6 +369,9 @@ function main() {
     process.env.CLAUDE_CODE_SESSION_ID ||
     process.env.PI_SESSION_ID ||
     process.env.ANTIGRAVITY_CONVERSATION_ID;
+  // Only the current hook may bind this CLI process to a writer.
+  delete env.RYUGI_WRITER_HOST;
+  delete env.RYUGI_WRITER_AGENT;
   let subscription = null;
   if (hook) {
     const prepared = spawnSync(
@@ -331,7 +385,13 @@ function main() {
       },
     );
     try {
-      subscription = prepared.stdout.trim() ? JSON.parse(prepared.stdout) : null;
+      const binding = prepared.stdout.trim() ? JSON.parse(prepared.stdout) : null;
+      if (binding?.host && binding?.session) {
+        env.RYUGI_WRITER_HOST = binding.host;
+        // The hook names the agent; the CLI uses this name for authorship and read state.
+        if (binding.agent) env.RYUGI_WRITER_AGENT = binding.agent;
+      }
+      if (binding?.artifact) subscription = binding;
     } catch {}
   } else if (marked) {
     requestHookInstall();

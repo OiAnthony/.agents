@@ -74,7 +74,7 @@ function renderToSvg(dotContent) {
   try {
     return execFileSync('dot', ['-Tsvg'], {
       input: dotContent,
-      encoding: 'utf-8',
+      encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,
     });
   } catch (err) {

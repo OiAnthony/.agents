@@ -81,10 +81,10 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/tt-a1i/archify.git",
       "skillPath": "archify/SKILL.md",
-      "skillFolderHash": "193c697e93622c9a306567d0d84c7b23a15f2e24",
+      "skillFolderHash": "e91df37318f9adec8b39150a2738beb4cd22bad5",
       "installedAt": "2026-08-03T08:52:58.286Z",
-      "updatedAt": "2026-11-25T01:09:12.255Z",
-      "commit": "62f3a995eb26ee23f784bdea4a7992340078e9be"
+      "updatedAt": "2026-11-26T01:41:27.968Z",
+      "commit": "d6b0f71f25a3337ed2fcd09c973cacf67be7baba"
     },
     "find-evermind-skills": {
       "source": "OiAnthony/find-evermind-skills",
@@ -159,10 +159,10 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/pbakaus/impeccable.git",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "skillFolderHash": "c4298d9d001a41c9c2a3797fddee509bc4dd7ba0",
+      "skillFolderHash": "235e068f9d3fc2402691a14e3e0f4b8ca4b070cb",
       "installedAt": "2026-10-28T12:11:34.745Z",
-      "updatedAt": "2026-11-19T01:02:26.914Z",
-      "commit": "b49177d32788f2dc585c42831d845dacf1ebed2c"
+      "updatedAt": "2026-11-26T01:41:28.902Z",
+      "commit": "2fc5e1459efbbf06d92c7306517c286bf12490cf"
     },
     "emil-design-eng": {
       "source": "emilkowalski/skills",
@@ -195,12 +195,12 @@
       "source": "Innei/ryugi",
       "sourceType": "github",
       "sourceUrl": "https://github.com/Innei/ryugi.git",
-      "commit": "3bdef4c8efbbb8e655e16d7bbd0c9ad4ea14b8d9",
+      "commit": "6fd20b48a4a39f19438a0427ece0146a6341d17c",
       "skillPath": "skills/artifacts/SKILL.md",
-      "skillFolderHash": "131aa33967b386737db90a8af0063eb3c695eae7",
+      "skillFolderHash": "e24b0c7c797d43b6230ca4883782b1f99a024281",
       "pluginName": "ryugi-artifacts",
       "installedAt": "2026-11-17T11:18:26.858Z",
-      "updatedAt": "2026-11-25T01:09:12.395Z"
+      "updatedAt": "2026-11-26T01:41:29.136Z"
     },
     "interface-craft": {
       "source": "Innei/ryugi",
@@ -267,11 +267,11 @@
       "source": "Innei/ryugi",
       "sourceType": "github",
       "sourceUrl": "https://github.com/Innei/ryugi.git",
-      "commit": "3bdef4c8efbbb8e655e16d7bbd0c9ad4ea14b8d9",
+      "commit": "6fd20b48a4a39f19438a0427ece0146a6341d17c",
       "skillPath": "skills/using-ryugi/SKILL.md",
-      "skillFolderHash": "2b2e03605cfd4a9024e2f6ef34266cc3fafe3e03",
+      "skillFolderHash": "3caac957b56f6530ea0303ce81464c87646048d4",
       "installedAt": "2026-11-18T14:20:58.576Z",
-      "updatedAt": "2026-11-25T01:09:12.571Z"
+      "updatedAt": "2026-11-26T01:41:29.364Z"
     },
     "verifying": {
       "source": "Innei/ryugi",
@@ -287,11 +287,11 @@
       "source": "Innei/ryugi",
       "sourceType": "github",
       "sourceUrl": "https://github.com/Innei/ryugi.git",
-      "commit": "60209ae4e667e3f3142724721e553c5e9216bab5",
+      "commit": "6fd20b48a4a39f19438a0427ece0146a6341d17c",
       "skillPath": ".claude/skills/writing-skills/SKILL.md",
-      "skillFolderHash": "f63b0d66dc3fdabd136638967f95bdc5134d8447",
+      "skillFolderHash": "91cba5ce65dec33cf7fc3b092774867057c3458e",
       "installedAt": "2026-11-18T14:20:58.578Z",
-      "updatedAt": "2026-11-18T14:20:58.578Z"
+      "updatedAt": "2026-11-26T01:41:29.580Z"
     }
   },
   "dismissed": {

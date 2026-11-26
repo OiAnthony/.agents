@@ -25,6 +25,7 @@ Ryugi Cloud.
 | A business space — several screens, dimensions, states or questions at once                         | `artboard`                 |
 | Whether a built screen matches what was approved                                                    | `artboard`, a verify group |
 | What you proved by running it: output, numbers, a deployment; what you did not verify               | `verify`                   |
+| Numbers that come from data and should stay current — metrics, a dashboard, a data analysis         | `report`                   |
 | A product demo video to plan, cut on a multitrack timeline and export — a launch film, a tutorial   | `storyboard`               |
 | Nothing to see                                                                                      | text                       |
 
@@ -52,10 +53,13 @@ node app/ryugi.cjs start --background --project-dir /path/to/project --artifact 
 Run it before a new artifact's first file so they can see it take shape.
 Add `--mockup` when the artifact will show phone screens: the writing
 description then includes the device mockup guide.
-Read the result: project, artifact, native `Write` path, content state, actual
+Read the result: project, artifact, native source path, content state, actual
 CLI/server versions, link state, and Check command. When content is missing,
 the same response contains the complete, coherent writing description for that
-type. Use its full block set and constraints; write with your file-editing tool.
+type. Use its full block set and constraints. For documents, edit a temporary
+LiteXML copy and run the printed `Save` command through the launcher. For an
+existing document, pass the untouched pre-edit copy as `--base`. This captures
+the agent making the revision. For other types, edit the native file directly.
 The CLI package owns formats and examples. No separate format file is a gate.
 
 Existing content omits the manual. Retrieve the same complete writing description

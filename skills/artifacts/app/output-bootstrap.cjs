@@ -567,6 +567,8 @@ function resolveSelection(argv) {
 		"foreground": { "type": "boolean" },
 		"background": { "type": "boolean" },
 		"mockup": { "type": "boolean" },
+		"base": { "type": "string" },
+		"input": { "type": "string" },
 		"page": { "type": "string" },
 		"visibility": { "type": "string" },
 		"type": { "type": "string" },
@@ -658,7 +660,8 @@ function resolveSelection(argv) {
 		"no-cli": { "type": "boolean" },
 		"bin-dir": { "type": "string" },
 		"binary": { "type": "string" },
-		"label": { "type": "string" }
+		"label": { "type": "string" },
+		"plugin": { "type": "string" }
 	}, configuredEnvironment(argv, {
 		"format": { "type": "string" },
 		"json": { "type": "boolean" },
@@ -676,6 +679,8 @@ function resolveSelection(argv) {
 		"foreground": { "type": "boolean" },
 		"background": { "type": "boolean" },
 		"mockup": { "type": "boolean" },
+		"base": { "type": "string" },
+		"input": { "type": "string" },
 		"page": { "type": "string" },
 		"visibility": { "type": "string" },
 		"type": { "type": "string" },
@@ -767,7 +772,8 @@ function resolveSelection(argv) {
 		"no-cli": { "type": "boolean" },
 		"bin-dir": { "type": "string" },
 		"binary": { "type": "string" },
-		"label": { "type": "string" }
+		"label": { "type": "string" },
+		"plugin": { "type": "string" }
 	}));
 }
 function reportFailure(argv, error, selection) {
@@ -792,6 +798,8 @@ function reportFailure(argv, error, selection) {
 			"foreground": { "type": "boolean" },
 			"background": { "type": "boolean" },
 			"mockup": { "type": "boolean" },
+			"base": { "type": "string" },
+			"input": { "type": "string" },
 			"page": { "type": "string" },
 			"visibility": { "type": "string" },
 			"type": { "type": "string" },
@@ -883,7 +891,8 @@ function reportFailure(argv, error, selection) {
 			"no-cli": { "type": "boolean" },
 			"bin-dir": { "type": "string" },
 			"binary": { "type": "string" },
-			"label": { "type": "string" }
+			"label": { "type": "string" },
+			"plugin": { "type": "string" }
 		});
 	}
 	const message = error instanceof Error ? error.message : String(error);

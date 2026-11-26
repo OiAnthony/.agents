@@ -40,4 +40,4 @@ Write in the language your human partner writes to you, after compaction too; id
 
 ## Platform Adaptation
 
-Read your harness's file first: Codex `references/codex-tools.md`, Pi `references/pi-tools.md`, Antigravity `references/antigravity-tools.md`, Hermes Agent `references/hermes-tools.md`, Muse `references/muse-tools.md`, DeepSeek Harness `references/dsh-tools.md`.
+Read your harness's file first: Codex `references/codex-tools.md`, Pi `references/pi-tools.md`, Antigravity `references/antigravity-tools.md`, Hermes Agent `references/hermes-tools.md`, Muse `references/muse-tools.md`, DeepSeek Harness `references/dsh-tools.md`, OMP `references/omp-tools.md`.

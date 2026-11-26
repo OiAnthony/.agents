@@ -23,4 +23,4 @@ Skills speak in actions ("invoke a skill", "dispatch a subagent", "create a todo
 
 ## Live comment delivery
 
-When a project has `.ryugi/artifacts/`, `dsh-plugin-ryugi` opens a Ryugi Hub channel for the active session and delivers browser comments, choice submissions, and document answers directly into the DSH session via `agent.followup` (when idle) or `agent.inject` (when running). Prefix `ryugi.cjs start --artifact ...` with the session's `PI_SESSION_ID` printed in the bootstrap mapping so the server subscribes the current DSH session.
+When a project has `.ryugi/artifacts/`, `dsh-plugin-ryugi` opens a Ryugi Hub channel for the active session and delivers browser comments, choice submissions, and document answers directly into the DSH session via `agent.followup` (when idle) or `agent.inject` (when running). Prefix every `ryugi.cjs` command with `AI_AGENT=dsh` and the session's `PI_SESSION_ID` printed in the bootstrap mapping: the session id subscribes the current DSH session, and `AI_AGENT=dsh` signs the replies and keeps the read state as DeepSeek Harness instead of Pi, the other agent on the same channel.
