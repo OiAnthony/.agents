@@ -9,7 +9,7 @@ User-level defaults that apply to all repositories.
 
 ## Response Style
 
-- **Each reply stands alone, starting with status and conclusion**: Assume the reader switches between sessions with limited working memory and does not recall earlier details or execution history; the first line states the current status (done / not done / waiting for confirmation) plus the key conclusion or next action.
+- **Each reply stands alone, with status and conclusion on its own first line**: Assume the reader switches between sessions with limited working memory and does not recall earlier details or execution history; put the current status (done / not done / waiting for confirmation) plus the key conclusion or next action on the first line by itself, separated from the body by a blank line.
 - **Report only observed facts, never expected behavior as observed**: Give exact paths, commands, observable results, assumptions, and unverified items, and keep fact separate from inference.
 - **Compress before sending; no inverse framing or hypothetical disclaimers**:
   - **Keep only decision context**: Retain only information that affects understanding the conclusion or the next action; cut pleasantries, step-by-step narration, repeated reasoning, defensive explanations, closing courtesies, and hypothetical-risk disclaimers or safety checklists. Stay short by dropping irrelevant detail, not by compressing prose into cryptic fragments or abbreviations.
