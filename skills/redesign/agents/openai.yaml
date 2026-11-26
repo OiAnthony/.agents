@@ -1,0 +1,5 @@
+interface:
+  display_name: "Redesign"
+  short_description: "Early-stage codebase: act as owner, embrace breaking changes, design freely"
+policy:
+  allow_implicit_invocation: false
